@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import QrCode from './QrCode'
 import SeatMap, { type SeatCell } from './SeatMap'
 import { Button, ErrorBox, Spinner } from './ui'
 import { assignSeat, clearSeat, listSeats, listStudents, updateClass } from '../lib/api'
@@ -14,6 +15,8 @@ export default function SeatPanel({ cls, onClassChange }: {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [moving, setMoving] = useState<string | null>(null)
+  const [showQr, setShowQr] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const reload = () => {
     setLoading(true)
@@ -79,13 +82,49 @@ export default function SeatPanel({ cls, onClassChange }: {
           </p>
           <p className="mt-1 break-all font-mono text-xs text-slate-500">{pickUrl}</p>
         </div>
-        <Button variant="secondary" onClick={() => navigator.clipboard?.writeText(pickUrl)}>
-          複製連結
+        <Button
+          variant="secondary"
+          onClick={() => {
+            void navigator.clipboard?.writeText(pickUrl)
+            setCopied(true)
+            setTimeout(() => setCopied(false), 2000)
+          }}
+        >
+          {copied ? '已複製 ✓' : '複製連結'}
         </Button>
+        <Button variant="secondary" onClick={() => setShowQr(true)}>顯示 QR code</Button>
         <Button onClick={togglePicking}>
           {cls.seat_picking_open ? '關閉選位' : '開放選位'}
         </Button>
       </div>
+
+      {showQr && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="選位 QR code"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 p-6"
+          onClick={() => setShowQr(false)}
+        >
+          <div
+            className="max-w-lg space-y-4 rounded-2xl bg-white p-8 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold">{cls.name} 座位登記</h3>
+            {!cls.seat_picking_open && (
+              <p className="rounded-lg bg-amber-50 p-2 text-sm text-amber-900">
+                選位目前尚未開放，學生掃了也無法選位。
+              </p>
+            )}
+            <div className="flex justify-center">
+              <QrCode value={pickUrl} size={280} />
+            </div>
+            <p className="break-all font-mono text-xs text-slate-500">{pickUrl}</p>
+            <p className="text-sm text-slate-600">請同學用手機掃描，或直接開啟上面的連結</p>
+            <Button variant="secondary" onClick={() => setShowQr(false)}>關閉</Button>
+          </div>
+        </div>
+      )}
 
       {moving && (
         <div className="flex items-center gap-3 rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
