@@ -24,12 +24,21 @@ jobs:
           node-version: 20
           cache: npm
       - run: npm ci
+
+      # Supabase 連線設定放在版控中的 .env（publishable key 本來就會出現在
+      # 前端 bundle，資料安全靠 RLS 保護）。
+      # 這裡刻意不用 env: ${{ vars.XXX }} 覆蓋：未設定的 repo variable 會展開成
+      # 空字串並蓋掉 .env 的值，建出一份開啟即白畫面的 bundle。
+      # 若日後要輪替金鑰，直接改 .env 即可。
       - name: Build
-        env:
-          # 若日後輪替金鑰，在 repo 的 Settings → Variables 設定同名變數即可覆蓋 .env
-          VITE_SUPABASE_URL: ${{ vars.VITE_SUPABASE_URL }}
-          VITE_SUPABASE_ANON_KEY: ${{ vars.VITE_SUPABASE_ANON_KEY }}
         run: npm run build
+
+      - name: 確認建置產物含 index.html 與 Supabase 設定
+        run: |
+          test -f dist/index.html || { echo "dist/index.html 不存在"; exit 1; }
+          grep -q 'supabase.co' dist/assets/*.js || { echo "bundle 內找不到 Supabase 設定"; exit 1; }
+          echo "建置產物檢查通過"
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: dist
