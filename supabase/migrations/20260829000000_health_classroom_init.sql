@@ -38,28 +38,40 @@ create trigger hc_teachers_touch
   before update on public.hc_teachers
   for each row execute function public.hc_touch_updated_at();
 
--- 新使用者註冊時自動建立教師檔案
-create or replace function public.hc_handle_new_user()
-returns trigger
+-- 教師檔案採「首次登入時延遲建立」，不在共用的 auth.users 上掛 trigger。
+-- 本專案與其他應用共用同一組 auth，掛 trigger 會讓其他 app 的使用者
+-- 也被建立 hc_teachers 資料列，因此改由前端登入後呼叫此 RPC。
+create or replace function public.hc_ensure_teacher()
+returns public.hc_teachers
 language plpgsql
 security definer
 set search_path = public, pg_temp
 as $$
+declare
+  v_uid   uuid := auth.uid();
+  v_user  auth.users;
+  v_row   public.hc_teachers;
 begin
+  if v_uid is null then
+    raise exception 'not_authenticated' using errcode = 'P0010';
+  end if;
+
+  select * into v_user from auth.users where id = v_uid;
+
   insert into public.hc_teachers (id, email, display_name)
   values (
-    new.id,
-    coalesce(new.email, ''),
-    coalesce(new.raw_user_meta_data ->> 'full_name', split_part(coalesce(new.email, ''), '@', 1))
+    v_uid,
+    coalesce(v_user.email, ''),
+    coalesce(v_user.raw_user_meta_data ->> 'full_name',
+             split_part(coalesce(v_user.email, ''), '@', 1))
   )
-  on conflict (id) do nothing;
-  return new;
+  on conflict (id) do update
+    set email = excluded.email
+  returning * into v_row;
+
+  return v_row;
 end;
 $$;
-
-create trigger hc_on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.hc_handle_new_user();
 
 
 -- ---------------------------------------------------------------------------
@@ -723,6 +735,8 @@ revoke all on public.hc_student_scores from anon;
 --     RLS policy 的運算式是以「呼叫者的身分」執行的，若對 PUBLIC 收回 EXECUTE，
 --     authenticated 查詢自己的資料時會直接噴 permission denied（已實測驗證）。
 --     兩者對 anon 而言 auth.uid() 為 null，一律回傳 false，不構成資料外洩。
+
+grant execute on function public.hc_ensure_teacher() to authenticated;
 
 grant execute on function
   public.hc_seat_picking_info(text),

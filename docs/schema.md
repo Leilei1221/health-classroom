@@ -60,8 +60,10 @@ Migration：`supabase/migrations/20260829000000_health_classroom_init.sql`
 - 教師只看得到自己的班級；跨班讀、寫、改一律擋下。
 - 所有掛 `class_id` 的表走 `hc_owns_class()`；掛 `lesson_id` 的表再往上查一層。
 - `hc_is_admin()` / `hc_owns_class()` 為 `SECURITY DEFINER`，避免 policy 遞迴。
-  兩者刻意保留 PUBLIC 的 EXECUTE：policy 運算式以呼叫者身分執行，若對 PUBLIC
-  收回權限，authenticated 連自己的資料都讀不到（已實測）。
+  兩者對 PUBLIC 與 anon 收回 EXECUTE，只授權給 `authenticated`。
+  注意 policy 運算式是以「呼叫者的角色」執行的，所以 authenticated 的明確授權
+  不可省略；另外 Supabase 的 default privileges 會自動把新函式授權給 anon，
+  僅對 PUBLIC 收回並不足夠，必須對 anon 另外 revoke。
 
 ## 驗證
 
@@ -71,3 +73,17 @@ Migration：`supabase/migrations/20260829000000_health_classroom_init.sql`
 - RLS 隔離：跨教師讀取、UPDATE、INSERT 全數被擋
 - `anon` 讀 table 被拒、但可正常呼叫選位 RPC
 - 14 張表全數啟用 RLS
+
+### 線上驗證（正式專案 fcstpyiggvhduaztwlrf）
+
+migration 套用後以 `anon` 角色實測，六項全數被擋：
+
+| 探測 | 結果 |
+|---|---|
+| 讀 `hc_students` / `hc_classes` | permission denied for table |
+| 讀 `hc_student_scores` | permission denied for view |
+| 呼叫 `hc_ensure_teacher` / `hc_is_admin` | permission denied for function |
+| 猜 `join_code` | invalid_code |
+
+Supabase security advisor：**0 個 ERROR**。剩餘 WARN 為選位 RPC 對 anon 開放，
+屬本系統的刻意設計。
