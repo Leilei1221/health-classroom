@@ -50,3 +50,20 @@ npm run dev
 
 Schema 與說明見 [`docs/schema.md`](docs/schema.md)，
 migration 位於 `supabase/migrations/`（已套用至正式專案）。
+
+### 破壞性 migration 的上線順序
+
+前端與資料庫是分開部署的：migration 一套用就立即生效，前端則要等合併進
+`main`、GitHub Actions 跑完才會更新。
+
+**移除或改名欄位屬於破壞性變更**，若先套用 migration，線上的舊前端會立刻
+壞掉（例如出現 `Could not find the 'seat_cols' column of 'hc_classes' in
+the schema cache`）。
+
+因此破壞性變更請照這個順序：
+
+1. 先把前端改好、合併進 `main`，等部署完成
+2. 再套用 migration
+
+或者拆成兩段相容的 migration：先新增新欄位（新舊並存），前端上線後再刪舊欄位。
+只是新增欄位的 migration 沒有這個問題，可以直接套用。
