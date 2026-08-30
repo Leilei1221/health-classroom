@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { Suspense, lazy, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth'
 import Layout from '../components/Layout'
@@ -6,6 +6,10 @@ import { Button, Empty, ErrorBox, Field, Spinner, inputClass } from '../componen
 import { createClass, listClasses } from '../lib/api'
 import { friendlyError } from '../lib/errors'
 import type { ClassRow } from '../lib/types'
+
+// Excel 解析器約 60kB，只有老師匯入名單時才需要；
+// 分開打包，學生開選位頁時不必下載。
+const ImportPanel = lazy(() => import('../components/ImportPanel'))
 
 /** 民國學年度：8 月起算新學年 */
 function currentAcademicYear(): number {
@@ -20,14 +24,15 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showForm, setShowForm] = useState(false)
+  const [showImport, setShowImport] = useState(false)
 
   const [form, setForm] = useState({
     academic_year: currentAcademicYear(),
     semester: 1,
     name: '',
     grade: 1,
-    seat_rows: 6,
-    seat_cols: 6,
+    group_count: 7,
+    group_capacity: 5,
   })
 
   const reload = () => {
@@ -64,12 +69,25 @@ export default function Dashboard() {
     <Layout title="我的班級">
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-slate-500">共 {classes.length} 個班級</p>
-        <Button onClick={() => setShowForm((v) => !v)}>
-          {showForm ? '取消' : '+ 新增班級'}
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => { setShowImport((v) => !v); setShowForm(false) }}>
+            {showImport ? '取消匯入' : '匯入 Excel 名單'}
+          </Button>
+          <Button onClick={() => { setShowForm((v) => !v); setShowImport(false) }}>
+            {showForm ? '取消' : '+ 新增班級'}
+          </Button>
+        </div>
       </div>
 
       {error && <div className="mb-4"><ErrorBox message={error} /></div>}
+
+      {showImport && (
+        <div className="mb-6">
+          <Suspense fallback={<Spinner label="載入匯入工具…" />}>
+            <ImportPanel onDone={reload} />
+          </Suspense>
+        </div>
+      )}
 
       {showForm && (
         <div className="mb-6 space-y-4 rounded-xl border border-slate-200 bg-white p-4">
@@ -99,15 +117,18 @@ export default function Dashboard() {
               onChange={(e) => setForm({ ...form, name: e.target.value })} />
           </Field>
           <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="座位圖列數">
-              <input type="number" min={1} max={20} className={inputClass} value={form.seat_rows}
-                onChange={(e) => setForm({ ...form, seat_rows: +e.target.value })} />
+            <Field label="組數">
+              <input type="number" min={1} max={12} className={inputClass} value={form.group_count}
+                onChange={(e) => setForm({ ...form, group_count: +e.target.value })} />
             </Field>
-            <Field label="座位圖行數">
-              <input type="number" min={1} max={20} className={inputClass} value={form.seat_cols}
-                onChange={(e) => setForm({ ...form, seat_cols: +e.target.value })} />
+            <Field label="每組人數上限">
+              <input type="number" min={1} max={10} className={inputClass} value={form.group_capacity}
+                onChange={(e) => setForm({ ...form, group_capacity: +e.target.value })} />
             </Field>
           </div>
+          <p className="text-xs text-slate-500">
+            標準 7 組、每組 5 人（U 字型：左 2、右 2、桌子後端 1）；308 班為 8 組。
+          </p>
           <Button onClick={submit}>建立班級</Button>
         </div>
       )}
@@ -133,7 +154,7 @@ export default function Dashboard() {
                     )}
                   </div>
                   <p className="mt-1 text-xs text-slate-500">
-                    座位圖 {c.seat_rows} × {c.seat_cols}
+                    {c.group_count} 組 · 每組 {c.group_capacity} 人
                   </p>
                 </Link>
               ))}

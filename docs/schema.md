@@ -9,9 +9,9 @@ Migration：`supabase/migrations/20260829000000_health_classroom_init.sql`
 | # | Table | 用途 |
 |---|---|---|
 | 1 | `hc_teachers` | 教師，PK 對應 `auth.users.id`；註冊時由 trigger 自動建檔 |
-| 2 | `hc_classes` | 授課班級（學年度＋學期＋班名），含座位圖尺寸與 `join_code` |
+| 2 | `hc_classes` | 授課班級（學年度＋學期＋班名），含分組設定與 `join_code` |
 | 3 | `hc_students` | 學生名單，Excel 匯入目標；轉學休學以 `is_active` 停用而非刪除 |
-| 4 | `hc_seat_assignments` | 座位登記，一生一位、一位一生（學期固定） |
+| 4 | `hc_seat_assignments` | 座位登記，以 `(group_no, seat_slot)` 定位，一生一位、一位一生 |
 | 5 | `hc_lessons` | 每一堂課（班級＋日期＋節次） |
 | 6 | `hc_attendance_statuses` | 點名狀態字典（5 種，扣分值可調） |
 | 7 | `hc_attendance` | 點名紀錄，每堂課每生一筆 |
@@ -23,6 +23,34 @@ Migration：`supabase/migrations/20260829000000_health_classroom_init.sql`
 | 13 | `hc_sync_log` | Google Sheets 匯出紀錄 |
 | 14 | `hc_settings` | 設定，可掛教師層級或班級層級 |
 | view | `hc_student_scores` | 學生總分＝出缺席分＋表現分 |
+
+## 分組座位
+
+教室為分組討論桌，不是列×行格子，因此建立班級時填的是「組數」與「每組人數上限」。
+
+| 設定 | 預設 | 說明 |
+|---|---|---|
+| `group_count` | 7 | 分組數；308 班為 8 組 |
+| `group_capacity` | 5 | 每組人數上限 |
+
+每組 U 字型就座：**左 2、右 2、桌子後端 1**。
+`seat_slot` 為 1 起算的連續整數，落在 U 的哪一段由前端 `src/lib/seating.ts` 決定
+（左側由上而下、接右側由上而下、最後一個為後端），資料庫只保證同組內不重複。
+
+兩排擺放與教室實際佈置一致：上排 `floor(n/2)` 組、下排其餘。7 組＝上 3 下 4，8 組＝上 4 下 4。
+
+搶位由 unique constraint `(class_id, group_no, seat_slot)` 在資料庫層擋下。
+
+## Excel 名單匯入
+
+`hc_import_roster(p_payload jsonb)` 依「班級」欄自動建立班級並寫入學生。
+
+- 欄位：**班級、座號、學號、姓名**（座號可缺），第一列為標題列；支援 .xlsx 與 .csv
+- 同一個 `(class_id, student_no)` 視為同一位學生，重複匯入為更新而非新增
+- 每個班級可有各自的組數，因此 308 可設 8 組而其餘維持 7 組
+- 刻意使用 **SECURITY INVOKER**：以呼叫的教師身分執行，RLS 照常生效，
+  教師只能建立／修改自己的班級；`anon` 無執行權限
+- 每次匯入寫一筆 `hc_import_batches`，含新增／更新筆數與各班摘要
 
 ## 點名狀態
 
@@ -44,16 +72,13 @@ Migration：`supabase/migrations/20260829000000_health_classroom_init.sql`
 安全模型：`anon` 角色對**所有** `hc_` table 都被 `REVOKE`，只被授權執行三個
 `SECURITY DEFINER` RPC，全部要求正確的 `join_code`：
 
-- `hc_seat_picking_info(code)` — 取得班級、學生清單、已occupied座位
-- `hc_claim_seat(code, student_id, row, col, student_no?)` — 選位／改位
+- `hc_seat_picking_info(code)` — 取得班級分組設定、學生清單、已佔用座位
+- `hc_claim_seat(code, student_id, group_no, seat_slot, student_no?)` — 選位／改位
 - `hc_release_seat(code, student_id)` — 放棄座位
 
 `join_code` 為 `gen_random_bytes(9)` 的 base64（約 72 bits），無法暴力猜測。
 未開放選位（`seat_picking_open = false`）時 RPC 一律拒絕，等於老師手上的開關。
 `seat_picking_require_student_no` 開啟後需再輸入學號後三碼，預設關閉。
-
-搶位以 unique constraint `(class_id, seat_row, seat_col)` 在資料庫層擋下，
-不靠前端檢查，因此併發下不會兩人選到同一位。
 
 ## RLS
 

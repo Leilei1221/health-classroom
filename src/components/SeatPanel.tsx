@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
+import GroupSeatMap, { type SeatOccupant } from './GroupSeatMap'
 import QrCode from './QrCode'
-import SeatMap, { type SeatCell } from './SeatMap'
 import { Button, ErrorBox, Spinner } from './ui'
 import { assignSeat, clearSeat, listSeats, listStudents, updateClass } from '../lib/api'
 import { friendlyError } from '../lib/errors'
@@ -35,20 +35,17 @@ export default function SeatPanel({ cls, onClassChange }: {
     } catch (e) { setError(friendlyError(e)) }
   }
 
-  const onCellClick = async (row: number, col: number) => {
-    const occupant = seats.find((s) => s.seat_row === row && s.seat_col === col)
+  const onSeatClick = async (groupNo: number, seatSlot: number) => {
+    const occupant = seats.find((s) => s.group_no === groupNo && s.seat_slot === seatSlot)
     try {
       if (moving) {
-        await assignSeat(cls.id, moving, row, col)
+        await assignSeat(cls.id, moving, groupNo, seatSlot)
         setMoving(null)
+        reload()
       } else if (occupant) {
         // 點已有人的位子＝選取該生準備調位
         setMoving(occupant.student_id)
-        return
-      } else {
-        return
       }
-      reload()
     } catch (e) {
       setError(friendlyError(e))
       reload()
@@ -58,16 +55,12 @@ export default function SeatPanel({ cls, onClassChange }: {
   const unseated = students.filter((s) => !seats.some((x) => x.student_id === s.id))
   const nameOf = (id: string) => students.find((s) => s.id === id)?.name ?? '（已移除）'
 
-  const cells: SeatCell[] = [
-    ...cls.disabled_seats.map((d) => ({ row: d.row, col: d.col, state: 'disabled' as const })),
-    ...seats.map((s) => ({
-      row: s.seat_row,
-      col: s.seat_col,
-      label: nameOf(s.student_id),
-      sublabel: s.assigned_by === 'teacher' ? '老師調位' : undefined,
-      state: (s.student_id === moving ? 'mine' : 'taken') as SeatCell['state'],
-    })),
-  ]
+  const occupants: SeatOccupant[] = seats.map((s) => ({
+    group_no: s.group_no,
+    seat_slot: s.seat_slot,
+    label: nameOf(s.student_id),
+    state: s.student_id === moving ? 'selected' : 'taken',
+  }))
 
   if (loading) return <Spinner />
 
@@ -79,6 +72,9 @@ export default function SeatPanel({ cls, onClassChange }: {
         <div className="flex-1">
           <p className="text-sm font-medium">
             學生選位：{cls.seat_picking_open ? '開放中' : '已關閉'}
+            <span className="ml-2 text-slate-400">
+              {cls.group_count} 組 · 每組 {cls.group_capacity} 人
+            </span>
           </p>
           <p className="mt-1 break-all font-mono text-xs text-slate-500">{pickUrl}</p>
         </div>
@@ -134,8 +130,13 @@ export default function SeatPanel({ cls, onClassChange }: {
       )}
 
       <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <SeatMap rows={cls.seat_rows} cols={cls.seat_cols} cells={cells} onSelect={onCellClick} />
-        <p className="mt-3 text-xs text-slate-500">
+        <GroupSeatMap
+          groupCount={cls.group_count}
+          groupCapacity={cls.group_capacity}
+          occupants={occupants}
+          onSelect={onSeatClick}
+        />
+        <p className="mt-4 text-center text-xs text-slate-500">
           點有人的位子可選取該生調位；選取後再點空位即完成調動。
         </p>
       </div>
@@ -152,7 +153,7 @@ export default function SeatPanel({ cls, onClassChange }: {
                 onClick={() => setMoving(s.id)}
                 className={`rounded-full border px-3 py-1 text-sm transition ${
                   moving === s.id
-                    ? 'border-emerald-500 bg-emerald-50 text-emerald-800'
+                    ? 'border-amber-500 bg-amber-50 text-amber-900'
                     : 'border-slate-300 bg-white hover:border-slate-500'
                 }`}
               >
