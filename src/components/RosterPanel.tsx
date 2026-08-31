@@ -56,17 +56,35 @@ export default function RosterPanel({ classId }: { classId: string }) {
   }
 
   const remove = async (s: Student) => {
-    if (!confirm(`確定要刪除 ${s.name}？相關的點名與表現紀錄也會一併刪除。`)) return
+    if (!confirm(`確定要刪除「${s.name}」？相關的點名與表現紀錄也會一併刪除。`)) return
     try { await deleteStudent(s.id); reload() } catch (e) { setError(friendlyError(e)) }
+  }
+
+  /** 清空全班名單 */
+  const removeAll = async () => {
+    if (students.length === 0) return
+    if (!confirm(`確定要清空全班 ${students.length} 位學生嗎？\n\n⚠️ 所有學生的座位、點名與表現紀錄都會一併刪除，此操作無法復原。`)) return
+    setError('')
+    try {
+      for (const s of students) {
+        await deleteStudent(s.id)
+      }
+      reload()
+    } catch (e) { setError(friendlyError(e)) }
   }
 
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <p className="text-sm text-slate-500">共 {students.length} 位學生</p>
-        <Button onClick={() => setShowImport((v) => !v)}>
-          {showImport ? '取消' : '匯入名單'}
-        </Button>
+        <div className="flex gap-2">
+          {students.length > 0 && (
+            <Button variant="danger" onClick={removeAll}>清空全班名單</Button>
+          )}
+          <Button onClick={() => setShowImport((v) => !v)}>
+            {showImport ? '取消' : '匯入名單'}
+          </Button>
+        </div>
       </div>
 
       {error && <ErrorBox message={error} />}
