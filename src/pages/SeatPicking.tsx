@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
-import SeatMap, { type SeatCell } from '../components/SeatMap'
+import GroupSeatMap, { type SeatOccupant } from '../components/GroupSeatMap'
 import { Button, ErrorBox, Spinner, inputClass } from '../components/ui'
 import { claimSeat, seatPickingInfo } from '../lib/api'
 import { friendlyError } from '../lib/errors'
@@ -17,7 +17,7 @@ export default function SeatPicking() {
   const [error, setError] = useState('')
   const [studentId, setStudentId] = useState('')
   const [studentNo, setStudentNo] = useState('')
-  const [done, setDone] = useState<{ row: number; col: number } | null>(null)
+  const [done, setDone] = useState<{ group: number; slot: number } | null>(null)
   const [busy, setBusy] = useState(false)
 
   const load = useCallback(async () => {
@@ -33,12 +33,12 @@ export default function SeatPicking() {
 
   useEffect(() => { void load() }, [load])
 
-  const pick = async (row: number, col: number) => {
+  const pick = async (groupNo: number, seatSlot: number) => {
     if (!studentId) { setError('請先在上方選擇你的名字'); return }
     setBusy(true); setError('')
     try {
-      await claimSeat(code, studentId, row, col, studentNo || undefined)
-      setDone({ row, col })
+      await claimSeat(code, studentId, groupNo, seatSlot, studentNo || undefined)
+      setDone({ group: groupNo, slot: seatSlot })
       await load()
     } catch (e) {
       setError(friendlyError(e))
@@ -58,26 +58,18 @@ export default function SeatPicking() {
     )
   }
 
-  const taken = new Map(info.occupied.map((o) => [o.student_id, o]))
   const nameOf = (id: string) => info.students.find((s) => s.id === id)?.name ?? ''
+  const mySeat = info.occupied.find((o) => o.student_id === studentId)
 
-  const cells: SeatCell[] = []
-  for (const d of info.class.disabled_seats) {
-    cells.push({ row: d.row, col: d.col, state: 'disabled' })
-  }
-  for (const o of info.occupied) {
-    cells.push({
-      row: o.seat_row,
-      col: o.seat_col,
-      label: nameOf(o.student_id),
-      state: o.student_id === studentId ? 'mine' : 'taken',
-    })
-  }
-
-  const mySeat = studentId ? taken.get(studentId) : undefined
+  const occupants: SeatOccupant[] = info.occupied.map((o) => ({
+    group_no: o.group_no,
+    seat_slot: o.seat_slot,
+    label: nameOf(o.student_id),
+    state: o.student_id === studentId ? 'mine' : 'taken',
+  }))
 
   return (
-    <div className="mx-auto max-w-3xl space-y-5 p-4 pb-16">
+    <div className="mx-auto max-w-5xl space-y-5 p-4 pb-16">
       <header className="space-y-1 text-center">
         <h1 className="text-lg font-semibold">{info.class.name} — 座位登記</h1>
         <p className="text-sm text-slate-500">先選你的名字，再點一個空位</p>
@@ -85,7 +77,7 @@ export default function SeatPicking() {
 
       {done && (
         <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-center text-sm text-emerald-800">
-          已完成登記：第 {done.row} 排 第 {done.col} 個位子。想換位可以直接再點其他空位。
+          已完成登記：第 {done.group} 組 第 {done.slot} 個位子。想換位可以直接再點其他空位。
         </div>
       )}
 
@@ -103,7 +95,7 @@ export default function SeatPicking() {
             {info.students.map((s) => (
               <option key={s.id} value={s.id}>
                 {s.seat_no ? `${s.seat_no}. ` : ''}{s.name}
-                {taken.has(s.id) ? '（已選位）' : ''}
+                {info.occupied.some((o) => o.student_id === s.id) ? '（已選位）' : ''}
               </option>
             ))}
           </select>
@@ -125,16 +117,16 @@ export default function SeatPicking() {
 
         {mySeat && (
           <p className="text-sm text-emerald-700">
-            你目前的位子：第 {mySeat.seat_row} 排 第 {mySeat.seat_col} 個
+            你目前的位子：第 {mySeat.group_no} 組 第 {mySeat.seat_slot} 個
           </p>
         )}
       </div>
 
       <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <SeatMap
-          rows={info.class.seat_rows}
-          cols={info.class.seat_cols}
-          cells={cells}
+        <GroupSeatMap
+          groupCount={info.class.group_count}
+          groupCapacity={info.class.group_capacity}
+          occupants={occupants}
           onSelect={busy ? undefined : pick}
         />
       </div>

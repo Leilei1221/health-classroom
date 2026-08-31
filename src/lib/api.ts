@@ -1,8 +1,8 @@
 import { supabase } from './supabase'
 import type {
   AttendanceCode, AttendanceRow, AttendanceStatus, ClassRow, Lesson,
-  PerformanceItem, PerformanceRecord, SeatAssignment, SeatPickingInfo,
-  Student, StudentScore, Teacher,
+  ImportResult, PerformanceItem, PerformanceRecord, RosterRow, SeatAssignment,
+  SeatPickingInfo, Student, StudentScore, Teacher,
 } from './types'
 
 function unwrap<T>({ data, error }: { data: T | null; error: unknown }): T {
@@ -39,8 +39,8 @@ export async function createClass(input: {
   semester: number
   name: string
   grade: number | null
-  seat_rows: number
-  seat_cols: number
+  group_count: number
+  group_capacity: number
 }): Promise<ClassRow> {
   return unwrap(await supabase.from('hc_classes').insert(input).select().single())
 }
@@ -95,10 +95,13 @@ export async function listSeats(classId: string): Promise<SeatAssignment[]> {
 
 /** 老師端調位：直接寫表（受 RLS 保護），不走學生用的 RPC */
 export async function assignSeat(
-  classId: string, studentId: string, row: number, col: number,
+  classId: string, studentId: string, groupNo: number, seatSlot: number,
 ): Promise<void> {
   const { error } = await supabase.from('hc_seat_assignments').upsert(
-    { class_id: classId, student_id: studentId, seat_row: row, seat_col: col, assigned_by: 'teacher' },
+    {
+      class_id: classId, student_id: studentId,
+      group_no: groupNo, seat_slot: seatSlot, assigned_by: 'teacher',
+    },
     { onConflict: 'class_id,student_id' },
   )
   if (error) throw error
@@ -118,16 +121,31 @@ export async function seatPickingInfo(code: string): Promise<SeatPickingInfo> {
 }
 
 export async function claimSeat(
-  code: string, studentId: string, row: number, col: number, studentNo?: string,
+  code: string, studentId: string, groupNo: number, seatSlot: number, studentNo?: string,
 ): Promise<void> {
   const { error } = await supabase.rpc('hc_claim_seat', {
     p_code: code,
     p_student_id: studentId,
-    p_seat_row: row,
-    p_seat_col: col,
+    p_group_no: groupNo,
+    p_seat_slot: seatSlot,
     p_student_no: studentNo ?? null,
   })
   if (error) throw error
+}
+
+/* ------------------------------------------------------------ 名單匯入 */
+
+/** 依 Excel 內容自動建立班級並寫入學生；同學號者更新而非重複建立 */
+export async function importRoster(input: {
+  academic_year: number
+  semester: number
+  filename: string
+  default_group_count: number
+  default_group_capacity: number
+  classes: { name: string; group_count: number; group_capacity: number }[]
+  rows: RosterRow[]
+}): Promise<ImportResult> {
+  return unwrap(await supabase.rpc('hc_import_roster', { p_payload: input }))
 }
 
 /* ---------------------------------------------------------------- 課堂 */

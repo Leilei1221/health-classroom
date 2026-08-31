@@ -14,9 +14,8 @@ export interface ClassRow {
   semester: number
   name: string
   grade: number | null
-  seat_rows: number
-  seat_cols: number
-  disabled_seats: { row: number; col: number }[]
+  group_count: number
+  group_capacity: number
   join_code: string
   seat_picking_open: boolean
   seat_picking_require_student_no: boolean
@@ -38,8 +37,8 @@ export interface SeatAssignment {
   id: string
   class_id: string
   student_id: string
-  seat_row: number
-  seat_col: number
+  group_no: number
+  seat_slot: number
   assigned_by: 'student' | 'teacher'
 }
 
@@ -111,11 +110,26 @@ export interface SeatPickingInfo {
   class: {
     id: string
     name: string
-    seat_rows: number
-    seat_cols: number
-    disabled_seats: { row: number; col: number }[]
+    group_count: number
+    group_capacity: number
     require_student_no: boolean
   }
   students: { id: string; seat_no: number | null; name: string }[]
-  occupied: { seat_row: number; seat_col: number; student_id: string }[]
+  occupied: { group_no: number; seat_slot: number; student_id: string }[]
+}
+
+/** Excel 名單匯入的一列 */
+export interface RosterRow {
+  class_name: string
+  seat_no: string
+  student_no: string
+  name: string
+}
+
+export interface ImportResult {
+  batch_id: string
+  classes: { class_id: string; name: string; created: boolean; group_count: number; group_capacity: number }[]
+  classes_created: number
+  inserted: number
+  updated: number
 }
