@@ -3,12 +3,10 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../auth'
 import Layout from '../components/Layout'
 import { Button, Empty, ErrorBox, Field, Spinner, inputClass } from '../components/ui'
-import { createClass, listClasses } from '../lib/api'
+import { createClass, deleteClass, listClasses, updateClass } from '../lib/api'
 import { friendlyError } from '../lib/errors'
 import type { ClassRow } from '../lib/types'
 
-// Excel 解析器約 60kB，只有老師匯入名單時才需要；
-// 分開打包，學生開選位頁時不必下載。
 const ImportPanel = lazy(() => import('../components/ImportPanel'))
 
 /** 民國學年度：8 月起算新學年 */
@@ -25,6 +23,10 @@ export default function Dashboard() {
   const [error, setError] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [showImport, setShowImport] = useState(false)
+
+  // 編輯班級
+  const [editingId, setEditingId] = useState<string | null>(null)
+  const [editForm, setEditForm] = useState({ name: '', group_count: 7, group_capacity: 5, grade: 3 })
 
   const [form, setForm] = useState({
     academic_year: currentAcademicYear(),
@@ -53,6 +55,43 @@ export default function Dashboard() {
       await createClass({ ...form, teacher_id: teacher.id, name: form.name.trim() })
       setShowForm(false)
       setForm({ ...form, name: '' })
+      reload()
+    } catch (e) {
+      setError(friendlyError(e))
+    }
+  }
+
+  /** 刪除班級 */
+  const handleDelete = async (c: ClassRow) => {
+    if (!confirm(`確定要刪除「${c.name}」班級嗎？\n\n⚠️ 該班級底下的所有學生、座位、點名與表現紀錄都會一併刪除，此操作無法復原。`)) return
+    setError('')
+    try {
+      await deleteClass(c.id)
+      reload()
+    } catch (e) {
+      setError(friendlyError(e))
+    }
+  }
+
+  /** 開始編輯班級 */
+  const startEdit = (c: ClassRow) => {
+    setEditingId(c.id)
+    setEditForm({ name: c.name, group_count: c.group_count, group_capacity: c.group_capacity, grade: c.grade ?? 3 })
+  }
+
+  /** 儲存編輯 */
+  const saveEdit = async () => {
+    if (!editingId) return
+    if (!editForm.name.trim()) { setError('班級名稱不能空白'); return }
+    setError('')
+    try {
+      await updateClass(editingId, {
+        name: editForm.name.trim(),
+        group_count: editForm.group_count,
+        group_capacity: editForm.group_capacity,
+        grade: editForm.grade,
+      })
+      setEditingId(null)
       reload()
     } catch (e) {
       setError(friendlyError(e))
@@ -143,20 +182,70 @@ export default function Dashboard() {
             <h2 className="mb-2 text-sm font-medium text-slate-500">{label}</h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {rows.map((c) => (
-                <Link key={c.id} to={`/class/${c.id}`}
-                  className="rounded-xl border border-slate-200 bg-white p-4 transition hover:border-slate-400 hover:shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <span className="font-medium">{c.name}</span>
-                    {c.seat_picking_open && (
-                      <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">
-                        選位開放中
-                      </span>
-                    )}
-                  </div>
-                  <p className="mt-1 text-xs text-slate-500">
-                    {c.group_count} 組 · 每組 {c.group_capacity} 人
-                  </p>
-                </Link>
+                <div key={c.id} className="rounded-xl border border-slate-200 bg-white transition hover:border-slate-400 hover:shadow-sm">
+                  {/* 編輯模式 */}
+                  {editingId === c.id ? (
+                    <div className="space-y-3 p-4">
+                      <Field label="班級名稱">
+                        <input className={inputClass} value={editForm.name}
+                          onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
+                      </Field>
+                      <div className="grid grid-cols-2 gap-3">
+                        <Field label="組數">
+                          <input type="number" min={1} max={12} className={inputClass} value={editForm.group_count}
+                            onChange={(e) => setEditForm({ ...editForm, group_count: +e.target.value })} />
+                        </Field>
+                        <Field label="每組人數上限">
+                          <input type="number" min={1} max={10} className={inputClass} value={editForm.group_capacity}
+                            onChange={(e) => setEditForm({ ...editForm, group_capacity: +e.target.value })} />
+                        </Field>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button onClick={saveEdit}>儲存</Button>
+                        <Button variant="ghost" onClick={() => setEditingId(null)}>取消</Button>
+                      </div>
+                    </div>
+                  ) : (
+                    /* 一般模式 */
+                    <div className="flex items-start justify-between p-4">
+                      <Link to={`/class/${c.id}`} className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <span className="font-medium">{c.name}</span>
+                          {c.seat_picking_open && (
+                            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs text-emerald-700">
+                              選位開放中
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-1 text-xs text-slate-500">
+                          {c.group_count} 組 · 每組 {c.group_capacity} 人
+                        </p>
+                      </Link>
+                      <div className="flex items-center gap-1 ml-2">
+                        <button
+                          onClick={(e) => { e.preventDefault(); startEdit(c) }}
+                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+                          title="編輯班級"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                            <path d="m15 5 4 4"/>
+                          </svg>
+                        </button>
+                        <button
+                          onClick={(e) => { e.preventDefault(); handleDelete(c) }}
+                          className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
+                          title="刪除班級"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               ))}
             </div>
           </section>
