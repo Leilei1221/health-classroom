@@ -2,11 +2,20 @@ import { groupLayout, splitRows, toneFor } from '../lib/seating'
 
 export type SeatState = 'empty' | 'taken' | 'mine' | 'selected'
 
+/** 點名模式下用來標示出缺席；未點名為 unmarked */
+export type SeatTone = 'unmarked' | 'present' | 'late' | 'absent' | 'leave' | 'official'
+
 export interface SeatOccupant {
   group_no: number
   seat_slot: number
   label: string
   state: SeatState
+  /** 出缺席底色；有給就蓋過 state 的樣式（selected 仍優先） */
+  tone?: SeatTone
+  /** 座位上的小標籤，例：遲、曠 */
+  badge?: string
+  /** 座位下方的小字，例：加扣分 */
+  sublabel?: string
 }
 
 interface Props {
@@ -19,7 +28,29 @@ interface Props {
 }
 
 const SEAT_BASE =
-  'flex h-14 w-[4.75rem] flex-col items-center justify-center rounded-xl border text-center transition'
+  'relative flex h-16 w-[4.75rem] flex-col items-center justify-center rounded-xl border text-center transition'
+
+/** 每個位子的高度（rem），桌子高度需與座位欄對齊 */
+const SEAT_H = 4
+const SEAT_GAP = 0.5
+
+const TONE_STYLE: Record<SeatTone, string> = {
+  unmarked: 'border-slate-200 bg-slate-50 text-slate-500',
+  present: 'border-slate-300 bg-white text-slate-800 shadow-sm',
+  late: 'border-amber-400 bg-amber-50 text-amber-900',
+  absent: 'border-red-400 bg-red-50 text-red-900',
+  leave: 'border-sky-400 bg-sky-50 text-sky-900',
+  official: 'border-violet-400 bg-violet-50 text-violet-900',
+}
+
+const BADGE_STYLE: Record<SeatTone, string> = {
+  unmarked: 'bg-slate-200 text-slate-600',
+  present: 'bg-slate-200 text-slate-700',
+  late: 'bg-amber-500 text-white',
+  absent: 'bg-red-500 text-white',
+  leave: 'bg-sky-500 text-white',
+  official: 'bg-violet-500 text-white',
+}
 
 function Seat({
   occupant, groupNo, slot, onSelect,
@@ -32,12 +63,16 @@ function Seat({
   const state: SeatState = occupant?.state ?? 'empty'
   const clickable = Boolean(onSelect)
 
-  const style = {
+  const stateStyle = {
     empty: 'border-dashed border-slate-300 bg-white text-slate-400 hover:border-slate-500 hover:text-slate-600',
     taken: 'border-slate-300 bg-white text-slate-800 shadow-sm',
     mine: 'border-emerald-500 bg-emerald-50 text-emerald-900 ring-2 ring-emerald-200',
     selected: 'border-amber-500 bg-amber-50 text-amber-900 ring-2 ring-amber-200',
   }[state]
+
+  // selected 代表「正在操作中」，必須看得出來，因此優先於出缺席底色
+  const style =
+    state === 'selected' || !occupant?.tone ? stateStyle : TONE_STYLE[occupant.tone]
 
   return (
     <button
@@ -48,9 +83,25 @@ function Seat({
       className={`${SEAT_BASE} ${style} ${clickable ? 'cursor-pointer' : 'cursor-default'}`}
     >
       {occupant ? (
-        <span className="w-full truncate px-1 text-sm font-medium leading-tight">
-          {occupant.label}
-        </span>
+        <>
+          {occupant.badge && (
+            <span
+              className={`absolute -right-1 -top-1 rounded-full px-1.5 py-0.5 text-[10px] font-semibold leading-none ${
+                BADGE_STYLE[occupant.tone ?? 'unmarked']
+              }`}
+            >
+              {occupant.badge}
+            </span>
+          )}
+          <span className="w-full truncate px-1 text-sm font-medium leading-tight">
+            {occupant.label}
+          </span>
+          {occupant.sublabel && (
+            <span className="mt-0.5 truncate px-1 text-[10px] leading-none opacity-70">
+              {occupant.sublabel}
+            </span>
+          )}
+        </>
       ) : (
         <span className="text-xs">空位</span>
       )}
@@ -96,7 +147,7 @@ function GroupDesk({
 
           <div
             className={`flex w-16 items-center justify-center rounded-xl border ${tone.desk}`}
-            style={{ minHeight: `${rows * 3.5 + (rows - 1) * 0.5}rem` }}
+            style={{ minHeight: `${rows * SEAT_H + (rows - 1) * SEAT_GAP}rem` }}
             aria-hidden="true"
           >
             <span className="text-[10px] font-medium tracking-widest text-slate-400">桌</span>

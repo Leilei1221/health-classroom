@@ -142,7 +142,7 @@ export default function ClassDetail() {
         ))}
       </div>
 
-      {tab === 'lesson' && <LessonPanel classId={cls.id} teacherId={teacher.id} />}
+      {tab === 'lesson' && <LessonPanel cls={cls} teacherId={teacher.id} />}
       {tab === 'seat' && <SeatPanel cls={cls} onClassChange={setCls} />}
       {tab === 'roster' && <RosterPanel classId={cls.id} />}
       {tab === 'score' && <ScorePanel classId={cls.id} className={cls.name} />}
