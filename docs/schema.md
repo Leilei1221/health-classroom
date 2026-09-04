@@ -90,6 +90,45 @@ Migration：`supabase/migrations/20260829000000_health_classroom_init.sql`
   不可省略；另外 Supabase 的 default privileges 會自動把新函式授權給 anon，
   僅對 PUBLIC 收回並不足夠，必須對 anon 另外 revoke。
 
+## 健康管理模組
+
+與座位／點名完全分離的另一套流程：**學生要用學校 Google 帳號登入**，
+資料以 RLS 保護。座位登記與點名維持原本的 join_code 免登入流程，兩者並存。
+
+### `hc_students.email`
+
+由學號生成的 generated column：`'s' || student_no || '@hlhs.hlc.edu.tw'`
+
+用 generated column 而非一般欄位，是因為這個欄位是 RLS 判斷「這是不是你」的依據，
+一旦與學號產生落差就是隱私問題。
+
+**刻意不加唯一約束**：`hc_students` 是每學期每班一列，同一位學生下學期會再有一列，
+email 本來就會重複。加了唯一約束，下學期匯入名單會整批失敗。
+
+### 資料表
+
+| Table | 用途 |
+|---|---|
+| `hc_health_measurement` | 身體量測，`unique (student_email, semester, round)`，round 為 initial/mid/final |
+| `hc_health_selfcheck` | 課本自我檢測，`unique (student_email, semester)`，含 `needs_followup` |
+
+表名沿用專案的 `hc_` 前綴（規格書寫 `health_measurement`）；此 Supabase 專案與
+其他應用共用，前綴是避免撞名的既定約定。
+
+### RLS
+
+| 角色 | 權限 |
+|---|---|
+| 學生 | 只能讀寫 `auth.jwt() ->> 'email'` 等於自己 email 的列，且該 email 必須在學生名單上 |
+| 教師 | 只能**讀**自己任教班級學生的資料，不能修改或刪除 |
+| anon | 完全無權限 |
+
+寫入時多一道 `hc_is_known_student_email()` 檢查，非名單上的帳號（例如校外 gmail）
+即使登入也無法建立資料列。
+
+兩個判定函式皆為 `SECURITY DEFINER`（學生對 `hc_students` / `hc_classes` 沒有讀取權限，
+必須由函式代為判斷），且僅授權給 `authenticated`。
+
 ## 驗證
 
 本 migration 已在本機 PostgreSQL 16 實際跑過並通過：
@@ -112,3 +151,17 @@ migration 套用後以 `anon` 角色實測，六項全數被擋：
 
 Supabase security advisor：**0 個 ERROR**。剩餘 WARN 為選位 RPC 對 anon 開放，
 屬本系統的刻意設計。
+
+### 健康管理模組（正式專案實測）
+
+| 情境 | 結果 |
+|---|---|
+| 學生寫入自己的量測 | 成功 |
+| 學生冒用其他學生 email 寫入 | 被 RLS 擋下 |
+| 校外 gmail 帳號寫入 | 被 RLS 擋下 |
+| 學生讀取他人資料 | 讀到 0 筆 |
+| 授課教師讀自己班學生 | 讀得到 |
+| 非授課教師讀該學生 | 讀到 0 筆 |
+| 教師修改／刪除學生健康資料 | `UPDATE 0` / `DELETE 0` |
+| anon 讀健康資料表、呼叫判定函式 | permission denied |
+| 既有 anon 選位流程 | 不受影響，照常運作 |
