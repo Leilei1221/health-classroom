@@ -1,0 +1,311 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>教師端・健康登記進度</title>
+<style>
+  :root{
+    --ink:#1C2126; --soft:#5A6670;
+    --slate:#2E3A44; --slate-deep:#1B242C;
+    --bg:#EEF1F3; --line:#D5DCE1; --paper:#FFF;
+    --done:#1F6F5C; --part:#7FB3A4; --none:#C6CFD5;
+    --red:#B3231F; --red-bg:#FBECEB;
+    --amber:#B26A12; --amber-bg:#FDF3E3;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:"Noto Sans TC","PingFang TC","Heiti TC",system-ui,sans-serif;
+    background:var(--bg);color:var(--ink);font-size:16px;line-height:1.6;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:560px;margin:0 auto;padding-bottom:40px}
+
+  header{background:var(--slate-deep);color:#fff;padding:16px 18px 0}
+  header h1{margin:0;font-size:18px;font-weight:700}
+  header .sub{font-size:13px;opacity:.68;margin-top:2px}
+  .tabs{display:flex;gap:4px;margin-top:14px;overflow-x:auto}
+  .tabs button{
+    flex:none;padding:10px 16px;border:0;border-radius:9px 9px 0 0;
+    background:rgba(255,255,255,.1);color:#C4D0D8;
+    font-family:inherit;font-size:15px;font-weight:600;cursor:pointer;position:relative;
+  }
+  .tabs button.on{background:var(--bg);color:var(--ink)}
+  .tabs .pip{
+    display:inline-block;width:7px;height:7px;border-radius:50%;
+    background:var(--red);margin-left:6px;vertical-align:1px;
+  }
+
+  .stats{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border-bottom:1px solid var(--line)}
+  .stat{background:var(--paper);padding:12px 8px;text-align:center}
+  .stat .n{font-size:23px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+  .stat .l{font-size:11px;color:var(--soft)}
+  .stat.alert .n{color:var(--red)}
+  .stat.alert{background:var(--red-bg)}
+
+  .panel{background:var(--paper);margin:12px;border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .panel h2{margin:0;padding:13px 16px;font-size:14px;font-weight:700;border-bottom:1px solid var(--line);background:#F7F9FA}
+
+  .grid{display:grid;grid-template-columns:repeat(6,1fr);gap:7px;padding:14px 16px}
+  .cell{
+    aspect-ratio:1;border-radius:8px;border:0;cursor:pointer;
+    font-family:inherit;font-size:14px;font-weight:600;
+    font-variant-numeric:tabular-nums;color:#fff;
+    display:flex;align-items:center;justify-content:center;position:relative;
+  }
+  .cell.s0{background:var(--none);color:#61707A}
+  .cell.s1{background:var(--part)}
+  .cell.s2{background:var(--done)}
+  .cell.red{box-shadow:0 0 0 3px var(--red)}
+  .cell.amber{box-shadow:0 0 0 3px var(--amber)}
+  .cell.red.amber{box-shadow:0 0 0 3px var(--red),0 0 0 5px var(--amber)}
+  .cell .pin{
+    position:absolute;top:-4px;right:-4px;
+    width:11px;height:11px;border-radius:50%;border:2px solid #fff;
+  }
+  .cell .pin.r{background:var(--red)}
+  .cell .pin.a{background:var(--amber);right:9px}
+
+  .legend{display:flex;flex-wrap:wrap;gap:12px;padding:0 16px 14px;font-size:12px;color:var(--soft)}
+  .legend i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+
+  ul.plain{list-style:none;margin:0;padding:6px 16px 14px}
+  ul.plain li{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    padding:9px 0;border-bottom:1px solid #F0F3F5;font-size:15px;
+  }
+  ul.plain li:last-child{border-bottom:0}
+  ul.plain .tag{font-size:12px;color:var(--soft);text-align:right;flex:none}
+  ul.plain .tag.r{color:var(--red);font-weight:600}
+  ul.plain button.jump{
+    background:none;border:0;font-family:inherit;font-size:15px;
+    color:var(--ink);cursor:pointer;padding:0;text-align:left;
+  }
+  ul.plain button.jump:hover{text-decoration:underline}
+
+  .acts{display:flex;gap:8px;padding:0 16px 16px}
+  .acts button{
+    flex:1;padding:12px;border-radius:9px;border:1.5px solid var(--slate);
+    background:#fff;color:var(--slate);font-family:inherit;font-size:14px;
+    font-weight:600;cursor:pointer;
+  }
+  .acts button.solid{background:var(--slate);color:#fff}
+
+  .box{margin:0 16px 14px;padding:13px 15px;border-radius:10px;font-size:14px}
+  .box.r{background:var(--red-bg)} .box.a{background:var(--amber-bg)}
+  .box strong{display:block;margin-bottom:4px}
+  .box.r strong{color:var(--red)} .box.a strong{color:var(--amber)}
+  .empty{padding:6px 16px 16px;font-size:14px;color:var(--soft)}
+
+  /* 學生詳情 */
+  .sheet{display:none;position:fixed;inset:0;z-index:50;background:rgba(20,28,34,.5);align-items:flex-end}
+  .sheet.open{display:flex}
+  .sheet-in{background:#fff;width:100%;max-width:560px;margin:0 auto;border-radius:16px 16px 0 0;max-height:86vh;overflow:auto}
+  .sheet-hd{padding:18px 20px 12px;border-bottom:1px solid var(--line)}
+  .sheet-hd h3{margin:0;font-size:19px}
+  .sheet-hd p{margin:2px 0 0;font-size:13px;color:var(--soft)}
+  .rows{padding:6px 20px 18px}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #F2F5F6;font-size:15px}
+  .row:last-child{border-bottom:0}
+  .row .k{color:var(--soft)}
+  .row .v{font-variant-numeric:tabular-nums;font-weight:600}
+  .row.r{background:var(--red-bg);margin:0 -10px;padding-left:10px;padding-right:10px;border-radius:7px;border-bottom-color:transparent}
+  .row.r .v{color:var(--red)}
+  .row.a .v{color:var(--amber)}
+  .row .note{font-size:12px;font-weight:600;margin-left:8px}
+  .row.r .note{color:var(--red)} .row.a .note{color:var(--amber)}
+  .close{display:block;width:calc(100% - 40px);margin:0 20px 22px;padding:13px;background:var(--slate);color:#fff;border:0;border-radius:10px;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer}
+  .demo{margin:12px;padding:10px 14px;background:var(--amber-bg);border-radius:10px;font-size:13px;color:var(--amber)}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>健康數值登記・進度</h1>
+    <div class="sub">115 學年度第 1 學期・期初測量</div>
+    <div class="tabs" id="tabs"></div>
+  </header>
+
+  <div class="stats" id="stats"></div>
+  <div class="demo">原型畫面，資料為模擬。紅框＝數值需確認，琥珀框＝心理檢測需關注。點任一格看細節。</div>
+
+  <div class="panel">
+    <h2>需要關注</h2>
+    <div id="attention"></div>
+  </div>
+
+  <div class="panel">
+    <h2>全班一覽</h2>
+    <div class="grid" id="grid"></div>
+    <div class="legend">
+      <span><i style="background:var(--none)"></i>未登記</span>
+      <span><i style="background:var(--part)"></i>數值已登記</span>
+      <span><i style="background:var(--done)"></i>全部完成</span>
+      <span><i style="background:#fff;box-shadow:0 0 0 2px var(--red)"></i>數值需確認</span>
+      <span><i style="background:#fff;box-shadow:0 0 0 2px var(--amber)"></i>心理檢測需關注</span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>還沒完成的同學</h2>
+    <ul class="plain" id="miss"></ul>
+    <div class="acts">
+      <button class="solid">寄提醒信</button>
+      <button>匯出 CSV</button>
+    </div>
+  </div>
+</div>
+
+<div class="sheet" id="sheet">
+  <div class="sheet-in">
+    <div class="sheet-hd"><h3 id="sName"></h3><p id="sMeta"></p></div>
+    <div class="rows" id="sRows"></div>
+    <button class="close" id="sClose">關閉</button>
+  </div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════
+   需關注門檻【請確認】
+   red   = 建議老師看一眼、必要時請學生重測
+   amber = 邊界值，課堂上可提一下
+   與學生端燈號同一組數字，改這裡就好
+   ════════════════════════════════════════════════ */
+function judge(v){
+  const out=[], bmi=v.weight/Math.pow(v.height/100,2), whr=v.waist/v.hip;
+  const add=(k,val,lv,note)=>out.push({k,val,lv,note});
+
+  if(bmi>=27)        add('BMI',bmi.toFixed(1),'r','偏高');
+  else if(bmi>=24)   add('BMI',bmi.toFixed(1),'a','略高');
+  else if(bmi<17.5)  add('BMI',bmi.toFixed(1),'r','偏低');
+  else if(bmi<18.5)  add('BMI',bmi.toFixed(1),'a','略低');
+
+  if(v.sbp>=140||v.dbp>=90)      add('血壓',v.sbp+' / '+v.dbp,'r','建議重測');
+  else if(v.sbp>=130||v.dbp>=80) add('血壓',v.sbp+' / '+v.dbp,'a','略高');
+
+  if(v.spo2<95)   add('血氧',v.spo2+' %','r','偏低');
+  if(v.pulse>100) add('脈搏',v.pulse+' 次/分','r','偏快');
+  else if(v.pulse<50) add('脈搏',v.pulse+' 次/分','r','偏慢');
+
+  if(whr>=0.95)      add('腰臀比',whr.toFixed(2),'r','偏高');
+  else if(whr>=0.90) add('腰臀比',whr.toFixed(2),'a','略高');
+
+  return out;
+}
+
+const CLASSES=[['305',34],['306',34],['307',35],['308',38],['309',36]];
+let cls=0;
+
+function rnd(seed,i,mod){ return ((i*seed*7919+i*i*31)%mod); }
+function mock(n,seed){
+  const out=[];
+  for(let i=1;i<=n;i++){
+    const r=rnd(seed,i,100);
+    const st = r<14?0 : r<40?1 : 2;
+    const v={
+      height:165+rnd(seed,i,20), weight:50+rnd(seed,i+3,45),
+      bfp:12+rnd(seed,i+5,20), visc:2+rnd(seed,i+7,10),
+      bmr:1450+rnd(seed,i+9,400), bage:16+rnd(seed,i+11,14),
+      waist:66+rnd(seed,i+13,28), hip:86+rnd(seed,i+2,18),
+      sbp:104+rnd(seed,i+17,44), dbp:62+rnd(seed,i+19,32),
+      pulse:58+rnd(seed,i+23,50), spo2:94+rnd(seed,i+29,7),
+      sc:11+rnd(seed,i+31,10), mu:33+rnd(seed,i+37,10)
+    };
+    out.push({no:i, st, v, psych: st===2 && rnd(seed,i,41)===3, j: st>0?judge(v):[]});
+  }
+  return out;
+}
+const DATA={};
+CLASSES.forEach(([c,n],i)=>DATA[c]=mock(n,i+2));
+const hasRed=r=>r.j.some(x=>x.lv==='r');
+const hasAmb=r=>r.j.some(x=>x.lv==='a');
+const $=i=>document.getElementById(i);
+
+function draw(){
+  const [name,n]=CLASSES[cls], rows=DATA[name];
+
+  $('tabs').innerHTML=CLASSES.map(([c],i)=>{
+    const red=DATA[c].some(hasRed)||DATA[c].some(r=>r.psych);
+    return '<button class="'+(i===cls?'on':'')+'" data-i="'+i+'">'+c+
+           (red?'<span class="pip"></span>':'')+'</button>';
+  }).join('');
+
+  const done=rows.filter(r=>r.st===2).length;
+  const undone=rows.filter(r=>r.st<2).length;
+  const reds=rows.filter(hasRed), psy=rows.filter(r=>r.psych);
+  const attn=new Set([...reds,...psy]).size;
+
+  $('stats').innerHTML=
+    '<div class="stat"><div class="n">'+n+'</div><div class="l">全班</div></div>'+
+    '<div class="stat"><div class="n">'+done+'</div><div class="l">已完成</div></div>'+
+    '<div class="stat"><div class="n">'+undone+'</div><div class="l">未完成</div></div>'+
+    '<div class="stat'+(attn?' alert':'')+'"><div class="n">'+attn+'</div><div class="l">需關注</div></div>';
+
+  let html='';
+  if(reds.length){
+    html+='<div class="box r"><strong>數值需要確認（'+reds.length+' 位）</strong>'+
+      '單次數值偏離不代表什麼，請這幾位同學重測一次再判斷。</div>'+
+      '<ul class="plain">'+reds.map(r=>
+        '<li><button class="jump" data-no="'+r.no+'">座號 '+r.no+'</button>'+
+        '<span class="tag r">'+r.j.filter(x=>x.lv==='r').map(x=>x.k+' '+x.note).join('、')+
+        '</span></li>').join('')+'</ul>';
+  }
+  if(psy.length){
+    html+='<div class="box a"><strong>心理檢測需要關注（'+psy.length+' 位）</strong>'+
+      '座號 '+psy.map(r=>r.no).join('、')+
+      '。系統已在學生端顯示關懷訊息與求助管道，建議找時間個別談談。</div>';
+  }
+  $('attention').innerHTML = html || '<div class="empty">目前沒有需要特別關注的紀錄。</div>';
+
+  $('grid').innerHTML=rows.map(r=>{
+    const red=hasRed(r), amb=r.psych;
+    return '<button class="cell s'+r.st+(red?' red':'')+(amb?' amber':'')+'" data-no="'+r.no+'">'+r.no+
+      (red?'<span class="pin r"></span>':'')+(amb?'<span class="pin a"></span>':'')+'</button>';
+  }).join('');
+
+  const miss=rows.filter(r=>r.st<2);
+  $('miss').innerHTML = miss.length
+    ? miss.map(r=>'<li><button class="jump" data-no="'+r.no+'">座號 '+r.no+'</button>'+
+        '<span class="tag">'+(r.st===0?'完全未登記':'差自我檢測')+'</span></li>').join('')
+    : '<li><span>全班都完成了</span></li>';
+}
+
+document.addEventListener('click',e=>{
+  const t=e.target.closest('.tabs button');
+  if(t){ cls=+t.dataset.i; draw(); return; }
+  const c=e.target.closest('.cell,.jump');
+  if(c){ openSheet(+c.dataset.no); }
+});
+
+function openSheet(no){
+  const [name]=CLASSES[cls];
+  const r=DATA[name].find(x=>x.no===no);
+  $('sName').textContent=name+' 班・座號 '+no;
+  $('sMeta').textContent = r.st===0 ? '尚未登記' : '登記於 2026/09/09';
+
+  if(r.st===0){ $('sRows').innerHTML='<div class="row"><span class="k">這位同學還沒有任何紀錄</span></div>'; }
+  else{
+    const v=r.v, flags={};
+    r.j.forEach(x=>flags[x.k]={lv:x.lv,note:x.note});
+    const bmi=(v.weight/Math.pow(v.height/100,2)).toFixed(1);
+    const whr=(v.waist/v.hip).toFixed(2);
+    const list=[
+      ['身高',v.height.toFixed(1)+' cm'],['體重',v.weight.toFixed(1)+' kg'],
+      ['BMI',bmi],['體脂率',v.bfp.toFixed(1)+' %'],
+      ['體脂重量',(v.weight*v.bfp/100).toFixed(1)+' kg'],['內臟脂肪',v.visc],
+      ['基礎代謝率',v.bmr.toLocaleString()+' kcal'],['身體年齡',v.bage+' 歲'],
+      ['腰圍 / 臀圍',v.waist.toFixed(1)+' / '+v.hip.toFixed(1)+' cm'],['腰臀比',whr],
+      ['血壓',v.sbp+' / '+v.dbp+' mmHg'],['脈搏',v.pulse+' 次/分'],['血氧',v.spo2+' %'],
+      ['皮下脂肪率（全身）',v.sc.toFixed(1)+' %'],['骨骼肌率（全身）',v.mu.toFixed(1)+' %']
+    ];
+    $('sRows').innerHTML=list.map(([k,val])=>{
+      const f=flags[k]||flags[k.split(' ')[0]];
+      const cl=f?' '+f.lv:'';
+      const note=f?'<span class="note">'+f.note+'</span>':'';
+      return '<div class="row'+cl+'"><span class="k">'+k+'</span>'+
+             '<span><span class="v">'+val+'</span>'+note+'</span></div>';
+    }).join('');
+  }
+  $('sheet').classList.add('open');
+}
+$('sClose').onclick=()=>$('sheet').classList.remove('open');
+$('sheet').onclick=e=>{ if(e.target.id==='sheet') $('sheet').classList.remove('open'); };
+
+draw();
+</script>
