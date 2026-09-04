@@ -27,6 +27,9 @@ export default function HealthRegister() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  // 讀不到先前紀錄不影響填寫與送出，因此與送出失敗分開處理，
+  // 不要讓學生一進頁就看到紅色錯誤
+  const [loadWarning, setLoadWarning] = useState('')
   const [saved, setSaved] = useState<HealthMeasurement | null>(null)
   const [confirmed, setConfirmed] = useState(false)
 
@@ -44,7 +47,7 @@ export default function HealthRegister() {
         })
         setValues(next)
       })
-      .catch((e) => setError(friendlyError(e)))
+      .catch(() => setLoadWarning('沒有讀到你先前的紀錄，直接填寫即可。'))
       .finally(() => setLoading(false))
   }, [student, semester])
 
@@ -71,7 +74,7 @@ export default function HealthRegister() {
 
   const submit = async () => {
     if (!student) return
-    setSaving(true); setError('')
+    setSaving(true); setError(''); setLoadWarning('')
     try {
       const row: Record<string, unknown> = {
         student_email: student.email, semester, round: ROUND,
@@ -133,6 +136,12 @@ export default function HealthRegister() {
             ))}
           </div>
         </div>
+
+        {loadWarning && (
+          <div className="mx-3 mt-3 rounded-lg bg-[#FDF3E3] px-4 py-3 text-sm text-[#8A5310]">
+            {loadWarning}
+          </div>
+        )}
 
         {error && (
           <div className="mx-3 mt-3 rounded-lg bg-[#FBEDEC] px-4 py-3 text-sm text-[#A8403C]">
