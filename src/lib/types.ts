@@ -133,3 +133,51 @@ export interface ImportResult {
   inserted: number
   updated: number
 }
+
+/* ---------------------------------------------------------------- 健康管理 */
+
+/** hc_my_student_profile() 回傳的學生本人資料 */
+export interface StudentProfile {
+  student_id: string
+  class_id: string
+  class_name: string
+  academic_year: number
+  semester: number
+  student_no: string
+  seat_no: number | null
+  name: string
+  email: string
+}
+
+export type MeasurementRound = 'initial' | 'mid' | 'final'
+
+export interface HealthMeasurement {
+  id: string
+  student_email: string
+  semester: string          // 例：'115-1'
+  measured_at: string
+  round: MeasurementRound
+
+  machine_no: string | null
+  height_cm: number | null
+  weight_kg: number | null
+  body_fat_pct: number | null
+  visceral_fat: number | null
+  bmr_kcal: number | null
+  body_age: number | null
+  waist_cm: number | null
+  hip_cm: number | null
+  sbp: number | null
+  dbp: number | null
+  pulse: number | null
+  spo2: number | null
+
+  subcut_whole: number | null
+  subcut_trunk: number | null
+  subcut_arms: number | null
+  subcut_legs: number | null
+  muscle_whole: number | null
+  muscle_trunk: number | null
+  muscle_arms: number | null
+  muscle_legs: number | null
+}
