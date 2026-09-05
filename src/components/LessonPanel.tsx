@@ -352,6 +352,7 @@ export default function LessonPanel({ cls, teacherId }: {
                     <GroupSeatMap
                       groupCount={cls.group_count}
                       groupCapacity={cls.group_capacity}
+                      capacityOverrides={cls.group_capacity_overrides}
                       occupants={occupants}
                       showCounts={false}
                       onSelect={(g, slot) => {

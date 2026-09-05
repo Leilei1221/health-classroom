@@ -80,13 +80,21 @@ function onOpen() {
     .addItem('同步指定日期…', 'promptSyncDate')
     .addItem('重算所有統計欄', 'recalcAllStats')
     .addSeparator()
-    .addItem('安裝每日 18:00 自動同步', 'installDailyTrigger')
-    .addItem('移除自動同步', 'removeDailyTrigger')
+    .addItem('安裝自動同步（週一～週五 12:00、16:00）', 'installSyncTriggers')
+    .addItem('移除自動同步', 'removeSyncTriggers')
     .addToUi()
 }
 
-/** 每日 18:00 由觸發器呼叫 */
+/**
+ * 由定時觸發器呼叫。觸發器本身只裝在週一～週五，
+ * 這裡再擋一次，避免手動補裝的觸發器在週末跑。
+ */
 function dailySync() {
+  const day = new Date().getDay()
+  if (day === 0 || day === 6) {
+    console.log('週末不同步。')
+    return
+  }
   const result = syncDate_(todayStr_())
   console.log(formatResult_(result))
 }
@@ -108,13 +116,38 @@ function promptSyncDate() {
   toast_(formatResult_(syncDate_(date)))
 }
 
-function installDailyTrigger() {
-  removeDailyTrigger()
-  ScriptApp.newTrigger('dailySync').timeBased().atHour(18).everyDays(1).create()
-  toast_('已安裝每日 18:00 自動同步。')
+/** 同步時間：中午一次、下午一次 */
+const SYNC_HOURS = [12, 16]
+
+function installSyncTriggers() {
+  removeSyncTriggers()
+
+  const days = [
+    ScriptApp.WeekDay.MONDAY,
+    ScriptApp.WeekDay.TUESDAY,
+    ScriptApp.WeekDay.WEDNESDAY,
+    ScriptApp.WeekDay.THURSDAY,
+    ScriptApp.WeekDay.FRIDAY,
+  ]
+
+  let n = 0
+  days.forEach(function (day) {
+    SYNC_HOURS.forEach(function (hour) {
+      // 週觸發器：一個時段一個觸發器，週末就不會有觸發器可跑
+      ScriptApp.newTrigger('dailySync')
+        .timeBased()
+        .onWeekDay(day)
+        .atHour(hour)
+        .nearMinute(0)
+        .create()
+      n += 1
+    })
+  })
+
+  toast_('已安裝自動同步：週一～週五 12:00、16:00（共 ' + n + ' 個觸發器）。')
 }
 
-function removeDailyTrigger() {
+function removeSyncTriggers() {
   ScriptApp.getProjectTriggers()
     .filter(function (t) { return t.getHandlerFunction() === 'dailySync' })
     .forEach(function (t) { ScriptApp.deleteTrigger(t) })

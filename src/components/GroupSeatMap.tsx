@@ -1,4 +1,4 @@
-import { groupLayout, splitRows, toneFor } from '../lib/seating'
+import { capacityFor, groupLayout, splitRows, toneFor, type CapacityOverrides } from '../lib/seating'
 
 export type SeatState = 'empty' | 'taken' | 'mine' | 'selected'
 
@@ -21,6 +21,8 @@ export interface SeatOccupant {
 interface Props {
   groupCount: number
   groupCapacity: number
+  /** 個別組別的加位，例：{"6": 6} 代表第 6 組 6 人 */
+  capacityOverrides?: CapacityOverrides
   occupants: SeatOccupant[]
   onSelect?: (groupNo: number, seatSlot: number) => void
   /** 顯示每組人數統計 */
@@ -173,7 +175,7 @@ function GroupDesk({
  * 分組座位圖：上下兩排討論桌，每組 U 字型就座，講台在最上方。
  */
 export default function GroupSeatMap({
-  groupCount, groupCapacity, occupants, onSelect, showCounts = true,
+  groupCount, groupCapacity, capacityOverrides, occupants, onSelect, showCounts = true,
 }: Props) {
   const { top, bottom } = splitRows(groupCount)
 
@@ -183,7 +185,7 @@ export default function GroupSeatMap({
         <GroupDesk
           key={g}
           groupNo={g}
-          capacity={groupCapacity}
+          capacity={capacityFor(groupCapacity, capacityOverrides, g)}
           occupants={occupants}
           onSelect={onSelect}
           showCounts={showCounts}
