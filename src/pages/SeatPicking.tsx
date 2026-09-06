@@ -126,6 +126,7 @@ export default function SeatPicking() {
         <GroupSeatMap
           groupCount={info.class.group_count}
           groupCapacity={info.class.group_capacity}
+          capacityOverrides={info.class.group_capacity_overrides}
           occupants={occupants}
           onSelect={busy ? undefined : pick}
         />

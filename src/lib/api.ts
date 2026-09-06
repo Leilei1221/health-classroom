@@ -93,18 +93,22 @@ export async function listSeats(classId: string): Promise<SeatAssignment[]> {
   return unwrap(await supabase.from('hc_seat_assignments').select('*').eq('class_id', classId))
 }
 
-/** 老師端調位：直接寫表（受 RLS 保護），不走學生用的 RPC */
-export async function assignSeat(
+/**
+ * 老師端調位。目標位子若已有別人，會在同一個 transaction 內把兩人對調，
+ * 因此不會撞到 (class_id, group_no, seat_slot) 的唯一鍵。
+ * 回傳被換走的學生 id（單純移到空位時為 null）。
+ */
+export async function moveSeat(
   classId: string, studentId: string, groupNo: number, seatSlot: number,
-): Promise<void> {
-  const { error } = await supabase.from('hc_seat_assignments').upsert(
-    {
-      class_id: classId, student_id: studentId,
-      group_no: groupNo, seat_slot: seatSlot, assigned_by: 'teacher',
-    },
-    { onConflict: 'class_id,student_id' },
+): Promise<{ swapped_with: string | null }> {
+  return unwrap(
+    await supabase.rpc('hc_move_seat', {
+      p_class_id: classId,
+      p_student_id: studentId,
+      p_group_no: groupNo,
+      p_seat_slot: seatSlot,
+    }),
   )
-  if (error) throw error
 }
 
 export async function clearSeat(classId: string, studentId: string): Promise<void> {

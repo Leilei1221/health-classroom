@@ -16,6 +16,8 @@ export interface ClassRow {
   grade: number | null
   group_count: number
   group_capacity: number
+  /** 個別組別的人數上限覆寫，鍵為組號字串，例：{"6": 6} */
+  group_capacity_overrides: Record<string, number>
   join_code: string
   seat_picking_open: boolean
   seat_picking_require_student_no: boolean
@@ -112,6 +114,7 @@ export interface SeatPickingInfo {
     name: string
     group_count: number
     group_capacity: number
+    group_capacity_overrides: Record<string, number>
     require_student_no: boolean
   }
   students: { id: string; seat_no: number | null; name: string }[]
