@@ -1,12 +1,13 @@
 import { useAuth } from '../auth'
 import { Spinner } from '../components/ui'
 import HealthRegister from './HealthRegister'
+import { PREVIEW_STUDENT } from './preview'
 
 /**
  * 健康管理頁的入口：未登入顯示登入畫面，登入後依身分分流。
  * 只有這條路由需要登入；座位登記與點名維持免登入。
  */
-export default function HealthGate() {
+export default function HealthGate({ preview = false }: { preview?: boolean }) {
   const { session, role, loading, signInWithGoogle, signOut, teacher } = useAuth()
 
   if (loading || (session && role === 'resolving')) return <Spinner />
@@ -15,13 +16,16 @@ export default function HealthGate() {
 
   if (role === 'student') return <HealthRegister />
 
+  // 教師預覽：看得到學生的畫面，但填的東西不會寫進資料庫
+  if (preview && role === 'teacher') return <HealthRegister preview={PREVIEW_STUDENT} />
+
   // 老師登入健康頁：第一版還沒有教師看板，先說清楚而不是丟一個空白畫面
   return (
     <Notice
       title={role === 'teacher' ? '這是學生填寫的頁面' : '這個帳號不在名單上'}
       body={
         role === 'teacher'
-          ? `你目前以教師身分登入${teacher?.display_name ? `（${teacher.display_name}）` : ''}。健康數值由學生自己填寫，教師端的進度看板還在製作中。`
+          ? `你目前以教師身分登入${teacher?.display_name ? `（${teacher.display_name}）` : ''}。健康數值由學生自己填寫，教師端的進度看板還在製作中。想看學生填寫的畫面，可以從班級列表按「以學生身分預覽」。`
           : '請確認你是用學校的 Google 帳號登入。如果確定沒錯，可能是名單還沒更新，請跟老師說一聲。'
       }
       onSignOut={signOut}

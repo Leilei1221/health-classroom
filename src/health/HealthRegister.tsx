@@ -1,10 +1,11 @@
 import { useEffect, useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { friendlyError } from '../lib/errors'
 import { getMeasurement, saveMeasurement, semesterKey } from './api'
 import { ALL_FIELDS, REQUIRED, SECTIONS, type Field } from './fields'
 import { calcBmi, calcFatKg, calcWhr, judgeBmi, judgeBp, judgeWhr, type Verdict } from './rules'
-import type { HealthMeasurement, MeasurementRound } from '../lib/types'
+import type { HealthMeasurement, MeasurementRound, StudentProfile } from '../lib/types'
 
 /** 第一版只做期初；期中／期末沿用同一頁，改這個常數即可 */
 const ROUND: MeasurementRound = 'initial'
@@ -21,8 +22,16 @@ function outOfRange(f: Field, raw: string): boolean {
   return Number.isNaN(v) || v < f.min || v > (f.max ?? Infinity)
 }
 
-export default function HealthRegister() {
-  const { student, signOut } = useAuth()
+/**
+ * preview 有值時為教師預覽：套用傳入的假學生、不讀也不寫資料庫。
+ * 老師本來就過不了 RLS（只有學生能寫自己的那一列），
+ * 與其讓她按下送出吃一個錯誤，不如把送出停掉並講清楚。
+ */
+export default function HealthRegister({ preview }: { preview?: StudentProfile }) {
+  const { student: signedInStudent, signOut } = useAuth()
+  const navigate = useNavigate()
+  const isPreview = preview !== undefined
+  const student = preview ?? signedInStudent
   const [values, setValues] = useState<Values>({})
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -37,6 +46,7 @@ export default function HealthRegister() {
 
   useEffect(() => {
     if (!student) return
+    if (isPreview) { setLoading(false); return }
     getMeasurement(student.email, semester, ROUND)
       .then((row) => {
         if (!row) return
@@ -49,7 +59,7 @@ export default function HealthRegister() {
       })
       .catch(() => setLoadWarning('沒有讀到你先前的紀錄，直接填寫即可。'))
       .finally(() => setLoading(false))
-  }, [student, semester])
+  }, [student, semester, isPreview])
 
   const num = (k: string) => Number(values[k])
   const has = (k: string) => values[k] !== undefined && values[k].trim() !== ''
@@ -65,7 +75,8 @@ export default function HealthRegister() {
   )
 
   // 規格書：超出範圍不擋死，提示後學生確認仍可送出；少填則不能送出
-  const canSubmit = missing.length === 0 && (suspicious.length === 0 || confirmed)
+  const canSubmit =
+    !isPreview && missing.length === 0 && (suspicious.length === 0 || confirmed)
 
   const set = (k: string, v: string) => {
     setValues((prev) => ({ ...prev, [k]: v }))
@@ -73,7 +84,7 @@ export default function HealthRegister() {
   }
 
   const submit = async () => {
-    if (!student) return
+    if (!student || isPreview) return
     setSaving(true); setError(''); setLoadWarning('')
     try {
       const row: Record<string, unknown> = {
@@ -110,8 +121,11 @@ export default function HealthRegister() {
                 {student.academic_year} 學年度第 {student.semester} 學期
               </div>
             </div>
-            <button onClick={signOut} className="shrink-0 text-[13px] opacity-70 hover:opacity-100">
-              登出
+            <button
+              onClick={() => (isPreview ? navigate('/') : void signOut())}
+              className="shrink-0 text-[13px] opacity-70 hover:opacity-100"
+            >
+              {isPreview ? '離開預覽' : '登出'}
             </button>
           </div>
         </header>
@@ -136,6 +150,13 @@ export default function HealthRegister() {
             ))}
           </div>
         </div>
+
+        {isPreview && (
+          <div className="mx-3 mt-3 rounded-lg border border-[#E2C9A6] bg-[#FDF3E3] px-4 py-3 text-sm text-[#8A5310]">
+            <strong>預覽模式</strong>　這是學生在手機上看到的畫面。欄位可以試填、
+            自動計算也會跟著動，但送出已停用，不會寫入任何資料。
+          </div>
+        )}
 
         {loadWarning && (
           <div className="mx-3 mt-3 rounded-lg bg-[#FDF3E3] px-4 py-3 text-sm text-[#8A5310]">
@@ -217,7 +238,9 @@ export default function HealthRegister() {
       {!saved && (
         <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[520px] border-t border-[#C7E2DC] bg-white/95 px-4 pb-[calc(12px+env(safe-area-inset-bottom))] pt-3">
           <div className="mb-2 text-[13px] text-[#4A6461]">
-            {missing.length > 0
+            {isPreview
+              ? '預覽模式：不會寫入資料'
+              : missing.length > 0
               ? `還有 ${missing.length} 個欄位要填`
               : suspicious.length > 0 && !confirmed
                 ? '有數字要再確認一次'
@@ -228,7 +251,7 @@ export default function HealthRegister() {
             disabled={!canSubmit || saving}
             className="w-full rounded-xl bg-[#12776E] py-4 text-[17px] font-bold text-white disabled:cursor-not-allowed disabled:bg-[#B8CFCC]"
           >
-            {saving ? '送出中…' : '送出登記'}
+            {isPreview ? '送出登記（預覽中停用）' : saving ? '送出中…' : '送出登記'}
           </button>
         </div>
       )}

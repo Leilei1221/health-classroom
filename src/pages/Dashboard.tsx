@@ -1,5 +1,5 @@
 import { Suspense, lazy, useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth'
 import Layout from '../components/Layout'
 import { Button, Empty, ErrorBox, Field, Spinner, inputClass } from '../components/ui'
@@ -18,6 +18,7 @@ function currentAcademicYear(): number {
 
 export default function Dashboard() {
   const { teacher } = useAuth()
+  const nav = useNavigate()
   const [classes, setClasses] = useState<ClassRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -109,6 +110,9 @@ export default function Dashboard() {
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-slate-500">共 {classes.length} 個班級</p>
         <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => nav('/health/preview')}>
+            以學生身分預覽
+          </Button>
           <Button variant="secondary" onClick={() => { setShowImport((v) => !v); setShowForm(false) }}>
             {showImport ? '取消匯入' : '匯入 Excel 名單'}
           </Button>
