@@ -16,6 +16,18 @@ export async function ensureTeacher(): Promise<Teacher> {
   return unwrap(await supabase.rpc('hc_ensure_teacher').single())
 }
 
+/**
+ * 查登入者現有的教師檔案。唯讀 —— 沒有就回傳 null，不會順手建立。
+ * 用來在判定身分時區分「已經是老師」與「第一次登入的人」，
+ * ensureTeacher() 會建立教師列，不能拿來做這個判斷。
+ */
+export async function findTeacher(userId: string): Promise<Teacher | null> {
+  const { data, error } = await supabase
+    .from('hc_teachers').select('*').eq('id', userId).maybeSingle()
+  if (error) throw error
+  return data
+}
+
 /* ---------------------------------------------------------------- 班級 */
 
 export async function listClasses(): Promise<ClassRow[]> {

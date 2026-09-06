@@ -8,13 +8,15 @@ import { PREVIEW_STUDENT } from './preview'
  * 只有這條路由需要登入；座位登記與點名維持免登入。
  */
 export default function HealthGate({ preview = false }: { preview?: boolean }) {
-  const { session, role, loading, signInWithGoogle, signOut, teacher } = useAuth()
+  const { session, role, loading, signInWithGoogle, signOut, teacher, student } = useAuth()
 
   if (loading || (session && role === 'resolving')) return <Spinner />
 
   if (!session) return <SignIn onSignIn={signInWithGoogle} />
 
-  if (role === 'student') return <HealthRegister />
+  // 名單上有這個人就顯示真正的登記表單，不看是學生還是老師 ——
+  // 老師把自己掛進測試班級實測時，兩種身分會同時成立
+  if (student) return <HealthRegister />
 
   // 教師預覽：看得到學生的畫面，但填的東西不會寫進資料庫
   if (preview && role === 'teacher') return <HealthRegister preview={PREVIEW_STUDENT} />
