@@ -1,0 +1,367 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>健康管理・身體數值登記</title>
+<style>
+  :root{
+    --ink:#0E2E2B;
+    --ink-soft:#4A6461;
+    --teal:#12776E;
+    --teal-deep:#0B4A44;
+    --mint:#E9F5F2;
+    --mint-line:#C7E2DC;
+    --paper:#FFFFFF;
+    --amber:#B26A12;
+    --amber-bg:#FDF3E3;
+    --alert:#A8403C;
+    --alert-bg:#FBEDEC;
+    --calc-bg:#0B4A44;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:"Noto Sans TC","PingFang TC","Heiti TC",system-ui,sans-serif;
+    background:var(--mint);
+    color:var(--ink);
+    font-size:16px;
+    line-height:1.6;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:0 0 120px}
+
+  /* ── 身分列 ── */
+  header{
+    background:var(--teal-deep);
+    color:#fff;
+    padding:18px 20px 16px;
+  }
+  header .who{font-size:20px;font-weight:700;letter-spacing:.02em}
+  header .meta{font-size:13px;opacity:.72;margin-top:2px}
+
+  /* ── 儀器讀數條（本頁主角） ── */
+  .readout{
+    background:var(--calc-bg);
+    color:#fff;
+    padding:14px 20px 18px;
+    position:sticky;top:0;z-index:20;
+    border-bottom:1px solid rgba(255,255,255,.14);
+  }
+  .readout h2{
+    margin:0 0 10px;font-size:12px;font-weight:500;
+    color:#8FC9C1;letter-spacing:.08em;
+  }
+  .readout-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .rd{border-left:2px solid rgba(143,201,193,.4);padding-left:10px}
+  .rd .k{font-size:12px;color:#9CCFC8;display:block}
+  .rd .v{
+    font-size:26px;font-weight:700;
+    font-variant-numeric:tabular-nums;
+    letter-spacing:-.01em;line-height:1.2;
+  }
+  .rd .v.empty{color:#4E7F79;font-weight:400;font-size:22px}
+
+  /* ── 區塊 ── */
+  section{
+    background:var(--paper);
+    margin:14px 12px;
+    border-radius:14px;
+    border:1px solid var(--mint-line);
+    overflow:hidden;
+  }
+  .sec-head{
+    padding:14px 18px 12px;
+    border-bottom:1px solid var(--mint-line);
+    background:#F7FCFB;
+  }
+  .sec-head h3{margin:0;font-size:16px;font-weight:700}
+  .sec-head p{margin:3px 0 0;font-size:13px;color:var(--ink-soft)}
+  .fields{padding:6px 18px 14px}
+
+  .f{
+    display:flex;align-items:center;gap:12px;
+    padding:11px 0;border-bottom:1px solid #F0F6F5;
+  }
+  .f:last-child{border-bottom:0}
+  .f label{flex:1;font-size:15px}
+  .f .sub{display:block;font-size:12px;color:var(--ink-soft)}
+  .f input{
+    width:110px;text-align:right;
+    font-size:19px;font-weight:600;
+    font-variant-numeric:tabular-nums;
+    font-family:inherit;color:var(--ink);
+    padding:9px 10px;
+    border:1.5px solid var(--mint-line);
+    border-radius:9px;background:#fff;
+  }
+  .f input:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal)}
+  .f .unit{width:36px;font-size:13px;color:var(--ink-soft)}
+  .f.bad input{border-color:var(--alert);background:var(--alert-bg)}
+  .warn{
+    display:none;font-size:13px;color:var(--alert);
+    background:var(--alert-bg);border-radius:8px;
+    padding:8px 11px;margin:0 0 10px;
+  }
+  .f.bad + .warn{display:block}
+
+  details summary{
+    padding:13px 18px;font-size:15px;font-weight:600;
+    cursor:pointer;color:var(--teal);
+  }
+  details[open] summary{border-bottom:1px solid var(--mint-line)}
+
+  /* ── 送出 ── */
+  .bar{
+    position:fixed;left:0;right:0;bottom:0;z-index:30;
+    background:rgba(255,255,255,.96);
+    border-top:1px solid var(--mint-line);
+    padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+    max-width:520px;margin:0 auto;
+  }
+  .bar .prog{font-size:13px;color:var(--ink-soft);margin-bottom:8px}
+  button.send{
+    width:100%;padding:15px;border:0;border-radius:11px;
+    background:var(--teal);color:#fff;
+    font-family:inherit;font-size:17px;font-weight:700;
+    cursor:pointer;
+  }
+  button.send:disabled{background:#B8CFCC;cursor:not-allowed}
+
+  /* ── 結果 ── */
+  #result{display:none}
+  .card{
+    display:flex;gap:14px;align-items:flex-start;
+    padding:15px 18px;border-bottom:1px solid var(--mint-line);
+  }
+  .card:last-child{border-bottom:0}
+  .dot{width:13px;height:13px;border-radius:50%;margin-top:7px;flex:none}
+  .card h4{margin:0;font-size:15px}
+  .card .num{
+    font-size:24px;font-weight:700;
+    font-variant-numeric:tabular-nums;margin:1px 0 3px;
+  }
+  .card p{margin:0;font-size:14px;color:var(--ink-soft)}
+  .g{background:#2E8B62} .y{background:#D19A2E} .o{background:#B26A12}
+  .note{
+    margin:14px 12px;padding:14px 16px;
+    background:#F7FCFB;border:1px dashed var(--mint-line);
+    border-radius:12px;font-size:13px;color:var(--ink-soft);
+  }
+  .demo{
+    margin:12px;padding:10px 14px;background:var(--amber-bg);
+    border-radius:10px;font-size:13px;color:var(--amber);
+  }
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="who">王小明</div>
+    <div class="meta">307 班・座號 12・115 學年度第 1 學期</div>
+  </header>
+
+  <div class="readout">
+    <h2>自動計算</h2>
+    <div class="readout-grid">
+      <div class="rd"><span class="k">BMI</span><span class="v empty" id="o-bmi">—</span></div>
+      <div class="rd"><span class="k">體脂重量 kg</span><span class="v empty" id="o-fat">—</span></div>
+      <div class="rd"><span class="k">腰臀比</span><span class="v empty" id="o-whr">—</span></div>
+    </div>
+  </div>
+
+  <div class="demo">這是原型畫面，資料不會被儲存。請試著在手機上填填看，順不順、字夠不夠大。</div>
+
+  <div id="form">
+    <section>
+      <div class="sec-head">
+        <h3>體脂機讀數</h3>
+        <p>照著機器上顯示的數字抄下來就好，不用自己算</p>
+      </div>
+      <div class="fields">
+        <div class="f"><label>體脂機編號</label><input id="machine" inputmode="numeric" placeholder="—"><span class="unit"></span></div>
+        <div class="f"><label>身高</label><input id="height" inputmode="decimal" data-min="130" data-max="210" placeholder="—"><span class="unit">cm</span></div>
+        <div class="warn"></div>
+        <div class="f"><label>體重</label><input id="weight" inputmode="decimal" data-min="30" data-max="150" placeholder="—"><span class="unit">kg</span></div>
+        <div class="warn"></div>
+        <div class="f"><label>體脂率</label><input id="bfp" inputmode="decimal" data-min="3" data-max="50" placeholder="—"><span class="unit">%</span></div>
+        <div class="warn"></div>
+        <div class="f"><label>內臟脂肪</label><input id="visc" inputmode="decimal" data-min="1" data-max="30" placeholder="—"><span class="unit">級</span></div>
+        <div class="warn"></div>
+        <div class="f"><label>基礎代謝率</label><input id="bmr" inputmode="numeric" data-min="800" data-max="3000" placeholder="—"><span class="unit">kcal</span></div>
+        <div class="warn"></div>
+        <div class="f"><label>身體年齡</label><input id="bage" inputmode="numeric" data-min="10" data-max="80" placeholder="—"><span class="unit">歲</span></div>
+        <div class="warn"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h3>圍度</h3>
+        <p>腰圍量肚臍高度，臀圍量最寬處</p>
+      </div>
+      <div class="fields">
+        <div class="f"><label>腰圍</label><input id="waist" inputmode="decimal" data-min="50" data-max="150" placeholder="—"><span class="unit">cm</span></div>
+        <div class="warn"></div>
+        <div class="f"><label>臀圍</label><input id="hip" inputmode="decimal" data-min="60" data-max="160" placeholder="—"><span class="unit">cm</span></div>
+        <div class="warn"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h3>血壓機讀數</h3>
+        <p>坐著休息 5 分鐘後再量，手臂與心臟同高</p>
+      </div>
+      <div class="fields">
+        <div class="f"><label>收縮壓<span class="sub">上面那個數字</span></label><input id="sbp" inputmode="numeric" data-min="70" data-max="200" placeholder="—"><span class="unit">mmHg</span></div>
+        <div class="warn"></div>
+        <div class="f"><label>舒張壓<span class="sub">下面那個數字</span></label><input id="dbp" inputmode="numeric" data-min="40" data-max="140" placeholder="—"><span class="unit">mmHg</span></div>
+        <div class="warn"></div>
+        <div class="f"><label>脈搏</label><input id="pulse" inputmode="numeric" data-min="35" data-max="160" placeholder="—"><span class="unit">次/分</span></div>
+        <div class="warn"></div>
+        <div class="f"><label>血氧濃度</label><input id="spo2" inputmode="numeric" data-min="80" data-max="100" placeholder="—"><span class="unit">%</span></div>
+        <div class="warn"></div>
+      </div>
+    </section>
+
+    <section>
+      <div class="sec-head">
+        <h3>各部位測量結果</h3>
+        <p>體脂機的第二張報表，八個數字都要抄</p>
+      </div>
+      <div class="fields">
+        <div class="f"><label>皮下脂肪率・全身</label><input id="sc-whole" inputmode="decimal" data-min="1" data-max="50" placeholder="—"><span class="unit">%</span></div>
+        <div class="warn"></div>
+        <div class="f"><label>皮下脂肪率・軀幹</label><input id="sc-trunk" inputmode="decimal" data-min="1" data-max="50" placeholder="—"><span class="unit">%</span></div>
+        <div class="warn"></div>
+        <div class="f"><label>皮下脂肪率・雙手</label><input id="sc-arms" inputmode="decimal" data-min="1" data-max="50" placeholder="—"><span class="unit">%</span></div>
+        <div class="warn"></div>
+        <div class="f"><label>皮下脂肪率・雙腳</label><input id="sc-legs" inputmode="decimal" data-min="1" data-max="50" placeholder="—"><span class="unit">%</span></div>
+        <div class="warn"></div>
+        <div class="f"><label>骨骼肌率・全身</label><input id="mu-whole" inputmode="decimal" data-min="10" data-max="70" placeholder="—"><span class="unit">%</span></div>
+        <div class="warn"></div>
+        <div class="f"><label>骨骼肌率・軀幹</label><input id="mu-trunk" inputmode="decimal" data-min="10" data-max="70" placeholder="—"><span class="unit">%</span></div>
+        <div class="warn"></div>
+        <div class="f"><label>骨骼肌率・雙手</label><input id="mu-arms" inputmode="decimal" data-min="10" data-max="70" placeholder="—"><span class="unit">%</span></div>
+        <div class="warn"></div>
+        <div class="f"><label>骨骼肌率・雙腳</label><input id="mu-legs" inputmode="decimal" data-min="10" data-max="70" placeholder="—"><span class="unit">%</span></div>
+        <div class="warn"></div>
+      </div>
+    </section>
+  </div>
+
+  <div id="result">
+    <section>
+      <div class="sec-head">
+        <h3>今天的紀錄</h3>
+        <p>這些數字是這學期的起點，之後會拿來跟自己比較</p>
+      </div>
+      <div id="cards"></div>
+    </section>
+    <div class="note">
+      這裡看到的是參考範圍，不是診斷。數值只是提供你認識自己身體的線索，接下來的課會一起討論可以怎麼調整。
+    </div>
+  </div>
+
+  <div class="bar">
+    <div class="prog" id="prog">還有 20 個欄位要填</div>
+    <button class="send" id="send" disabled>送出登記</button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════
+   判定門檻【請確認】
+   目前 BMI 用成人標準（18 歲以上）。若班上有未滿 18 歲的
+   學生，請改用衛福部「兒童及青少年生長身體質量指數建議值」
+   的年齡別數字，直接改下面這一段即可。
+   血壓門檻為一般成人參考值；腰臀比為男性標準。
+   ═══════════════════════════════════════════════ */
+const RULES = {
+  bmi:[
+    {max:18.5, level:'y', label:'目前偏低',   msg:'體重相對身高偏低，均衡吃夠三餐是這學期可以留意的方向。'},
+    {max:24,   level:'g', label:'在理想範圍', msg:'維持現在的作息和活動量就很好。'},
+    {max:27,   level:'y', label:'稍微偏高',   msg:'有調整空間，從飲食和活動量著手都會有幫助。'},
+    {max:999,  level:'o', label:'建議留意',   msg:'這是一個值得投入改善的方向，我們會在課堂上一起討論做法。'}
+  ],
+  whr:[
+    {max:0.90, level:'g', label:'在理想範圍', msg:'腰腹脂肪分布在合適的範圍。'},
+    {max:0.95, level:'y', label:'可以留意',   msg:'增加日常活動量對這個數字最有幫助。'},
+    {max:99,   level:'o', label:'建議留意',   msg:'腰腹脂肪較多，規律活動是最直接的方式。'}
+  ]
+};
+function bpLevel(s,d){
+  if(s>=140||d>=90) return {level:'o',label:'建議再測一次並告訴老師',msg:'單次數值偏高很常見，量測前休息不足、剛跑完都會影響。請再量一次，並讓老師知道。'};
+  if(s>=130||d>=80) return {level:'y',label:'可以留意',msg:'從減少含糖飲料、增加蔬果和規律活動開始，對這個數字最有效。'};
+  if(s>=120)        return {level:'y',label:'接近參考上限',msg:'現在建立的習慣，會是未來心血管健康的資產。'};
+  return              {level:'g',label:'在理想範圍',msg:'維持規律作息和活動量就很好。'};
+}
+
+const REQ=['height','weight','bfp','visc','bmr','bage','waist','hip','sbp','dbp','pulse','spo2',
+           'sc-whole','sc-trunk','sc-arms','sc-legs','mu-whole','mu-trunk','mu-arms','mu-legs'];
+const $=id=>document.getElementById(id);
+const val=id=>parseFloat($(id).value);
+
+function checkOne(inp){
+  const row=inp.closest('.f'), warn=row.nextElementSibling;
+  const min=parseFloat(inp.dataset.min), max=parseFloat(inp.dataset.max);
+  if(isNaN(min)||inp.value==='') { row.classList.remove('bad'); return true; }
+  const v=parseFloat(inp.value);
+  const ok=!isNaN(v)&&v>=min&&v<=max;
+  row.classList.toggle('bad',!ok);
+  if(!ok&&warn&&warn.classList.contains('warn')){
+    warn.textContent='這個數字看起來不太對（合理範圍 '+min+'～'+max+'），請再確認一次機器上的讀數。';
+  }
+  return ok;
+}
+
+function refresh(){
+  document.querySelectorAll('input[data-min]').forEach(checkOne);
+
+  const h=val('height'), w=val('weight'), bf=val('bfp'), wa=val('waist'), hi=val('hip');
+  const bmi = (h>0&&w>0) ? w/Math.pow(h/100,2) : null;
+  const fat = (w>0&&bf>0) ? w*bf/100 : null;
+  const whr = (wa>0&&hi>0) ? wa/hi : null;
+
+  set('o-bmi', bmi, 1); set('o-fat', fat, 1); set('o-whr', whr, 2);
+
+  const missing = REQ.filter(id=>$(id).value==='').length;
+  const bad = document.querySelectorAll('.f.bad').length;
+  $('prog').textContent = missing ? '還有 '+missing+' 個欄位要填'
+                        : bad ? '有 '+bad+' 個數字要再確認'
+                        : '都填好了，可以送出';
+  $('send').disabled = missing>0 || bad>0;
+}
+function set(id,v,dp){
+  const el=$(id);
+  if(v===null||isNaN(v)){ el.textContent='—'; el.classList.add('empty'); }
+  else { el.textContent=v.toFixed(dp); el.classList.remove('empty'); }
+}
+
+document.addEventListener('input', e=>{ if(e.target.tagName==='INPUT') refresh(); });
+
+$('send').addEventListener('click', ()=>{
+  const h=val('height'), w=val('weight'), wa=val('waist'), hi=val('hip');
+  const bmi=w/Math.pow(h/100,2), whr=wa/hi;
+  const bp=bpLevel(val('sbp'), val('dbp'));
+  const pick=(t,v)=>RULES[t].find(r=>v<r.max);
+
+  const items=[
+    ['BMI', bmi.toFixed(1), pick('bmi',bmi)],
+    ['血壓', val('sbp')+' / '+val('dbp'), bp],
+    ['腰臀比', whr.toFixed(2), pick('whr',whr)]
+  ];
+  $('cards').innerHTML = items.map(([name,num,r])=>
+    '<div class="card"><span class="dot '+r.level+'"></span><div>'+
+    '<h4>'+name+'</h4><div class="num">'+num+'</div>'+
+    '<p><strong>'+r.label+'</strong>　'+r.msg+'</p></div></div>'
+  ).join('');
+
+  $('form').style.display='none';
+  document.querySelector('.demo').style.display='none';
+  $('result').style.display='block';
+  $('send').textContent='已送出';
+  $('send').disabled=true;
+  $('prog').textContent='紀錄完成，老師端已收到';
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+
+refresh();
+</script>

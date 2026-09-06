@@ -1,0 +1,196 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>飲食金字塔・你是哪一型</title>
+<style>
+  :root{
+    --ink:#0E2E2B; --ink-soft:#4A6461;
+    --teal:#12776E; --teal-deep:#0B4A44;
+    --mint:#E9F5F2; --mint-line:#C7E2DC; --paper:#FFF;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;font-family:"Noto Sans TC","PingFang TC","Heiti TC",system-ui,sans-serif;
+    background:var(--mint);color:var(--ink);font-size:16px;line-height:1.6;
+    -webkit-text-size-adjust:100%;
+  }
+  .wrap{max-width:520px;margin:0 auto;padding:0 0 40px}
+  header{background:var(--teal-deep);color:#fff;padding:18px 20px}
+  header h1{margin:0;font-size:19px;font-weight:700}
+  header p{margin:3px 0 0;font-size:13px;opacity:.72}
+
+  .track{height:3px;background:rgba(255,255,255,.18)}
+  .track i{display:block;height:100%;background:#8FC9C1;width:0;transition:width .3s}
+
+  .step{font-size:12px;color:var(--ink-soft);letter-spacing:.06em;margin:20px 20px 8px}
+
+  .q{
+    background:var(--paper);margin:0 12px;padding:24px 20px;
+    border:1px solid var(--mint-line);border-radius:14px;
+  }
+  .q h2{margin:0 0 20px;font-size:21px;font-weight:700;line-height:1.5}
+  .opt{
+    display:block;width:100%;text-align:left;
+    padding:16px 18px;margin-bottom:10px;
+    background:#F7FCFB;border:1.5px solid var(--mint-line);
+    border-radius:11px;font-family:inherit;font-size:17px;
+    color:var(--ink);cursor:pointer;line-height:1.5;
+  }
+  .opt:hover{border-color:var(--teal);background:#EFF8F6}
+  .opt:last-child{margin-bottom:0}
+  .opt b{color:var(--teal);margin-right:8px}
+
+  .back{
+    display:block;margin:16px auto 0;padding:9px 18px;
+    background:none;border:0;color:var(--ink-soft);
+    font-family:inherit;font-size:14px;cursor:pointer;
+  }
+  .back:disabled{opacity:.3;cursor:default}
+
+  /* 結果 */
+  #result{display:none;margin:0 12px}
+  .rcard{
+    background:var(--paper);border:1px solid var(--mint-line);
+    border-radius:14px;padding:28px 22px;text-align:center;
+  }
+  .badge{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:74px;height:74px;border-radius:50%;
+    background:var(--teal);color:#fff;
+    font-size:32px;font-weight:700;margin-bottom:14px;
+  }
+  .rcard h2{margin:0 0 10px;font-size:22px}
+  .rcard p{margin:0;font-size:16px;color:var(--ink-soft);text-align:left;line-height:1.75}
+  .tip{
+    margin-top:18px;padding:14px 16px;background:#F7FCFB;
+    border-radius:11px;text-align:left;font-size:15px;
+  }
+  .tip strong{display:block;margin-bottom:5px;color:var(--teal-deep)}
+  .again{
+    display:block;width:100%;margin-top:14px;padding:14px;
+    background:var(--teal);color:#fff;border:0;border-radius:11px;
+    font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;
+  }
+  .demo{margin:12px;padding:10px 14px;background:#FDF3E3;border-radius:10px;font-size:13px;color:#B26A12}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>飲食金字塔・你是哪一型</h1>
+    <p>依你平常的習慣選就好，沒有標準答案</p>
+    <div class="track"><i id="bar"></i></div>
+  </header>
+
+  <div class="demo">原型畫面，結果不會儲存。文字為修改版，可切換回原版（見下方說明）。</div>
+
+  <div id="quiz">
+    <div class="step" id="step">第 1 題</div>
+    <div class="q">
+      <h2 id="qtext"></h2>
+      <div id="opts"></div>
+    </div>
+    <button class="back" id="back">← 上一題</button>
+  </div>
+
+  <div id="result">
+    <div class="rcard">
+      <div class="badge" id="badge"></div>
+      <h2 id="rtitle"></h2>
+      <p id="rtext"></p>
+      <div class="tip"><strong>可以試試看</strong><span id="rtip"></span></div>
+      <button class="again" id="again">重新測一次</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════
+   決策樹：完全依課本原始流程，未更動任何分支
+   ═══════════════════════════════════════════ */
+const Q = {
+  1:{t:'喜歡吃正餐超過點心嗎？', o:[['是',2],['不是',3]]},
+  2:{t:'常常為了功課、社團、打工或其他事情而耽誤正餐嗎？', o:[['是',3],['不是',6]]},
+  3:{t:'想喝東西的時候，你通常會選：', o:[['A　白開水、熱茶',4],['B　含糖紅茶、綠茶、奶茶、稀釋果汁、乳酸飲料、運動飲料等',5]]},
+  4:{t:'吃飯的時候，你比較像哪一種？', o:[['A　吃菜配飯',7],['B　吃飯配菜',8]]},
+  5:{t:'喜歡洋芋片、可樂果、薯條這類零食嗎？', o:[['喜歡','A'],['還好',7]]},
+  6:{t:'你是那種要吃到飯才會覺得飽的人嗎？', o:[['是',8],['不是',4]]},
+  7:{t:'喜歡牛排、香雞排、排骨這類大塊肉骨嗎？', o:[['喜歡',9],['還好',11]]},
+  8:{t:'正餐沒吃到大塊的肉（爌肉、排骨、雞腿等），會覺得怪怪的嗎？', o:[['會',10],['不會',11]]},
+  9:{t:'喜歡吃青菜水果嗎？', o:[['喜歡','C'],['還好','B']]},
+  10:{t:'每天都有吃到大約一滿碗量的青菜嗎？', o:[['有',13],['沒有',14]]},
+  11:{t:'幾乎每天都有喝到牛奶或羊奶嗎？', o:[['有',10],['沒有',12]]},
+  12:{t:'常吃到蛋和豆製品嗎？（豆腐、豆乾、豆包、素雞等）', o:[['常吃',14],['很少','D']]},
+  /* 第 13 題原文為「有不少人說過你應該減重」，已改為行為描述，
+     分支去向完全相同。要改回原文，把 t 換掉即可。 */
+  13:{t:'吃正餐時，你常常會再添飯或加點，吃到很飽嗎？', o:[['常常','E'],['不會',14]]},
+  14:{t:'每天都會吃到至少一顆水果嗎？', o:[['會','G'],['不一定','F']]}
+};
+
+/* ═══════════════════════════════════════════
+   結果文字：修改版（拿掉身材評論，保留營養重點）
+   原版文字附在下方註解，要換回直接替換 text 即可
+   ═══════════════════════════════════════════ */
+const R = {
+  A:{title:'食物種類偏少型',
+     text:'你吃的食物種類比較集中，零食佔的比例偏高。長期下來，六大類食物容易有幾類補不太到，身體要用的原料就會不夠齊全。',
+     tip:'從正餐開始補：一餐裡至少出現三種顏色的食物，零食改成水果或無糖乳品。'},
+     /* 原版：你很偏食喔！你是不是肉肉的或瘦瘦小小，風一吹就會倒啊？ */
+  B:{title:'蛋白質偏多型',
+     text:'你的肉類吃得比較多，蔬果相對少。蛋白質吃太多時，心血管和腎臟的工作量會比較大。',
+     tip:'一餐的肉大約一個掌心大小就夠了，空出來的位置給蔬菜。'},
+     /* 原版：你是「肉肚」！肉肉吃太多了，你的心血管和腎臟的負擔很重喔！ */
+  C:{title:'主食偏少型',
+     text:'你的蔬果吃得不錯，但主食類偏少。五穀根莖類（飯、麵、饅頭、地瓜、芋頭）是身體最主要的能量來源，少了會容易累、注意力不集中。',
+     tip:'每餐至少吃到一碗左右的主食，全穀類（糙米、地瓜）比精緻澱粉更耐撐。'},
+     /* 原版：主食類太少，記得五穀根莖類如飯、麵、饅頭、地瓜、芋頭等。才是我們的「主食」喔！ */
+  D:{title:'蛋白質偏少型',
+     text:'你的乳品、蛋、豆製品吃得比較少。這幾類是蛋白質的主要來源，對成長期的肌肉、免疫力和頭髮皮膚都有直接影響。',
+     tip:'早餐加一顆蛋或一杯無糖豆漿，是最容易補起來的一餐。'},
+     /* 原版：你有可能缺少蛋白質，小心頭髮乾乾的，面黃肌瘦喔！ */
+  E:{title:'種類均衡・份量偏多型',
+     text:'六大類食物你都有吃到，比較不容易營養素缺乏，這點很好。要留意的是份量，吃到很飽和吃夠是兩件事。',
+     tip:'試試看「先菜、再肉、後飯」的順序，吃到七、八分飽就停，過十分鐘再判斷還餓不餓。'},
+     /* 原版：你各類食物都有攝取，較不易有營養素缺乏的情形，但要小心，食量是不是大了一些？ */
+  F:{title:'蔬果偏少型',
+     text:'其他類別都有顧到，蔬菜水果是目前最明顯的缺口。蔬果提供的維生素、礦物質和纖維，是其他類食物補不太回來的。',
+     tip:'先設一個小目標：午餐便當的菜全部吃完，或每天多一顆水果。'},
+     /* 原版：你應該多吃些蔬菜、水果，才能青春活力水噹噹喔！ */
+  G:{title:'均衡一族',
+     text:'六大類食物你都有顧到，份量也拿捏得不錯。這是很難維持的狀態，你已經做到了。',
+     tip:'接下來可以往品質調整：白飯換成糙米、含糖飲料再減少一些。'}
+     /* 原版：很不錯！你是「均衡一族」，還要繼續努力，常保健康喔！ */
+};
+
+let cur=1, hist=[], n=0;
+const $=i=>document.getElementById(i);
+
+function render(){
+  const q=Q[cur];
+  $('step').textContent='第 '+(hist.length+1)+' 題';
+  $('bar').style.width=Math.min((hist.length/8)*100,100)+'%';
+  $('qtext').textContent=q.t;
+  $('opts').innerHTML='';
+  q.o.forEach(([label,next])=>{
+    const b=document.createElement('button');
+    b.className='opt';
+    const m=label.match(/^([AB])　(.*)$/);
+    b.innerHTML = m ? '<b>'+m[1]+'</b>'+m[2] : label;
+    b.onclick=()=>{ hist.push(cur); typeof next==='number' ? (cur=next, render()) : show(next); };
+    $('opts').appendChild(b);
+  });
+  $('back').disabled = hist.length===0;
+}
+function show(type){
+  const r=R[type];
+  $('badge').textContent=type;
+  $('rtitle').textContent=type+'型・'+r.title;
+  $('rtext').textContent=r.text;
+  $('rtip').textContent=r.tip;
+  $('quiz').style.display='none';
+  $('result').style.display='block';
+  $('bar').style.width='100%';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+$('back').onclick=()=>{ if(hist.length){ cur=hist.pop(); render(); } };
+$('again').onclick=()=>{ cur=1; hist=[]; $('result').style.display='none'; $('quiz').style.display='block'; render(); };
+render();
+</script>
