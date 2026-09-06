@@ -49,8 +49,11 @@
 | 使用者支援電子郵件 | 你的學校信箱 |
 | 應用程式標誌 | 可略過 |
 | 應用程式首頁 | `https://leilei1221.github.io/health-classroom/` |
-| 授權網域 | `supabase.co` 與 `github.io` |
+| 授權網域 | `leilei1221.github.io` 與 `fcstpyiggvhduaztwlrf.supabase.co` |
 | 開發人員聯絡資訊 | 你的學校信箱 |
+
+> 授權網域要填**你實際擁有的那一層**，不能填 `github.io`、`supabase.co`。
+> 這兩個是大家共用的網域字尾，Google 會擋下來並顯示「網域無效：須為頂層私人網域」。
 
 **範圍（Scopes）**：不用另外新增，預設的 `email`、`profile`、`openid` 就夠了。
 
