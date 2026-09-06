@@ -2,6 +2,7 @@ import { Suspense, lazy, useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth'
 import Layout from '../components/Layout'
+import QrCode from '../components/QrCode'
 import { Button, Empty, ErrorBox, Field, Spinner, inputClass } from '../components/ui'
 import { createClass, deleteClass, listClasses, updateClass } from '../lib/api'
 import { friendlyError } from '../lib/errors'
@@ -24,6 +25,11 @@ export default function Dashboard() {
   const [error, setError] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [showImport, setShowImport] = useState(false)
+  const [showHealthQr, setShowHealthQr] = useState(false)
+  const [copied, setCopied] = useState(false)
+
+  // 健康登記頁對全校學生都是同一個網址，身分由 Google 登入決定，不像選位有班級碼
+  const healthUrl = `${window.location.origin}${window.location.pathname}#/health`
 
   // 編輯班級
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -110,6 +116,9 @@ export default function Dashboard() {
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-slate-500">共 {classes.length} 個班級</p>
         <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => setShowHealthQr(true)}>
+            健康登記 QR code
+          </Button>
           <Button variant="secondary" onClick={() => nav('/health/preview')}>
             以學生身分預覽
           </Button>
@@ -121,6 +130,43 @@ export default function Dashboard() {
           </Button>
         </div>
       </div>
+
+      {showHealthQr && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="健康登記 QR code"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 p-6"
+          onClick={() => setShowHealthQr(false)}
+        >
+          <div
+            className="max-w-lg space-y-4 rounded-2xl bg-white p-8 text-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3 className="text-lg font-semibold">健康管理・身體數值登記</h3>
+            <p className="text-sm text-slate-600">
+              請同學用手機掃描，並以學校的 Google 帳號登入
+            </p>
+            <div className="flex justify-center">
+              <QrCode value={healthUrl} size={280} />
+            </div>
+            <p className="break-all font-mono text-xs text-slate-500">{healthUrl}</p>
+            <div className="flex justify-center gap-2">
+              <Button
+                variant="secondary"
+                onClick={() => {
+                  void navigator.clipboard?.writeText(healthUrl)
+                  setCopied(true)
+                  setTimeout(() => setCopied(false), 2000)
+                }}
+              >
+                {copied ? '已複製 ✓' : '複製連結'}
+              </Button>
+              <Button variant="secondary" onClick={() => setShowHealthQr(false)}>關閉</Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {error && <div className="mb-4"><ErrorBox message={error} /></div>}
 
