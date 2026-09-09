@@ -222,10 +222,12 @@ function syncDate_(dateStr) {
   const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID)
 
   Object.keys(byClass).forEach(function (classId) {
+    let label = classId
     try {
       const cls = sbGet_('hc_classes',
         'id=eq.' + classId + '&select=id,name,group_count,group_capacity')[0]
       if (!cls) throw new Error('找不到班級 ' + classId)
+      label = cls.name
 
       if (CONFIG.CLASS_FILTER.length > 0 && CONFIG.CLASS_FILTER.indexOf(cls.name) < 0) {
         result.skipped.push(cls.name + '（不在同步清單）')
@@ -236,7 +238,10 @@ function syncDate_(dateStr) {
       if (outcome === 'updated') result.updated.push(cls.name)
       else result.written.push(cls.name)
     } catch (e) {
-      result.errors.push(classId + '：' + e.message)
+      // 帶上班級名稱與堆疊最上面一行，否則 toast 只看得到一串 UUID，
+      // 無從判斷是哪一班、卡在哪一步
+      const where = (e.stack || '').split('\n')[1] || ''
+      result.errors.push(label + '：' + e.message + (where ? '　@' + where.trim() : ''))
     }
   })
 
@@ -374,8 +379,12 @@ function findStatCols_(sheet) {
     if (header[i] === CONFIG.STAT_GROUP_TITLE) { from = i; break }
   }
   if (from > 0) {
-    to = from
-    while (to < header.length && header[to] === CONFIG.STAT_GROUP_TITLE) to++
+    // 合併的群組標題只有最左邊那一格有值，右邊都是空字串，
+    // 因此往右吃到「下一個非空的主標題」為止，那就是下一個群組的起點。
+    // 先前寫成 while (header[to] === STAT_GROUP_TITLE)，第二格就停，
+    // 結果只框到「曠課」一欄，其餘六欄的統計從來沒被寫進去。
+    to = from + 1
+    while (to < header.length && header[to] === '') to++
   }
 
   const cols = {}
