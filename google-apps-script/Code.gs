@@ -203,7 +203,7 @@ function inList_(values) {
  * 一個「日期 × 班級」寫成 4 欄（兩個節次，各佔 出缺席 + 特殊狀況）。
  */
 function syncDate_(dateStr) {
-  const result = { date: dateStr, written: [], skipped: [], empty: [], errors: [] }
+  const result = { date: dateStr, written: [], updated: [], skipped: [], empty: [], errors: [] }
 
   const lessons = sbGet_('hc_lessons',
     'lesson_date=eq.' + dateStr + '&select=id,class_id,lesson_date,period,topic&order=period')
@@ -232,9 +232,9 @@ function syncDate_(dateStr) {
         return
       }
 
-      const written = syncClassDate_(ss, cls, dateStr, byClass[classId])
-      if (written) result.written.push(cls.name)
-      else result.skipped.push(cls.name + '（已寫過）')
+      const outcome = syncClassDate_(ss, cls, dateStr, byClass[classId])
+      if (outcome === 'updated') result.updated.push(cls.name)
+      else result.written.push(cls.name)
     } catch (e) {
       result.errors.push(classId + '：' + e.message)
     }
@@ -243,12 +243,15 @@ function syncDate_(dateStr) {
   return result
 }
 
-/** 寫入單一班級某一天的課堂；已寫過則回傳 false */
+/** 寫入單一班級某一天的課堂；回傳 'created'（新建區塊）或 'updated'（重寫既有區塊） */
 function syncClassDate_(ss, cls, dateStr, dayLessons) {
   const sheet = ensureSheet_(ss, cls.name)
   const blockTitle = blockTitle_(dateStr, cls.name)
 
-  if (findBlockColumn_(sheet, blockTitle) > 0) return false // 已寫過，不重複
+  // 當天的區塊已經在就重寫它，不是跳過。
+  // 一天會同步兩次（12:00、16:00），若沿用「已寫過就跳出」的做法，
+  // 中午之後才點的名與加扣分永遠寫不進去，統計欄也不會重算。
+  const existingCol = findBlockColumn_(sheet, blockTitle)
 
   const students = sbGet_('hc_students',
     'class_id=eq.' + cls.id + '&is_active=eq.true' +
@@ -275,9 +278,9 @@ function syncClassDate_(ss, cls, dateStr, dayLessons) {
         'lesson_id=in.' + inList_(lessonIds) + '&select=lesson_id,student_id,label,points')
     : []
 
-  writeLessonBlock_(sheet, students, blockTitle, periods, attendance, perf, cols)
+  writeLessonBlock_(sheet, students, blockTitle, periods, attendance, perf, cols, existingCol)
   recalcStats_(sheet, cls, students, cols)
-  return true
+  return existingCol > 0 ? 'updated' : 'created'
 }
 
 // =============================================================================
@@ -493,17 +496,23 @@ function perfCellText_(records) {
 }
 
 /** 插入 4 欄並填入該日兩個節次的出缺席與特殊狀況 */
-function writeLessonBlock_(sheet, students, blockTitle, periods, attendance, perf, cols) {
-  const col = insertionColumn_(sheet)
-  sheet.insertColumnsBefore(col, 4)
+function writeLessonBlock_(sheet, students, blockTitle, periods, attendance, perf, cols, existingCol) {
+  let col = existingCol
+  if (!col) {
+    col = insertionColumn_(sheet)
+    sheet.insertColumnsBefore(col, 4)
 
-  // 主標題：日期 班級名，橫跨 4 欄
-  sheet.getRange(CONFIG.HEADER_ROW, col, 1, 4).merge()
-    .setValue(blockTitle)
-    .setFontWeight('bold')
-    .setHorizontalAlignment('center')
+    // 主標題：日期 班級名，橫跨 4 欄。
+    // 只在新建時處理：重寫既有區塊時標題內容相同，
+    // 而且對已合併的範圍再呼叫一次 merge() 沒有意義。
+    sheet.getRange(CONFIG.HEADER_ROW, col, 1, 4).merge()
+      .setValue(blockTitle)
+      .setFontWeight('bold')
+      .setHorizontalAlignment('center')
+  }
 
-  // 子標題：第X節 時間 / 特殊狀況 ×2
+  // 子標題：第X節 時間 / 特殊狀況 ×2。
+  // 重寫時也要更新：當天稍晚才建立第二節課的話，中午那次同步是空的
   const sub = []
   for (let i = 0; i < 2; i++) {
     const l = periods[i]
@@ -627,7 +636,8 @@ function todayStr_() {
 
 function formatResult_(r) {
   const parts = ['[' + r.date + ']']
-  if (r.written.length) parts.push('已寫入：' + r.written.join('、'))
+  if (r.written.length) parts.push('新增：' + r.written.join('、'))
+  if (r.updated.length) parts.push('更新：' + r.updated.join('、'))
   if (r.skipped.length) parts.push('略過：' + r.skipped.join('、'))
   if (r.empty.length) parts.push(r.empty.join('、'))
   if (r.errors.length) parts.push('錯誤：' + r.errors.join('；'))
