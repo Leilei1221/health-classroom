@@ -82,6 +82,8 @@ function onOpen() {
     .addSeparator()
     .addItem('安裝自動同步（週一～週五 12:00、16:00）', 'installSyncTriggers')
     .addItem('移除自動同步', 'removeSyncTriggers')
+    .addSeparator()
+    .addItem('診斷同步問題…', 'debugSync')
     .addToUi()
 }
 
@@ -172,6 +174,13 @@ function serviceKey_() {
 function sbGet_(table, query) {
   const key = serviceKey_()
   const url = CONFIG.SUPABASE_URL + '/rest/v1/' + table + '?' + query
+
+  // UrlFetchApp 對不合法網址只會丟「下列引數無效」，不會說是哪一個查詢，
+  // 因此自己先檢查並把網址寫進訊息裡
+  if (!/^https:\/\/[^\s"'<>]+$/.test(url)) {
+    throw new Error('查詢 ' + table + ' 的網址不合法：' + url)
+  }
+
   const res = UrlFetchApp.fetch(url, {
     method: 'get',
     muteHttpExceptions: true,
@@ -189,9 +198,15 @@ function sbGet_(table, query) {
   return JSON.parse(body)
 }
 
-/** PostgREST 的 in.(...) 需要把值用逗號串起來 */
+/**
+ * PostgREST 的 in.(...) 需要把值用逗號串起來。
+ * 一律做 encodeURIComponent：值裡若出現引號、括號、空白等字元，
+ * 未編碼的網址會被 UrlFetchApp 判定不合法而整批失敗。
+ */
 function inList_(values) {
-  return '(' + values.map(function (v) { return '"' + v + '"' }).join(',') + ')'
+  return '(' + values.map(function (v) {
+    return encodeURIComponent(String(v))
+  }).join(',') + ')'
 }
 
 // =============================================================================
@@ -660,6 +675,95 @@ function toast_(msg) {
   } catch (e) {
     console.log(msg) // 由觸發器執行時沒有前景試算表
   }
+}
+
+/**
+ * 出問題時跑這個：把同步的每一步拆開各自 try/catch，
+ * 印出實際發出的查詢與每一步的結果，找出到底是哪一步壞掉。
+ * 執行後看「執行記錄」（View → Logs），把內容整份複製給開發者。
+ */
+function debugSync() {
+  const ui = SpreadsheetApp.getUi()
+  const res = ui.prompt('診斷同步', '要診斷哪一天？（YYYY-MM-DD）', ui.ButtonSet.OK_CANCEL)
+  if (res.getSelectedButton() !== ui.Button.OK) return
+  const dateStr = res.getResponseText().trim()
+
+  const log = []
+  const step = function (name, fn) {
+    try {
+      const out = fn()
+      log.push('OK   ' + name + ' → ' + out)
+      return out
+    } catch (e) {
+      log.push('FAIL ' + name + ' → ' + e.message)
+      throw e
+    }
+  }
+
+  try {
+    step('0 金鑰', function () { return serviceKey_() ? '有' : '無' })
+
+    const lessons = step('1 hc_lessons', function () {
+      const r = sbGet_('hc_lessons',
+        'lesson_date=eq.' + dateStr + '&select=id,class_id,lesson_date,period&order=period')
+      return r.length + ' 筆'
+    }) && sbGet_('hc_lessons',
+      'lesson_date=eq.' + dateStr + '&select=id,class_id,lesson_date,period&order=period')
+
+    const byClass = {}
+    lessons.forEach(function (l) { (byClass[l.class_id] = byClass[l.class_id] || []).push(l) })
+
+    const ss = step('2 開啟試算表', function () {
+      const x = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID)
+      return x.getName()
+    })
+
+    Object.keys(byClass).forEach(function (classId) {
+      log.push('--- 班級 ' + classId + ' ---')
+      const cls = step('3 hc_classes', function () {
+        const r = sbGet_('hc_classes', 'id=eq.' + classId + '&select=id,name')
+        return r.length ? r[0].name : '找不到'
+      }) && sbGet_('hc_classes', 'id=eq.' + classId + '&select=id,name')[0]
+      if (!cls) return
+
+      const sheet = step('4 取得分頁 ' + cls.name, function () {
+        const sh = ss.getSheetByName(cls.name)
+        return sh ? '有，欄數 ' + sh.getLastColumn() + '，列數 ' + sh.getLastRow() : '不存在（會新建）'
+      }) && ss.getSheetByName(cls.name)
+      if (!sheet) return
+
+      step('5 findFixedCols_', function () { return JSON.stringify(findFixedCols_(sheet)) })
+      step('6 insertionColumn_', function () { return String(insertionColumn_(sheet)) })
+      step('7 findStatCols_', function () { return JSON.stringify(findStatCols_(sheet)) })
+      step('8 區塊是否已存在', function () {
+        return String(findBlockColumn_(sheet, blockTitle_(dateStr, cls.name)))
+      })
+      step('9 hc_students', function () {
+        return sbGet_('hc_students',
+          'class_id=eq.' + cls.id + '&is_active=eq.true&select=id,student_no,seat_no,name&order=seat_no.asc'
+        ).length + ' 位'
+      })
+      step('10 hc_seat_assignments', function () {
+        return sbGet_('hc_seat_assignments',
+          'class_id=eq.' + cls.id + '&select=student_id,group_no,seat_slot').length + ' 筆'
+      })
+      const ids = byClass[classId].slice(0, 2).map(function (l) { return l.id })
+      step('11 hc_attendance（in 查詢）', function () {
+        return sbGet_('hc_attendance',
+          'lesson_id=in.' + inList_(ids) + '&select=lesson_id,student_id,status').length + ' 筆'
+      })
+      step('12 hc_performance_records（in 查詢）', function () {
+        return sbGet_('hc_performance_records',
+          'lesson_id=in.' + inList_(ids) + '&select=lesson_id,student_id,label,points').length + ' 筆'
+      })
+    })
+  } catch (e) {
+    log.push('（在上面那一步中斷）')
+  }
+
+  const text = log.join('\n')
+  console.log(text)
+  ui.alert('診斷結果（也在執行記錄裡）', text, ui.ButtonSet.OK)
 }
 
 /** 設定完先跑這個，確認金鑰與連線都正常 */
