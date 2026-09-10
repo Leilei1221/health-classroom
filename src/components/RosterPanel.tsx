@@ -4,8 +4,16 @@ import { deleteStudent, listStudents, upsertStudents } from '../lib/api'
 import { friendlyError } from '../lib/errors'
 import type { Student } from '../lib/types'
 
-/** 貼上 Excel 欄位（學號 / 座號 / 姓名），以 Tab 或逗號分隔 */
-function parsePasted(text: string, classId: string) {
+/**
+ * 貼上 Excel 欄位（學號 / 座號 / 姓名），以 Tab 或逗號分隔。
+ *
+ * serialSeat 為 true 時忽略貼上的座號，改用貼上順序的流水號。
+ * 多元選修這類跨班課程的學生來自不同原班，原班座號會重複，
+ * 而資料庫的座號在同一個班內必須唯一（hc_students_seat_no_key）。
+ * 這種情況下班級與座號的資訊放在姓名裡（例：「20106林宥漢」），
+ * 座號只當作課堂內的排序用。
+ */
+function parsePasted(text: string, classId: string, serialSeat: boolean) {
   const rows: Omit<Student, 'id' | 'is_active'>[] = []
   const errors: string[] = []
   text.split('\n').forEach((line, i) => {
@@ -19,7 +27,7 @@ function parsePasted(text: string, classId: string) {
     rows.push({
       class_id: classId,
       student_no: studentNo,
-      seat_no: Number.isFinite(seat) ? seat : null,
+      seat_no: serialSeat ? rows.length + 1 : (Number.isFinite(seat) ? seat : null),
       name,
       gender: null,
       note: '',
@@ -28,12 +36,23 @@ function parsePasted(text: string, classId: string) {
   return { rows, errors }
 }
 
+/** 找出重複的座號，回傳「座號 → 該座號的姓名」 */
+function duplicateSeats(rows: Omit<Student, 'id' | 'is_active'>[]) {
+  const bySeat = new Map<number, string[]>()
+  rows.forEach((r) => {
+    if (r.seat_no == null) return
+    bySeat.set(r.seat_no, [...(bySeat.get(r.seat_no) ?? []), r.name])
+  })
+  return [...bySeat.entries()].filter(([, names]) => names.length > 1)
+}
+
 export default function RosterPanel({ classId }: { classId: string }) {
   const [students, setStudents] = useState<Student[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [paste, setPaste] = useState('')
   const [showImport, setShowImport] = useState(false)
+  const [serialSeat, setSerialSeat] = useState(false)
 
   const reload = () => {
     setLoading(true)
@@ -45,9 +64,21 @@ export default function RosterPanel({ classId }: { classId: string }) {
   useEffect(reload, [classId])
 
   const doImport = async () => {
-    const { rows, errors } = parsePasted(paste, classId)
+    const { rows, errors } = parsePasted(paste, classId, serialSeat)
     if (errors.length) { setError(errors.slice(0, 5).join('；')); return }
     if (!rows.length) { setError('沒有可匯入的資料'); return }
+
+    // 先自己擋下來並說清楚，否則使用者只會看到資料庫丟出的
+    // duplicate key value violates unique constraint 這種訊息
+    const dups = duplicateSeats(rows)
+    if (dups.length) {
+      setError(
+        `座號重複：${dups.map(([seat, names]) => `${seat} 號（${names.join('、')}）`).join('；')}。` +
+        '同一個班的座號必須唯一。多元選修這類跨班課程請勾選下方的「座號改用流水號」。',
+      )
+      return
+    }
+
     setError('')
     try {
       await upsertStudents(rows)
@@ -101,6 +132,21 @@ export default function RosterPanel({ classId }: { classId: string }) {
             value={paste}
             onChange={(e) => setPaste(e.target.value)}
           />
+          <label className="flex items-start gap-2 text-sm text-slate-700">
+            <input
+              type="checkbox"
+              checked={serialSeat}
+              onChange={(e) => setSerialSeat(e.target.checked)}
+              className="mt-0.5 h-4 w-4"
+            />
+            <span>
+              座號改用流水號（多元選修等跨班課程）
+              <span className="block text-xs text-slate-500">
+                學生來自不同原班時原班座號會重複，勾選後改用貼上順序 1、2、3…。
+                原班與座號請放在姓名裡，例如「20106林宥漢」。
+              </span>
+            </span>
+          </label>
           <Button onClick={doImport}>匯入</Button>
         </div>
       )}

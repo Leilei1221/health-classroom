@@ -8,6 +8,8 @@ const MESSAGES: Record<string, string> = {
   seat_disabled: '這個位子不開放選取。',
   seat_taken: '這個位子剛剛被別人選走了，請換一個。',
   not_authenticated: '請先登入。',
+  hc_students_seat_no_key: '同一個班有重複的座號。跨班課程（例如多元選修）請在匯入時勾選「座號改用流水號」。',
+  hc_students_class_id_student_no_key: '這個班已經有相同學號的學生了。',
 }
 
 /** 連線失敗時瀏覽器丟出的訊息，對學生而言毫無意義，需另外轉譯 */
