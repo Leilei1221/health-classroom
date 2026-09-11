@@ -1,0 +1,629 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>我的餐盤・一日份量拼盤</title>
+<style>
+  :root{
+    --ink:#0E2E2B; --ink-soft:#4A6461;
+    --teal:#12776E; --teal-deep:#0B4A44;
+    --mint:#E9F5F2; --mint-line:#C7E2DC; --paper:#FFFFFF;
+    --amber:#B26A12; --amber-bg:#FDF3E3;
+    --alert:#A8403C; --alert-bg:#FBEDEC;
+    /* 六大類配色（與國健署／課本一致） */
+    --c-grain:#D9A441; --c-prot:#C56B78; --c-milk:#3E7AA6;
+    --c-veg:#3E8E5A;   --c-fruit:#CF5F33; --c-fat:#8A6FA8;
+    --c-water:#4FA8C7; --c-sugar:#8B8177;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:"Noto Sans TC","PingFang TC","Heiti TC",system-ui,sans-serif;
+       background:var(--mint);color:var(--ink);font-size:16px;line-height:1.6;
+       -webkit-text-size-adjust:100%}
+  .wrap{max-width:520px;margin:0 auto;padding:0 0 116px}
+  header{background:var(--teal-deep);color:#fff;padding:14px 18px 12px}
+  header h1{margin:0;font-size:18px;font-weight:700}
+  header p{margin:3px 0 0;font-size:12.5px;opacity:.75}
+
+  /* ═══ 置頂儀表：六條份量尺 ═══ */
+  .gauge{background:var(--teal-deep);padding:4px 14px 12px;position:sticky;top:0;z-index:20;
+         border-bottom:1px solid rgba(255,255,255,.14)}
+  .row{display:flex;align-items:center;gap:7px;margin-bottom:5px}
+  .row .nm{width:60px;flex:none;font-size:11px;color:#CFE7E3;display:flex;align-items:center;gap:5px;white-space:nowrap;letter-spacing:-.02em}
+  .row .nm i{width:9px;height:9px;border-radius:2px;flex:none}
+  .track{flex:1;height:17px;position:relative;border-radius:4px;
+         background:rgba(255,255,255,.10);overflow:visible}
+  .ticks{position:absolute;inset:0;border-radius:4px;
+         background-image:repeating-linear-gradient(90deg,transparent 0,transparent calc(5.555% - 1px),rgba(255,255,255,.18) calc(5.555% - 1px),rgba(255,255,255,.18) 5.555%)}
+  .fill{position:absolute;left:0;top:0;bottom:0;border-radius:4px 0 0 4px;transition:width .28s ease}
+  .fill.done{border-radius:4px}
+  .exc{position:absolute;top:0;bottom:0;border-radius:0 4px 4px 0;transition:all .28s ease;
+       background-image:repeating-linear-gradient(45deg,#E8B54A 0 4px,#B2851F 4px 8px)}
+  .goalline{position:absolute;top:-3px;bottom:-3px;width:2px;background:#fff;border-radius:1px}
+  .goalline::after{content:'';position:absolute;top:-3px;left:-2px;border-left:3px solid transparent;
+                   border-right:3px solid transparent;border-top:4px solid #fff}
+  .row .vx{width:50px;flex:none;text-align:right;font-size:11.5px;color:#fff;
+           font-variant-numeric:tabular-nums}
+  .row.over .vx{color:#F0C24A;font-weight:700}
+  .row.hit .vx{color:#8FE0B4;font-weight:700}
+
+  .sum{display:flex;gap:8px;align-items:center;margin-top:8px;padding-top:8px;
+       border-top:1px solid rgba(255,255,255,.14);font-size:11.5px;color:#BFDDD9}
+  .sum b{color:#fff;font-size:15px;font-variant-numeric:tabular-nums;font-weight:700}
+  .macro{flex:1;height:13px;border-radius:3px;overflow:hidden;display:flex;background:rgba(255,255,255,.12)}
+  .macro span{display:block;height:100%;transition:width .28s ease}
+  .m-c{background:#D9A441} .m-p{background:#C56B78} .m-f{background:#8A6FA8}
+
+  /* ═══ 區塊 ═══ */
+  section{background:var(--paper);margin:12px;border-radius:14px;
+          border:1px solid var(--mint-line);overflow:hidden}
+  .sec-head{padding:12px 16px 10px;border-bottom:1px solid var(--mint-line);background:#F7FCFB}
+  .sec-head h3{margin:0;font-size:15.5px;font-weight:700}
+  .sec-head p{margin:3px 0 0;font-size:12.5px;color:var(--ink-soft)}
+
+  .kcalpick{display:flex;gap:6px;flex-wrap:wrap;padding:12px 16px}
+  .kcalpick button{flex:1;min-width:62px;padding:9px 4px;border:1.5px solid var(--mint-line);
+    background:#fff;border-radius:10px;font-family:inherit;font-size:14px;color:var(--ink-soft);cursor:pointer}
+  .kcalpick button[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:700}
+  .kcalnote{padding:0 16px 12px;font-size:12.5px;color:var(--ink-soft)}
+
+  .grp{border-bottom:1px solid #F0F6F5}
+  .grp:last-child{border-bottom:0}
+  .grp-nm{font-size:14.5px;font-weight:700;padding:12px 14px;display:flex;align-items:baseline;gap:6px;
+          cursor:pointer;list-style:none;user-select:none}
+  .grp-nm::-webkit-details-marker{display:none}
+  .grp-nm::before{content:'▸';color:var(--teal);font-size:12px;margin-right:2px;transition:transform .15s}
+  .grp[open] .grp-nm::before{transform:rotate(90deg)}
+  .grp-nm span{font-size:11.5px;font-weight:400;color:var(--ink-soft);margin-left:auto;text-align:right}
+  .grp .foods{padding:0 12px 12px}
+  .srcnote{margin:0;padding:0 14px 12px;font-size:11.5px;color:#8CA5A2;line-height:1.5}
+  .search{padding:10px 14px 2px}
+  .search input{width:100%;padding:11px 13px;border:1.5px solid var(--mint-line);border-radius:10px;
+    font-family:inherit;font-size:15px;color:var(--ink);background:#fff}
+  .search input:focus{outline:2px solid var(--teal);outline-offset:1px;border-color:var(--teal)}
+  .foods{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+  .food{position:relative;padding:9px 3px 7px;border-radius:11px;border:1.5px solid var(--mint-line);
+        background:#fff;font-family:inherit;cursor:pointer;text-align:center;line-height:1.25}
+  .food:active{transform:scale(.96)}
+  .food .e{display:block;font-size:24px;margin-bottom:2px}
+  .food .n{display:block;font-size:13px;font-weight:600;color:var(--ink)}
+  .food .p{display:block;font-size:11px;color:var(--ink-soft)}
+  .food .k{display:block;font-size:10.5px;color:#9AAFAC;margin-top:1px;font-variant-numeric:tabular-nums}
+  .food .c{position:absolute;top:-7px;right:-6px;min-width:21px;height:21px;border-radius:11px;
+           background:var(--teal);color:#fff;font-size:12px;font-weight:700;display:none;
+           align-items:center;justify-content:center;padding:0 5px}
+  .food[data-n]:not([data-n="0"]) .c{display:flex}
+  .food[data-n]:not([data-n="0"]){border-color:var(--teal);background:#F0F8F7}
+  .grp.warn .food{border-style:dashed}
+  .grp.warn .food[data-n]:not([data-n="0"]){border-color:var(--c-sugar);background:#F6F4F2}
+  .grp.warn .food .c{background:var(--c-sugar)}
+
+  /* 吃掉的清單 */
+  .eaten{padding:10px 14px;display:flex;flex-wrap:wrap;gap:6px}
+  .chip{display:inline-flex;align-items:center;gap:4px;padding:5px 9px;border-radius:14px;
+        background:#F0F8F7;border:1px solid var(--mint-line);font-size:13px;cursor:pointer}
+  .chip b{font-weight:400;color:var(--ink-soft);font-size:11.5px}
+  .empty{padding:14px 16px;font-size:13px;color:var(--ink-soft)}
+
+  /* 分解提示 */
+  .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:96px;z-index:50;
+         background:rgba(11,74,68,.96);color:#fff;padding:10px 15px;border-radius:12px;
+         font-size:13.5px;max-width:440px;width:calc(100% - 36px);
+         opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(-4px)}
+  .toast b{display:block;font-size:14.5px;margin-bottom:2px}
+  .toast em{font-style:normal;color:#F0C24A}
+
+  .bar{position:fixed;left:0;right:0;bottom:0;z-index:30;background:rgba(255,255,255,.96);
+       border-top:1px solid var(--mint-line);
+       padding:10px 16px calc(10px + env(safe-area-inset-bottom));max-width:520px;margin:0 auto}
+  .bar .prog{font-size:12.5px;color:var(--ink-soft);margin-bottom:6px}
+  button.send{width:100%;padding:14px;border:0;border-radius:11px;background:var(--teal);
+              color:#fff;font-family:inherit;font-size:17px;font-weight:700;cursor:pointer}
+  button.send:disabled{background:#B8CFCC;cursor:not-allowed}
+
+  /* 結果 */
+  #result{display:none}
+  .card{display:flex;gap:11px;align-items:flex-start;padding:13px 16px;border-bottom:1px solid var(--mint-line)}
+  .card:last-child{border-bottom:0}
+  .mark{width:21px;height:21px;border-radius:50%;flex:none;margin-top:2px;display:flex;
+        align-items:center;justify-content:center;font-size:12.5px;font-weight:700;color:#fff}
+  .mark.ok{background:#2E8B62} .mark.adj{background:#D19A2E}
+  .card h4{margin:0 0 2px;font-size:14.5px}
+  .card p{margin:0;font-size:13.5px;color:var(--ink-soft)}
+  .summary{margin:12px;padding:15px 17px;background:#F7FCFB;border:1px solid var(--mint-line);border-radius:12px}
+  .summary strong{display:block;font-size:15px;margin-bottom:5px;color:var(--teal-deep)}
+  .summary p{margin:0;font-size:13.5px;color:var(--ink-soft)}
+  .note{margin:12px;padding:13px 15px;background:#F7FCFB;border:1px dashed var(--mint-line);
+        border-radius:12px;font-size:12.5px;color:var(--ink-soft)}
+  .again{display:block;width:100%;margin-top:11px;padding:12px;background:#fff;color:var(--teal);
+         border:1.5px solid var(--teal);border-radius:11px;font-family:inherit;font-size:15.5px;font-weight:700;cursor:pointer}
+  .demo{margin:12px;padding:9px 13px;background:var(--amber-bg);border-radius:10px;font-size:12.5px;color:var(--amber)}
+  .src{margin:0 12px;padding:0 5px 8px;font-size:11.5px;color:var(--ink-soft);line-height:1.5}
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>我的餐盤・一日份量拼盤</h1>
+    <p>把今天吃的點進去，看六大類各裝了多少、哪一格先滿出來</p>
+  </header>
+
+  <div class="gauge">
+    <div id="rows"></div>
+    <div class="sum">
+      <span>今日熱量<b id="kcal">0</b>／<span id="kgoal">2500</span> 大卡</span>
+      <div class="macro" title="醣類／蛋白質／脂質 的熱量佔比">
+        <span class="m-c" id="m-c" style="width:0"></span>
+        <span class="m-p" id="m-p" style="width:0"></span>
+        <span class="m-f" id="m-f" style="width:0"></span>
+      </div>
+      <span id="macrotxt" style="width:92px;text-align:right">醣／蛋／脂</span>
+    </div>
+  </div>
+
+  <div class="demo">原型畫面，資料不會被儲存。請在手機上試試看：點兩份鹹酥雞，看油脂那一格會怎樣。</div>
+
+  <section>
+    <div class="sec-head">
+      <h3>先選你一天需要的熱量</h3>
+      <p>不知道就先用預設值，之後可由登記頁的體重與活動量自動帶入</p>
+    </div>
+    <div class="kcalpick" id="kcalpick"></div>
+    <p class="kcalnote">熱量不同，六大類可以吃的份數就不同——這就是為什麼沒有一體適用的餐盤。</p>
+  </section>
+
+  <section>
+    <div class="sec-head"><h3>今天吃了什麼</h3><p>點一下加一份，點下面的清單可以拿掉</p></div>
+    <div class="search"><input id="q" type="search" placeholder="搜尋食物… 例如「雞」「拿鐵」「盤」" autocomplete="off"></div>
+    <div id="picker"></div>
+  </section>
+
+  <section>
+    <div class="sec-head"><h3>我吃掉的</h3><p>點任一項可以移除</p></div>
+    <div class="eaten" id="eaten"></div>
+    <div class="empty" id="eatenEmpty">還沒點任何東西。</div>
+  </section>
+
+  <div id="result">
+    <section>
+      <div class="sec-head"><h3>六大類：裝滿了嗎</h3><p>不是分數，是看哪一格空著、哪一格滿出來</p></div>
+      <div id="cards"></div>
+    </section>
+    <div class="summary" id="summary"></div>
+    <div class="note">
+      份數是「代換」的概念，不是精確的秤重。同一類裡的食物可以互換，所以重點不是你吃了什麼牌子，而是每一類裝了多少。
+      <button class="again" id="again">重新來一次</button>
+    </div>
+  </div>
+
+  <div class="bar">
+    <div class="prog" id="prog">六個格子都還是空的</div>
+    <button class="send" id="send" disabled>看我的一日餐盤</button>
+  </div>
+
+  <div class="src">
+    份數與熱量依「衛生福利部國民健康署－每日飲食指南／食物代換表」；六大類口訣與 85210 依育達乙版全一冊Ⅰ 第一章。
+    連鎖店熱量為各品牌公布值（全家取自官方「食在購安心」平台；查核日 2026-09-11）；所有<b>份數</b>皆為依成分的教學換算，非官方數據，<b>【請老師核對後再上線】</b>。菜單會改版，建議每學期複查一次。
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* ════════════════════════════════════════════════════════════════
+   【CONFIG　需要老師核對的營養數據全部集中在這一段】
+
+   A. 六大類每「份」的營養（食物代換表）
+   B. 每日建議份數（每日飲食指南，依熱量分檔）
+   C. 食物庫：每樣食物換算成六大類各幾份
+      —— 基本食物為標準代換；外食為教學用約略值，請核對
+   ════════════════════════════════════════════════════════════════ */
+
+/* A. 每份營養：熱量 kcal／醣 g／蛋白 g／脂 g */
+const PER = {
+  grain:{kcal:70,  c:15, p:2, f:0},   // 全穀雜糧 1 份
+  prot :{kcal:75,  c:0,  p:7, f:5},   // 豆魚蛋肉 1 份（中脂）
+  milk :{kcal:120, c:12, p:8, f:4},   // 乳品 1 杯（低脂）
+  veg  :{kcal:25,  c:5,  p:1, f:0},   // 蔬菜 1 份
+  fruit:{kcal:60,  c:15, p:0, f:0},   // 水果 1 份
+  fat  :{kcal:45,  c:0,  p:0, f:5}    // 油脂與堅果種子 1 份
+};
+
+const CAT = {
+  grain:{nm:'全穀雜糧', sh:'全穀',  col:'--c-grain', unit:'份'},
+  prot :{nm:'豆魚蛋肉', sh:'豆魚蛋肉', col:'--c-prot',  unit:'份'},
+  milk :{nm:'乳品',     sh:'乳品',  col:'--c-milk',  unit:'杯'},
+  veg  :{nm:'蔬菜',     sh:'蔬菜',  col:'--c-veg',   unit:'份'},
+  fruit:{nm:'水果',     sh:'水果',  col:'--c-fruit', unit:'份'},
+  fat  :{nm:'油脂與堅果種子', sh:'油脂', col:'--c-fat', unit:'份'}
+};
+
+/* B. 每日建議份數（全穀以「份」計，1 碗飯＝4 份） */
+const GOALS = {
+  1800:{grain:12, prot:5, milk:1.5, veg:3, fruit:2, fat:6},
+  2000:{grain:12, prot:6, milk:1.5, veg:4, fruit:3, fat:7},
+  2200:{grain:14, prot:6, milk:1.5, veg:4, fruit:3.5, fat:7},
+  2500:{grain:16, prot:7, milk:1.5, veg:5, fruit:4, fat:8},
+  2700:{grain:16, prot:8, milk:2,   veg:5, fruit:4, fat:9}
+};
+const WATER_GOAL = 1500;     // cc，課本 85210：每日喝足 1,500 c.c. 白開水
+const SCALE = 18;            // 份量尺全長代表 18 份（六類共用同一把尺）
+
+/* C. 食物庫  [emoji, 名稱, 份量說明, {六大類份數}, {water:cc, sugar:cc, whole/dark/proc}]
+
+   份數換算原則：以該品項「已查證的熱量」為錨點，依成分拆成六大類，
+   使拆出來的份數×每份熱量 ≈ 官方熱量。份數本身屬教學用代換，非官方數據。
+   連鎖店菜單與配方會改版，資料有時效，請定期複查。            資料查核日：2026-09-11
+*/
+const GROUPS = [
+ {nm:'主食', note:'1 碗飯＝全穀 4 份', items:[
+   ['🍚','白飯','半碗',{grain:2}],
+   ['🍙','糙米飯','半碗',{grain:2},{whole:1}],
+   ['🍠','地瓜','1 條（中）',{grain:2},{whole:1}],
+   ['🌽','玉米','1 根',{grain:2},{whole:1}],
+   ['🍞','吐司','1 片',{grain:1}],
+   ['🍜','陽春麵','1 碗',{grain:4,fat:1}]
+ ]},
+ {nm:'豆魚蛋肉', note:'一掌心約 3 份', items:[
+   ['🍢','傳統豆腐','1 塊 80g',{prot:1}],
+   ['🥛','無糖豆漿','260 c.c.',{prot:1},{water:260}],
+   ['🐟','魚','半個掌心',{prot:2,fat:1}],
+   ['🥚','蛋','1 顆',{prot:1,fat:1}],
+   ['🍗','雞腿（去皮）','1 隻',{prot:3,fat:1}],
+   ['🥓','培根／香腸','2 片',{prot:1,fat:2},{proc:1}]
+ ]},
+ {nm:'蔬菜・水果', note:'蔬菜 1 份＝煮熟半碗', items:[
+   ['🥬','炒青菜','半碗',{veg:1,fat:1},{dark:1}],
+   ['🥦','燙青花菜','半碗',{veg:1},{dark:1}],
+   ['🍄','菇類','半碗',{veg:1}],
+   ['🍎','蘋果','1 顆',{fruit:1}],
+   ['🍌','香蕉','半根',{fruit:1}],
+   ['🍊','橘子','1 顆',{fruit:1}]
+ ]},
+ {nm:'乳品・堅果・油', note:'乳品與堅果每天都要有', items:[
+   ['🥛','鮮奶','1 杯 240c.c.',{milk:1},{water:240}],
+   ['🧀','起司','2 片',{milk:1}],
+   ['🍶','無糖優酪乳','1 杯',{milk:1},{water:240}],
+   ['🌰','杏仁果','5 粒',{fat:1}],
+   ['🥜','花生','10 粒',{fat:1}],
+   ['🫒','炒菜油','1 茶匙',{fat:1}]
+ ]},
+ {nm:'夜市・小吃', note:'點下去看它拆成幾份', src:'份數為依成分的教學換算【請老師核對】', items:[
+   ['🍱','排骨便當','1 個',{grain:5,prot:3,veg:1,fat:5}],
+   ['🍖','滷肉飯','1 碗',{grain:4,prot:2,fat:5}],
+   ['🍗','大雞排','1 片 250g',{grain:1,prot:5,fat:4}],
+   ['🍤','鹹酥雞','1 份 150g',{grain:1,prot:3,fat:5}],
+   ['🫓','蔥油餅','1 片',{grain:3,fat:7}],
+   ['🌭','大腸包小腸','1 份',{grain:2,prot:1,fat:8},{proc:1}],
+   ['🥟','水煎包','1 顆',{grain:1.5,prot:0.5,fat:2}],
+   ['🍡','甜不辣','1 份',{grain:2,prot:1,fat:5}],
+   ['🍘','地瓜球','1 份',{grain:2,fat:6}],
+   ['🍲','大腸麵線','1 碗',{grain:3,prot:1,fat:3}],
+   ['🍜','泡麵','1 碗',{grain:4,fat:5}],
+   ['🍙','御飯糰','1 個',{grain:2.5,prot:0.5,fat:1}]
+ ]},
+ /* ── 速食：熱量為各品牌公布值，份數為教學換算 ── */
+ {nm:'速食店', note:'熱量對得上官方公布值', src:'麥當勞熱量：台灣官方營養計算機（第三方營養師整理引用）；肯德基：官方 2026/5/18 營養標示。份數為教學換算【請老師核對】', items:[
+   ['🍔','大麥克','1 個・約 503 大卡',{grain:3,prot:2,fat:3}],
+   ['🐔','麥香雞','1 個・約 393 大卡',{grain:2.5,prot:2,fat:1.5}],
+   ['🐟','麥香魚','1 個・約 343 大卡',{grain:2.5,prot:1.5,fat:1.5}],
+   ['🌶️','勁辣雞腿堡','1 個・約 537 大卡',{grain:3,prot:3,fat:2}],
+   ['🍟','薯條（中）','約 346 大卡',{grain:3,fat:3}],
+   ['🍟','薯條（大）','約 473 大卡',{grain:4,fat:4}],
+   ['🥧','蘋果派','1 個・約 217 大卡',{grain:1.5,fat:2.5}],
+   ['🥤','可樂（中）','約 210 大卡',{grain:3},{sugar:350}],
+   ['🍗','咔啦雞腿堡','1 個・445 大卡',{grain:3.5,prot:2.5,fat:0.5}],
+   ['🍖','義式香草紙包雞','1 份・386 大卡',{prot:5}],
+   ['🍤','上校雞塊（4 塊）','165 大卡',{grain:1,prot:1,fat:0.5}],
+   ['🥔','香酥脆薯（大）','393 大卡',{grain:3.5,fat:3}],
+   ['🥧','原味蛋撻','1 個・182 大卡',{grain:1,fat:2.5}]
+ ]},
+ {nm:'花中午餐', note:'學校午餐・官方登錄資料', open:true, src:'資料來源：教育部校園食材登錄平臺 2.0（學校代碼 64741591），六大類份數與熱量為平臺公告值。查核日 2026-09-11。※ 已排除兩天：9/3（張氏）全份餐只登錄 0.28 份全穀、41 大卡，不像一份完整午餐；9/4（維爾康）份數加總算不出公告的 829 大卡。兩者疑為廠商登錄不完整或有誤。', items:[
+   ['🍱','9/2 可口味','香烤腿排・香酥蝦捲',{grain:5.13,prot:4.59,veg:1,fat:0.06},{kc:689}],
+   ['🍱','9/8 讚美食','便當',{grain:6.68,prot:1.56,veg:0.58,fat:4},{kc:792}],
+   ['🍱','9/9 讚美食','糖醋豬排骨・酸菜麵腸',{grain:5.66,prot:3.6,veg:1.07,fat:2},{kc:734}],
+   ['🍱','9/10 讚美食','日京醬肉絲・炒冬粉',{grain:6.51,prot:2.95,veg:0.4,fat:1},{kc:866}]
+ ]},
+ {nm:'全家便利商店', note:'熱量取自全家官方平台', src:'熱量為全家「食在購安心」官方營養標示（foodsafety.family.com.tw，查核日 2026-09-11）。標★者官方另有完整三大營養素，份數換算較可靠；其餘只有熱量，份數為依成分推估【請老師核對】', items:[
+   ['🍱','香腸腿排雙拼便當★','652 大卡',{grain:5.5,prot:2,veg:0.5,fat:2},{proc:1}],
+   ['🍱','鐵道滷排便當','752 大卡',{grain:6,prot:2.5,veg:0.5,fat:3}],
+   ['🍱','懷舊滷雙拼便當','676 大卡',{grain:5.5,prot:2,veg:0.5,fat:2.5}],
+   ['🍙','鮪魚飯糰★','193 大卡',{grain:2,prot:0.5,fat:0.5}],
+   ['🍙','經典肉鬆飯糰','223 大卡',{grain:2.5,fat:1}],
+   ['🍙','麻油雞飯糰','319 大卡',{grain:3,prot:1,fat:0.5}],
+   ['🥪','火腿起司蛋三明治★','202 大卡',{grain:1.5,prot:0.5,fat:1.5},{proc:1}],
+   ['🥪','好多蛋三明治','294 大卡',{grain:1.5,prot:1.5,fat:1.5}],
+   ['🥗','好多菜三明治','154 大卡',{grain:1.5,veg:0.5,fat:1}],
+   ['🥪','經典總匯三明治','209 大卡',{grain:1.5,prot:0.5,fat:1.5}]
+ ]},
+ {nm:'7-11・咖啡店', note:'早餐和消夜最常出現的一區', src:'7-11 三項為實際包裝營養標示（營養師抽查公布）；路易莎為官方菜單熱量的第三方整理；便當類無公開標示，為估算值【請老師核對】', items:[
+   ['🥪','焗烤起司鮪魚三明治','304 大卡',{grain:2,prot:1,fat:2}],
+   ['🍜','豆皮蕎麥冷麵','398 大卡',{grain:3.5,prot:1,fat:1.5}],
+   ['🍲','麻油雞麵線','463 大卡',{grain:3.5,prot:2.5,fat:1}],
+   ['🍱','超商排骨便當','估算值',{grain:5,prot:3,veg:1,fat:4}],
+   ['🍱','超商雞腿便當','估算值',{grain:5,prot:3,veg:1,fat:3}],
+   ['🌭','大亨堡','估算值',{grain:2,prot:1,fat:3},{proc:1}],
+   ['☕','美式黑咖啡','約 16 大卡',{},{water:360}],
+   ['🥛','拿鐵（中・無糖）','約 200 大卡',{milk:1.5},{water:240}],
+   ['🧋','咖啡拿鐵（中・全糖）','約 241 大卡',{milk:1.5,grain:1},{sugar:360}],
+   ['🥯','貝果・火腿','366 大卡',{grain:4.5,prot:0.5}],
+   ['🥪','麥香三明治・燻雞','322 大卡',{grain:3,prot:1,fat:1}],
+   ['🍵','無糖茶','1 瓶 600c.c.',{},{water:600}]
+ ]},
+ {nm:'吃到飽・自助餐', note:'用「拿了幾盤」來估', src:'以一般店家的盤量估算（蔬菜盤約 400g 生重、肉盤約 120g），只求抓個大概，不求精準【估算值】', items:[
+   ['🥬','蔬菜盤','1 盤',{veg:4},{dark:1}],
+   ['🥩','火鍋肉片','1 盤約 120g',{prot:4,fat:2}],
+   ['🍖','燒烤肉盤','1 盤',{prot:4,fat:2}],
+   ['🦐','海鮮盤','1 盤',{prot:3}],
+   ['🍢','火鍋料盤','1 盤（貢丸魚餃等）',{grain:1,prot:2,fat:2},{proc:1}],
+   ['🍚','白飯','1 碗',{grain:4}],
+   ['🍜','冬粉／王子麵','1 份',{grain:2,fat:1}],
+   ['🥣','沙茶醬','1 大匙',{fat:3}],
+   ['🍤','炸物盤','1 盤',{grain:2,prot:1,fat:4}],
+   ['🍦','霜淇淋','1 支',{grain:2,milk:0.5,fat:2}],
+   ['🥤','飲料吧含糖飲','1 杯',{grain:3},{sugar:500}],
+   ['🍮','甜點一小塊','1 份',{grain:2,fat:2}]
+ ]},
+ {nm:'飲料', note:'只有白開水和無糖飲料算進喝水量', warn:true, items:[
+   ['💧','白開水','1 杯 250c.c.',{},{water:250}],
+   ['🍵','無糖茶','1 杯 500c.c.',{},{water:500}],
+   ['🧋','珍珠鮮奶茶','700 c.c. 全糖',{grain:4,milk:0.5},{sugar:700}],
+   ['🥤','可樂','600 c.c.',{grain:4},{sugar:600}],
+   ['⚡','運動飲料','600 c.c.',{grain:2.5},{sugar:600}],
+   ['🧃','包裝果汁','300 c.c.',{fruit:1,grain:1},{sugar:300}]
+ ]}
+
+/* ──────────────────────────────────────────────────────────────
+   【擴充樣板】學校便當／福利社  —— 拿到資料後把這段的註解拿掉即可
+   需要的資料（擇一）：
+     (甲) 有營養標示：熱量、蛋白質g、脂肪g、碳水化合物g  → 換算最準
+     (乙) 只有菜色與份量：例如「白飯一碗＋炸雞腿一隻＋炒高麗菜半碗＋滷蛋一顆」
+          → 可直接照課本代換表拆，不需要熱量
+ {nm:'學校・福利社', note:'花中的便當與福利社', src:'資料來源：學校午餐供應商提供之營養標示（填入日期）', items:[
+   ['🍱','A 餐（雞腿飯）','1 個・○○ 大卡',{grain:5,prot:3,veg:1,fat:3}],
+   ['🍱','B 餐（排骨飯）','1 個・○○ 大卡',{grain:5,prot:3,veg:1,fat:4}],
+   ['🥟','福利社鮮奶饅頭','1 個',{grain:2,fat:1}]
+ ]},
+   ────────────────────────────────────────────────────────────── */
+];
+
+/* ════════════════════════ 以下為程式邏輯 ════════════════════════ */
+const K = ['grain','prot','milk','veg','fruit','fat'];
+const $ = id=>document.getElementById(id);
+let kcalTarget = 2500;
+const log = [];                       // [{gi,ii,n}] 依點擊順序
+
+const food = (gi,ii)=>GROUPS[gi].items[ii];
+const meta = (gi,ii)=>food(gi,ii)[4]||{};
+const foodKcal = p=>K.reduce((s,k)=>s+(p[k]||0)*PER[k].kcal,0);
+const fmt = n=>Number.isInteger(n)?String(n):n.toFixed(1);
+
+function totals(){
+  const t={grain:0,prot:0,milk:0,veg:0,fruit:0,fat:0,water:0,sugar:0,kcalAdj:0};
+  log.forEach(e=>{
+    const [,,,parts,ex] = food(e.gi,e.ii);
+    K.forEach(k=>t[k]+=(parts[k]||0)*e.n);
+    if(ex&&ex.water) t.water+=ex.water*e.n;
+    if(ex&&ex.sugar) t.sugar+=ex.sugar*e.n;
+    /* 官方公布熱量優先：補上與代換表算出來的差額 */
+    if(ex&&ex.kc)    t.kcalAdj += (ex.kc - foodKcal(parts))*e.n;
+  });
+  return t;
+}
+
+/* ── 建立畫面 ── */
+function buildRows(){
+  $('rows').innerHTML = K.map(k=>
+    '<div class="row" id="r-'+k+'">'+
+      '<span class="nm"><i style="background:var('+CAT[k].col+')"></i>'+CAT[k].sh+'</span>'+
+      '<span class="track"><span class="ticks"></span>'+
+        '<span class="fill" id="f-'+k+'" style="width:0;background:var('+CAT[k].col+')"></span>'+
+        '<span class="exc" id="x-'+k+'" style="left:0;width:0"></span>'+
+        '<span class="goalline" id="g-'+k+'" style="left:0"></span>'+
+      '</span>'+
+      '<span class="vx" id="v-'+k+'">0</span>'+
+    '</div>'
+  ).join('') +
+  '<div class="row" id="r-water">'+
+    '<span class="nm"><i style="background:var(--c-water)"></i>喝水</span>'+
+    '<span class="track"><span class="fill" id="f-water" style="width:0;background:var(--c-water)"></span>'+
+    '<span class="goalline" style="left:100%"></span></span>'+
+    '<span class="vx" id="v-water">0</span></div>';
+}
+function buildKcal(){
+  $('kcalpick').innerHTML = Object.keys(GOALS).map(k=>
+    '<button type="button" data-kcal="'+k+'" aria-pressed="'+(+k===kcalTarget)+'">'+k+'</button>').join('');
+}
+function buildPicker(){
+  $('picker').innerHTML = GROUPS.map((g,gi)=>
+    '<details class="grp'+(g.warn?' warn':'')+'"'+(g.open?' open':'')+'>'+
+    '<summary class="grp-nm">'+g.nm+'<span>'+g.note+'</span></summary>'+
+    '<div class="foods">'+g.items.map((f,ii)=>{
+      const kc=foodKcal(f[3]);
+      return '<button class="food" type="button" data-gi="'+gi+'" data-ii="'+ii+'" data-n="0" '+
+        'data-q="'+(f[1]+' '+g.nm)+'">'+
+        '<span class="c">0</span><span class="e">'+f[0]+'</span>'+
+        '<span class="n">'+f[1]+'</span><span class="p">'+f[2]+'</span>'+
+        ((f[4]&&f[4].kc) ? '<span class="k">'+f[4].kc+' 大卡</span>'
+          : f[2].includes('大卡') ? '' : '<span class="k">'+kc+' 大卡</span>')+'</button>';
+    }).join('')+'</div>'+
+    (g.src?'<p class="srcnote">'+g.src+'</p>':'')+'</details>').join('');
+}
+function filterFoods(q){
+  q=q.trim();
+  document.querySelectorAll('#picker details').forEach(d=>{
+    let hit=0;
+    d.querySelectorAll('.food').forEach(b=>{
+      const on = !q || b.dataset.q.includes(q);
+      b.style.display = on?'':'none'; if(on) hit++;
+    });
+    d.style.display = hit?'':'none';
+    if(q) d.open=true;
+  });
+}
+
+/* ── 更新 ── */
+function refresh(){
+  const t=totals(), goals=GOALS[kcalTarget];
+  K.forEach(k=>{
+    const cur=t[k], goal=goals[k];
+    const pctCur=Math.min(cur,SCALE)/SCALE*100, pctGoal=goal/SCALE*100;
+    const inGoal=Math.min(cur,goal)/SCALE*100;
+    $('f-'+k).style.width=inGoal.toFixed(2)+'%';
+    $('f-'+k).classList.toggle('done',cur>=goal);
+    $('x-'+k).style.left=pctGoal.toFixed(2)+'%';
+    $('x-'+k).style.width=Math.max(0,pctCur-pctGoal).toFixed(2)+'%';
+    $('g-'+k).style.left=pctGoal.toFixed(2)+'%';
+    $('v-'+k).textContent=fmt(cur)+'/'+fmt(goal);
+    const row=$('r-'+k);
+    row.classList.toggle('over',cur>goal);
+    row.classList.toggle('hit',cur>=goal&&cur<=goal);
+  });
+  $('f-water').style.width=Math.min(t.water/WATER_GOAL,1.4)*100/1.4*100/100+'%';
+  $('f-water').style.width=(Math.min(t.water,WATER_GOAL)/WATER_GOAL*100).toFixed(1)+'%';
+  $('v-water').textContent=t.water+'cc';
+  $('r-water').classList.toggle('hit',t.water>=WATER_GOAL);
+
+  const kc=K.reduce((s,k)=>s+t[k]*PER[k].kcal,0)+t.kcalAdj;
+  const c=K.reduce((s,k)=>s+t[k]*PER[k].c,0);
+  const p=K.reduce((s,k)=>s+t[k]*PER[k].p,0);
+  const f=K.reduce((s,k)=>s+t[k]*PER[k].f,0);
+  const tot=c*4+p*4+f*9;
+  $('kcal').textContent=Math.round(kc);
+  $('kgoal').textContent=kcalTarget;
+  const pc=tot?c*4/tot*100:0, pp=tot?p*4/tot*100:0, pf=tot?f*9/tot*100:0;
+  $('m-c').style.width=pc+'%'; $('m-p').style.width=pp+'%'; $('m-f').style.width=pf+'%';
+  $('macrotxt').textContent = tot? Math.round(pc)+'／'+Math.round(pp)+'／'+Math.round(pf) : '醣／蛋／脂';
+
+  /* 吃掉的清單 */
+  $('eaten').innerHTML = log.map((e,i)=>{
+    const f=food(e.gi,e.ii);
+    return '<span class="chip" data-i="'+i+'">'+f[0]+' '+f[1]+(e.n>1?' <b>×'+e.n+'</b>':'')+' ✕</span>';
+  }).join('');
+  $('eatenEmpty').style.display = log.length?'none':'block';
+
+  const filled=K.filter(k=>t[k]>0).length;
+  $('prog').textContent = filled===0?'六個格子都還是空的'
+                        : filled<6 ? '還有 '+(6-filled)+' 類是空的'
+                        : '六類都有東西了，看看結果';
+  $('send').disabled = log.length===0;
+}
+
+function addFood(gi,ii){
+  const e=log.find(x=>x.gi===gi&&x.ii===ii);
+  if(e) e.n++; else log.push({gi,ii,n:1});
+  const btn=document.querySelector('.food[data-gi="'+gi+'"][data-ii="'+ii+'"]');
+  const n=log.find(x=>x.gi===gi&&x.ii===ii).n;
+  btn.dataset.n=n; btn.querySelector('.c').textContent=n;
+  showBreak(gi,ii);
+  refresh();
+}
+function removeAt(i){
+  const e=log[i];
+  e.n--; if(e.n<=0) log.splice(i,1);
+  const btn=document.querySelector('.food[data-gi="'+e.gi+'"][data-ii="'+e.ii+'"]');
+  const left=log.find(x=>x.gi===e.gi&&x.ii===e.ii);
+  btn.dataset.n=left?left.n:0; btn.querySelector('.c').textContent=left?left.n:0;
+  refresh();
+}
+
+/* 分解提示：這一樣東西＝六大類各幾份（本頁的教學核心） */
+let toastT;
+function showBreak(gi,ii){
+  const [em,nm,,parts,ex]=food(gi,ii);
+  const bits=K.filter(k=>parts[k]).map(k=>{
+    const s=CAT[k].nm+' '+fmt(parts[k])+' '+CAT[k].unit;
+    return (k==='fat'&&parts[k]>=4)?'<em>'+s+'</em>':s;
+  });
+  let txt = bits.length? bits.join('　＋　') : '不含六大類食物';
+  if(ex&&ex.sugar) txt += '<br><em>含糖飲料 '+ex.sugar+' c.c.，不能算進喝水量</em>';
+  if(ex&&ex.water) txt += '<br>喝水 +'+ex.water+' c.c.';
+  $('toast').innerHTML='<b>'+em+' '+nm+' ＝</b>'+txt;
+  $('toast').classList.add('show');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>$('toast').classList.remove('show'),2800);
+}
+
+/* ════════════ 判定【送出前請老師確認】固定文案，不接 AI ════════════ */
+function judge(){
+  const t=totals(), goals=GOALS[kcalTarget], out=[], over=[];
+  K.forEach(k=>{
+    const cur=t[k], goal=goals[k], nm=CAT[k].nm, u=CAT[k].unit;
+    if(cur===0) out.push({ok:false,t:nm,p:'今天完全沒吃到這一類，目標是 '+fmt(goal)+' '+u+'。六大類少掉一類，就有一組營養素補不回來。'});
+    else if(cur<goal*0.6) out.push({ok:false,t:nm,p:'只吃到 '+fmt(cur)+' '+u+'，離 '+fmt(goal)+' '+u+' 還差不少。'});
+    else if(cur<goal)     out.push({ok:false,t:nm,p:fmt(cur)+' / '+fmt(goal)+' '+u+'，快到了，再補一點就滿了。'});
+    else if(cur<=goal*1.2)out.push({ok:true ,t:nm,p:fmt(cur)+' / '+fmt(goal)+' '+u+'，裝得剛剛好。'});
+    else { const ex=cur-goal;
+      out.push({ok:false,t:nm,p:'裝到 '+fmt(cur)+' '+u+'，超出 '+fmt(ex)+' '+u+'。'+
+        (k==='fat'?'油脂是六類裡格子最小的一格，炸物和醬料很容易一口氣把它填爆。':
+         k==='grain'?'主食超量最常見的來源是含糖飲料和麵食的份量。':'')});
+      over.push(nm+' 超出 '+fmt(ex)+' '+u);
+    }
+  });
+  /* 水 */
+  if(t.water>=WATER_GOAL) out.push({ok:true,t:'喝水',p:'喝到 '+t.water+' c.c.，達到一天 1,500 c.c. 的目標。'});
+  else out.push({ok:false,t:'喝水',p:'只喝到 '+t.water+' c.c.，離 1,500 c.c. 還差 '+(WATER_GOAL-t.water)+' c.c.。含糖飲料不能算在裡面。'});
+  /* 三大營養素比例 */
+  const c=K.reduce((s,k)=>s+t[k]*PER[k].c,0), p=K.reduce((s,k)=>s+t[k]*PER[k].p,0),
+        f=K.reduce((s,k)=>s+t[k]*PER[k].f,0), tot=c*4+p*4+f*9;
+  if(tot){
+    const pc=c*4/tot*100, pp=p*4/tot*100, pf=f*9/tot*100;
+    const txt='醣類 '+Math.round(pc)+'%、蛋白質 '+Math.round(pp)+'%、脂質 '+Math.round(pf)+'%（建議 50–60 / 10–20 / 20–30）。';
+    if(pf>30) out.push({ok:false,t:'三大營養素比例',p:txt+' 脂質偏高，通常是炸物、醬料和加工肉造成的。'});
+    else if(pf<20) out.push({ok:false,t:'三大營養素比例',p:txt+' 脂質偏低，好的油脂（堅果、魚、植物油）也是身體需要的。'});
+    else if(pc>60) out.push({ok:false,t:'三大營養素比例',p:txt+' 醣類偏高，多半來自含糖飲料。'});
+    else out.push({ok:true,t:'三大營養素比例',p:txt+' 在建議範圍內。'});
+  }
+  /* 附註 */
+  const notes=[];
+  const kc=K.reduce((s,k)=>s+t[k]*PER[k].kcal,0)+t.kcalAdj;
+  const diff=Math.round(kc-kcalTarget);
+  if(Math.abs(diff)>250) notes.push('今天總熱量 '+Math.round(kc)+' 大卡，'+(diff>0?'比目標多 '+diff:'比目標少 '+(-diff))+' 大卡。');
+  if(t.sugar>0) notes.push('含糖飲料喝了 '+t.sugar+' c.c.。課本 P.26 健康飲食習慣的其中一條就是「不喝含糖飲料」，它進不了餐盤的任何一格，但熱量照算。');
+  const hasWhole=log.some(e=>meta(e.gi,e.ii).whole), hasDark=log.some(e=>meta(e.gi,e.ii).dark);
+  if(t.grain>0&&!hasWhole) notes.push('主食全部是精製的。換掉其中 1/3 成糙米、地瓜或玉米，份數一樣但纖維和維生素 B 群差很多。');
+  if(t.veg>0&&!hasDark) notes.push('蔬菜裡沒有深色的，課本建議至少 1/3 選深色。');
+  if(log.some(e=>meta(e.gi,e.ii).proc)) notes.push('加工肉品（香腸、培根）的鈉和亞硝酸鹽較高，不適合當每天的蛋白質來源。');
+  return {out,over,notes};
+}
+
+$('send').addEventListener('click',()=>{
+  const {out,over,notes}=judge(), okN=out.filter(r=>r.ok).length;
+  $('cards').innerHTML=out.map(r=>
+    '<div class="card"><span class="mark '+(r.ok?'ok':'adj')+'">'+(r.ok?'✓':'!')+'</span><div>'+
+    '<h4>'+r.t+'</h4><p>'+r.p+'</p></div></div>').join('');
+  let head,body;
+  if(okN===out.length){ head='八個格子你都裝得剛剛好';
+    body='這在真實生活裡不容易。接下來可以往品質調整：主食換全穀、油脂來源從炸物換成堅果和魚。'; }
+  else if(okN>=out.length-2){ head='大部分都對了，剩下 '+(out.length-okN)+' 項可以調';
+    body='挑上面標「!」的其中一項，這禮拜先做到那一項就好。'; }
+  else { head='有 '+(out.length-okN)+' 項可以調整';
+    body='不用一次全改。先看哪一格「滿出來」——那通常是最容易處理的一項。'; }
+  if(over.length) body += '<br><br><strong style="display:inline;color:#B26A12">滿出來的份量：</strong>' + over.join('、') + '。';
+  if(notes.length) body += '<br><br>' + notes.join('<br>');
+  $('summary').innerHTML='<strong>'+head+'</strong><p>'+body+'</p>';
+  document.querySelectorAll('section').forEach((s,i)=>{ if(i<3) s.style.display='none'; });
+  document.querySelector('.demo').style.display='none';
+  $('result').style.display='block';
+  $('send').textContent='已送出'; $('send').disabled=true;
+  $('prog').textContent='已送出，老師端已收到';
+  window.scrollTo({top:0,behavior:'smooth'});
+});
+$('again').addEventListener('click',()=>{
+  $('result').style.display='none';
+  document.querySelectorAll('section').forEach(s=>s.style.display='');
+  document.querySelector('.demo').style.display='block';
+  $('send').textContent='看我的一日餐盤';
+  refresh(); window.scrollTo({top:0,behavior:'smooth'});
+});
+document.addEventListener('click',e=>{
+  const f=e.target.closest('.food');
+  if(f){ addFood(+f.dataset.gi,+f.dataset.ii); return; }
+  const c=e.target.closest('.chip');
+  if(c){ removeAt(+c.dataset.i); return; }
+  const k=e.target.closest('[data-kcal]');
+  if(k){ kcalTarget=+k.dataset.kcal;
+    document.querySelectorAll('[data-kcal]').forEach(b=>b.setAttribute('aria-pressed',b===k));
+    refresh(); }
+});
+
+$('q').addEventListener('input',e=>filterFoods(e.target.value));
+buildRows(); buildKcal(); buildPicker(); refresh();
+</script>

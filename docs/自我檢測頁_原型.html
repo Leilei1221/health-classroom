@@ -1,0 +1,528 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>健康管理・自我檢測</title>
+<style>
+  :root{
+    --ink:#0E2E2B; --ink-soft:#4A6461;
+    --teal:#12776E; --teal-deep:#0B4A44;
+    --mint:#E9F5F2; --mint-line:#C7E2DC; --paper:#FFFFFF;
+    --amber:#B26A12; --amber-bg:#FDF3E3;
+    --g:#2E8B62; --y:#D19A2E; --o:#B26A12;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:"Noto Sans TC","PingFang TC","Heiti TC",system-ui,sans-serif;
+       background:var(--mint);color:var(--ink);font-size:16px;line-height:1.6;
+       -webkit-text-size-adjust:100%}
+  .wrap{max-width:520px;margin:0 auto;padding:0 0 40px}
+  header{background:var(--teal-deep);color:#fff;padding:16px 20px 14px}
+  header .who{font-size:19px;font-weight:700}
+  header .meta{font-size:12.5px;opacity:.72;margin-top:2px}
+  .pbar{height:4px;background:rgba(255,255,255,.18);margin-top:12px;border-radius:2px;overflow:hidden}
+  .pbar i{display:block;height:100%;background:#8FE0B4;width:0;transition:width .3s}
+  header .cnt{font-size:12px;opacity:.8;margin-top:6px}
+
+  section{background:var(--paper);margin:12px;border-radius:14px;
+          border:1px solid var(--mint-line);overflow:hidden}
+  .sec-head{padding:13px 17px 11px;border-bottom:1px solid var(--mint-line);background:#F7FCFB}
+  .sec-head h3{margin:0;font-size:16px;font-weight:700}
+  .sec-head p{margin:3px 0 0;font-size:12.5px;color:var(--ink-soft)}
+
+  /* 總覽卡片 */
+  .card{display:flex;gap:13px;align-items:center;width:100%;text-align:left;
+        padding:15px 17px;border:0;border-bottom:1px solid var(--mint-line);
+        background:#fff;font-family:inherit;cursor:pointer}
+  .card:last-child{border-bottom:0}
+  .card .no{width:30px;height:30px;border-radius:50%;flex:none;background:var(--mint);
+            color:var(--teal-deep);font-weight:700;font-size:14px;
+            display:flex;align-items:center;justify-content:center}
+  .card.done .no{background:var(--g);color:#fff}
+  .card .tx{flex:1;min-width:0}
+  .card .tx b{display:block;font-size:15.5px}
+  .card .tx span{display:block;font-size:12.5px;color:var(--ink-soft)}
+  .card .st{font-size:12.5px;color:var(--ink-soft);flex:none}
+  .card.done .st{color:var(--g);font-weight:700}
+  a.card{text-decoration:none;color:inherit}
+  a.card .st{color:var(--teal);font-weight:700}
+
+  /* 題目 */
+  .q{padding:14px 17px;border-bottom:1px solid #F0F6F5}
+  .q:last-of-type{border-bottom:0}
+  .q .t{font-size:15px;margin-bottom:10px;display:flex;gap:8px}
+  .q .t i{font-style:normal;color:var(--ink-soft);flex:none;font-variant-numeric:tabular-nums}
+  .opts{display:flex;gap:6px;flex-wrap:wrap}
+  .opts button{flex:1;min-width:0;padding:10px 6px;border:1.5px solid var(--mint-line);
+    background:#fff;border-radius:10px;font-family:inherit;font-size:13.5px;
+    color:var(--ink-soft);cursor:pointer;line-height:1.35}
+  .opts button[aria-pressed="true"]{background:var(--teal);border-color:var(--teal);color:#fff;font-weight:700}
+  .opts.wide{flex-direction:column}
+  .opts.wide button{flex:none;width:100%;text-align:left;padding:11px 14px;font-size:14.5px}
+  .chkq{display:flex;align-items:flex-start;gap:11px;padding:12px 17px;
+        border-bottom:1px solid #F0F6F5;cursor:pointer}
+  .chkq:last-of-type{border-bottom:0}
+  .chkq input{width:21px;height:21px;margin:1px 0 0;accent-color:var(--teal);flex:none}
+  .chkq span{font-size:15px}
+
+  .bar{padding:12px 16px calc(12px + env(safe-area-inset-bottom));
+       position:sticky;bottom:0;background:rgba(255,255,255,.96);
+       border-top:1px solid var(--mint-line)}
+  .bar .prog{font-size:12.5px;color:var(--ink-soft);margin-bottom:7px}
+  button.send{width:100%;padding:15px;border:0;border-radius:11px;background:var(--teal);
+              color:#fff;font-family:inherit;font-size:17px;font-weight:700;cursor:pointer}
+  button.send:disabled{background:#B8CFCC;cursor:not-allowed}
+  .back{display:block;margin:0 auto;padding:12px;background:none;border:0;
+        color:var(--teal);font-family:inherit;font-size:15px;cursor:pointer}
+
+  /* 結果 */
+  .res{padding:18px 17px}
+  .res .dot{width:13px;height:13px;border-radius:50%;display:inline-block;margin-right:8px}
+  .res h4{margin:0 0 6px;font-size:17px}
+  .res p{margin:0 0 10px;font-size:14.5px;color:var(--ink-soft)}
+  .res .num{font-size:30px;font-weight:700;font-variant-numeric:tabular-nums;line-height:1.2}
+  .lights{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:12px 0 4px}
+  .light{border-radius:11px;padding:11px 9px;text-align:center;border:1.5px solid}
+  .light b{display:block;font-size:13px;margin-bottom:3px}
+  .light .n{font-size:19px;font-weight:700;font-variant-numeric:tabular-nums}
+  .light.g{border-color:var(--g);color:var(--g);background:#F0F8F4}
+  .light.y{border-color:var(--y);color:#8A6414;background:#FDF7EA}
+  .light.r{border-color:var(--o);color:var(--o);background:#FBF2E6}
+  .light small{display:block;font-size:11px;margin-top:3px;color:var(--ink-soft);line-height:1.4}
+
+  /* 關懷文案（固定，不接 AI） */
+  .care{margin:12px;padding:18px 18px 16px;background:#F3F9F7;
+        border:1.5px solid var(--teal);border-radius:14px}
+  .care h4{margin:0 0 8px;font-size:16.5px;color:var(--teal-deep)}
+  .care p{margin:0 0 10px;font-size:14.5px;color:var(--ink)}
+  .care ul{margin:0;padding-left:19px;font-size:14.5px}
+  .care li{margin-bottom:6px}
+  .care .tel{font-weight:700;color:var(--teal-deep)}
+
+  .note{margin:12px;padding:13px 16px;background:#F7FCFB;border:1px dashed var(--mint-line);
+        border-radius:12px;font-size:12.5px;color:var(--ink-soft);line-height:1.6}
+  .demo{margin:12px;padding:10px 14px;background:var(--amber-bg);border-radius:10px;
+        font-size:12.5px;color:var(--amber)}
+  pre{margin:8px 0 0;font-size:11px;white-space:pre-wrap;word-break:break-all;color:var(--ink-soft)}
+  .src{margin:0 12px;padding:0 5px 10px;font-size:11.5px;color:#8CA5A2;line-height:1.55}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="who">王小明</div>
+    <div class="meta">307 班・座號 12・115 學年度第 1 學期</div>
+    <div class="pbar"><i id="pb"></i></div>
+    <div class="cnt" id="cnt">7 份檢測，完成 0 份</div>
+  </header>
+
+  <div class="demo" id="demoTip">原型畫面，資料不會被儲存。七份可以分不同節課做，不必一次做完。</div>
+
+  <div id="home">
+    <section>
+      <div class="sec-head">
+        <h3>課本自我檢測</h3>
+        <p>照你最近的狀況回答就好，沒有標準答案，也不算成績</p>
+      </div>
+      <div id="cards"></div>
+    </section>
+    <div class="note">
+      這幾份量表是「自我覺察」的工具，不是診斷。分數高不代表你有病，分數低也不代表完全沒事。
+      真正有用的是：做完之後，你比昨天更知道自己現在的狀態。
+    </div>
+    <section>
+      <div class="sec-head">
+        <h3>做完檢測之後</h3>
+        <p>這是課堂活動，不是檢測——不算分、不評價，也不會出現在成績裡</p>
+      </div>
+      <a class="card" id="plateLink" href="#">
+        <span class="no">▶</span>
+        <span class="tx"><b>我的餐盤・一日份量拼盤</b>
+          <span>把今天吃的點進去，看六大類各裝了多少、哪一格先滿出來</span></span>
+        <span class="st">開始 ↗</span>
+      </a>
+    </section>
+    <div class="src" id="srcs"></div>
+  </div>
+
+  <div id="quiz" style="display:none"></div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════════
+   【CONFIG】七份檢測的題目、選項與分級文案
+
+   來源：育達乙版全一冊Ⅰ／Ⅱ 第一章、第五章；均悅 U2 Ch1。
+   ── 已定案的四項設計決定 ──────────────────────────────
+   1. P.224 ★「有自殺的想法」不放線上，改由紙本課堂施測（見 note224）
+   2. P.232 的分級建議改寫為校內輔導資源，不照抄課本的醫療化文字
+   3. 生活型態存三燈區題號分布（jsonb），不存單一等第
+   4. 心情溫度計／憂鬱情緒檢核存「分數」，等第由前端現算
+   ═════════════════════════════════════════════════════════════════ */
+
+/* ── 除錯顯示開關 ──────────────────────────────────
+   true  = 顯示「原型」提示與將會存進資料庫的 JSON（開發、給同事看架構時用）
+   false = 學生看到的正式畫面，完全不會出現這些東西
+   ────────────────────────────────────────────── */
+const DEBUG = false;
+
+/* 「我的餐盤」活動的位置【部署時改成正式路由，例如 '/plate' 或完整網址】
+   原型階段：兩個 .html 放在同一個資料夾就能互相點開。
+   注意：在 Claude 對話的預覽視窗裡一次只會載入一個檔案，
+   所以這個連結在預覽裡一定會 404，那是預覽的限制，不是連結寫錯。 */
+const PLATE_URL = '我的餐盤_原型.html';
+
+/* 學校求助管道（依花中實況：學生不打分機，直接走過去或找老師） */
+const HELP = [
+  '<b>直接去輔導室</b>——不用先打電話、不用預約，走過去就可以',
+  '<b>來找健護課的黃老師</b>——下課來找我，或上課結束留一下都行',
+  '你信任的導師、家人或朋友',
+  '安心專線 <span class="tel">1925</span>（24 小時、免費）',
+  '生命線 <span class="tel">1995</span>、張老師 <span class="tel">1980</span>'
+];
+
+const SCALES = {
+  lifestyle:{
+    no:1, nm:'檢視我的生活型態', short:'生活型態', src:'課本 P.14・改編自青少年健康促進量表 APHS',
+    kind:'light', mins:'約 3 分鐘',
+    opts:['經常做到<br><small>一週 3 次以上</small>','偶爾做到<br><small>一週 1～2 次</small>','從未做到'],
+    qs:['除體育課外，我每週至少運動 3 次，每次至少 30 分鐘為基準。',
+        '我盡量找機會運動（例如：用走樓梯代替電梯或多走路）。',
+        '我有每天吃早餐的習慣。',
+        '我每天都吃五蔬果。',
+        '我每天喝 1,500 c.c. 以上的開水。',
+        '我每天睡 7 小時以上。',
+        '我可以在躺床 20 分鐘以內入睡。',
+        '當身體不適時，我會盡快去看醫生。',
+        '我會限制糖分與甜食的攝取。',
+        '我很少吃油炸與高熱量食物。'],
+    zones:[{k:'g',nm:'綠燈區',sub:'健康 ALL PASS 區',msg:'好好持續執行這些良好的生活型態，健康青年就是你！'},
+           {k:'y',nm:'黃燈區',sub:'健康警示區',  msg:'隨時注意這些亮警戒的生活型態，讓健康加分！'},
+           {k:'r',nm:'紅燈區',sub:'健康加強區',  msg:'建議趕快改善不良的生活型態，不讓健康遠離你！'}]
+  },
+
+  h85210:{
+    no:2, nm:'85210 健康守則', short:'85210', src:'課本 P.30・健康體位 85210 評量問卷',
+    kind:'check', mins:'約 1 分鐘', ask:'有做到的請打勾',
+    qs:['每天睡足 8 小時','每天四電（看電視、玩電動、打電腦、使用智慧型電子產品〔含手機〕）的時間總計少於 2 小時',
+        '天天吃 5 個拳頭大小的蔬果（3 蔬 2 果）','每日有喝足 1,500 c.c. 白開水',
+        '不喝含糖飲料','每天吃早餐','每天運動 1 小時'],
+    keys:['sleep8','screen_under2','fruit5','water1500','no_sugar_drink','breakfast','exercise1h'],
+    bands:[{max:3,level:'o',label:'做到 0～3 項',msg:'這七項都是很具體的日常目標，不是抽象的「要健康一點」。先挑一項最容易的開始，例如「每天吃早餐」。'},
+           {max:5,level:'y',label:'做到 4～5 項',msg:'已經做到一半以上了。看看沒打勾的那幾項，哪一項調整起來最不痛苦。'},
+           {max:7,level:'g',label:'做到 6～7 項',msg:'這幾項你都顧到了，這是很難維持的狀態，繼續保持。'}]
+  },
+
+  pyramid:{
+    no:3, nm:'飲食金字塔・你是哪一型', short:'飲食金字塔', src:'課本飲食單元・決策樹測驗',
+    kind:'tree', mins:'約 3 分鐘', qcount:'最多 8 題，依你的答案分支',
+    /* 決策樹：完全依課本原始流程，未更動任何分支。
+       第 13 題原文為「有不少人說過你應該減重」，已改為行為描述，分支去向相同。 */
+    tree:{
+      1:{t:'喜歡吃正餐超過點心嗎？', o:[['是',2],['不是',3]]},
+      2:{t:'常常為了功課、社團、打工或其他事情而耽誤正餐嗎？', o:[['是',3],['不是',6]]},
+      3:{t:'想喝東西的時候，你通常會選：', o:[['白開水、熱茶',4],['含糖紅茶、綠茶、奶茶、稀釋果汁、乳酸飲料、運動飲料等',5]]},
+      4:{t:'吃飯的時候，你比較像哪一種？', o:[['吃菜配飯',7],['吃飯配菜',8]]},
+      5:{t:'喜歡洋芋片、可樂果、薯條這類零食嗎？', o:[['喜歡','A'],['還好',7]]},
+      6:{t:'你是那種要吃到飯才會覺得飽的人嗎？', o:[['是',8],['不是',4]]},
+      7:{t:'喜歡牛排、香雞排、排骨這類大塊肉骨嗎？', o:[['喜歡',9],['還好',11]]},
+      8:{t:'正餐沒吃到大塊的肉（爌肉、排骨、雞腿等），會覺得怪怪的嗎？', o:[['會',10],['不會',11]]},
+      9:{t:'喜歡吃青菜水果嗎？', o:[['喜歡','C'],['還好','B']]},
+      10:{t:'每天都有吃到大約一滿碗量的青菜嗎？', o:[['有',13],['沒有',14]]},
+      11:{t:'幾乎每天都有喝到牛奶或羊奶嗎？', o:[['有',10],['沒有',12]]},
+      12:{t:'常吃到蛋和豆製品嗎？（豆腐、豆乾、豆包、素雞等）', o:[['常吃',14],['很少','D']]},
+      13:{t:'吃正餐時，你常常會再添飯或加點，吃到很飽嗎？', o:[['常常','E'],['不會',14]]},
+      14:{t:'每天都會吃到至少一顆水果嗎？', o:[['會','G'],['不一定','F']]}
+    },
+    /* 結果文字為修改版：拿掉身材評論，保留營養重點。課本原文留在紙本。 */
+    results:{
+      A:{level:'o',nm:'食物種類偏少型',
+         msg:'你吃的食物種類比較集中，零食佔的比例偏高。長期下來，六大類食物容易有幾類補不太到，身體要用的原料就會不夠齊全。',
+         tip:'從正餐開始補：一餐裡至少出現三種顏色的食物，零食改成水果或無糖乳品。'},
+      B:{level:'y',nm:'蛋白質偏多型',
+         msg:'你的肉類吃得比較多，蔬果相對少。蛋白質吃太多時，心血管和腎臟的工作量會比較大。',
+         tip:'一餐的肉大約一個掌心大小就夠了，空出來的位置給蔬菜。'},
+      C:{level:'y',nm:'主食偏少型',
+         msg:'你的蔬果吃得不錯，但主食類偏少。全穀雜糧（飯、麵、饅頭、地瓜、芋頭）是身體最主要的能量來源，少了會容易累、注意力不集中。',
+         tip:'每餐至少吃到一碗左右的主食，全穀類（糙米、地瓜）比精緻澱粉更耐撐。'},
+      D:{level:'y',nm:'蛋白質偏少型',
+         msg:'你的乳品、蛋、豆製品吃得比較少。這幾類是蛋白質的主要來源，對成長期的肌肉、免疫力和頭髮皮膚都有直接影響。',
+         tip:'早餐加一顆蛋或一杯無糖豆漿，是最容易補起來的一餐。'},
+      E:{level:'y',nm:'種類均衡・份量偏多型',
+         msg:'六大類食物你都有吃到，比較不容易營養素缺乏，這點很好。要留意的是份量——吃到很飽和吃夠是兩件事。',
+         tip:'試試看「先菜、再肉、後飯」的順序，吃到七、八分飽就停，過十分鐘再判斷還餓不餓。'},
+      F:{level:'y',nm:'蔬果偏少型',
+         msg:'其他類別都有顧到，蔬菜水果是目前最明顯的缺口。蔬果提供的維生素、礦物質和纖維，是其他類食物補不太回來的。',
+         tip:'先設一個小目標：午餐便當的菜全部吃完，或每天多一顆水果。'},
+      G:{level:'g',nm:'均衡一族',
+         msg:'六大類食物你都有顧到，份量也拿捏得不錯。這是很難維持的狀態，你已經做到了。',
+         tip:'接下來可以往品質調整：白飯換成糙米、含糖飲料再減少一些。'}
+    }
+  },
+
+  sleep:{
+    no:4, nm:'睡眠檢測', short:'睡眠', src:'均悅版 U2 Ch1 P.73・衛福部心理及口腔健康司《失眠手冊》',
+    kind:'likert', mins:'約 2 分鐘', lead:'評估最近 2 週內失眠問題的嚴重程度',
+    groups:[
+      {opts:['無','輕度','中度','重度','非常嚴重'], qs:['入睡困難','無法維持較長的睡眠','太早醒']},
+      {opts:['非常滿意','滿意','中等','不滿意','非常不滿意'], qs:['你滿意自己最近的睡眠狀態嗎？']},
+      {opts:['完全無干擾','一點','稍微','很多','非常多'],
+       qs:['睡眠問題是否有干擾到你的日常生活功能？<small>（如：學習表現／日常瑣事、專注力、記憶力、情緒等）</small>']}
+    ],
+    bands:[{max:9, level:'g',label:'9 分以下',  msg:'無明顯失眠困擾，建議維持良好的睡眠習慣，減少失眠發生的機會！'},
+           {max:20,level:'y',label:'10 分以上', msg:'有明顯失眠困擾。睡不好通常有三個原因疊在一起：個性與習慣（前置）、最近發生的事（觸發）、以及擔心睡不好本身（持續）。下一節課我們會一起拆這三個。'}],
+    tail:'本測驗僅為簡易失眠自我篩檢，若需進一步了解自身睡眠問題，請諮詢專業醫護人員。'
+  },
+
+  mood:{
+    no:5, nm:'心情溫度計', short:'心情溫度計', src:'課本 P.224・簡式健康量表 BSRS-5（李明濱醫師）',
+    kind:'likert', mins:'約 2 分鐘', flag:true,
+    lead:'請回想最近一週內（包括今天），下列各問題使你感到困擾或苦惱的程度',
+    groups:[{opts:['完全沒有','輕微','中等程度','嚴重','非常嚴重'],
+             qs:['睡眠困難，譬如難以入睡、易醒或早醒。','感覺緊張不安。','覺得容易動怒。',
+                 '感覺憂鬱、心情低落。','覺得比不上別人。']}],
+    bands:[{max:5, level:'g',label:'一般範圍',  msg:'最近的情緒狀態大致穩定。'},
+           {max:9, level:'y',label:'輕度情緒困擾',msg:'有些事情正在困擾你。找親友談談、把它說出來，通常就會鬆一點。'},
+           {max:14,level:'o',label:'中度情緒困擾',flag:true},
+           {max:20,level:'o',label:'重度情緒困擾',flag:true}],
+    note224:'這份量表原本還有第 6 題（★），那一題我們會在課堂上用紙本一起做。'
+  },
+
+  stress:{
+    no:6, nm:'壓力偵測站', short:'壓力偵測站', src:'課本 P.232・衛生福利部國民健康署 健康九九+',
+    kind:'check', mins:'約 2 分鐘', ask:'最近有這些情況的請打勾', flag:true,
+    qs:['你最近是否經常感到緊張，覺得課業或工作總是做不完？',
+        '你最近是否老是睡不好，常常失眠或睡眠品質不佳？',
+        '你最近是否經常有情緒低落、焦慮、煩躁的情況？',
+        '你最近是否經常忘東忘西、變得很健忘？',
+        '你最近是否經常覺得胃口不好？或胃口特別好？',
+        '你最近六個月內是否生病不只一次了？',
+        '你最近是否經常覺得很累，假日都在睡覺？',
+        '你最近是否經常覺得頭痛、腰痠背痛？',
+        '你最近是否經常意見和別人不同？',
+        '你最近是否注意力經常難以集中？',
+        '你最近是否經常覺得未來充滿不確定感？恐懼感？',
+        '有人說你最近氣色不太好嗎？'],
+    /* 課本原文的分級建議語氣過度醫療化（6-8 項即寫「接受系統性的心理治療」、
+       9 項以上寫「藥物治療」），對高中生不合適也走不到，改寫為校內可及的資源。
+       課本原文保留在紙本，由老師口頭轉譯。 */
+    bands:[{max:3,level:'g',label:'3 項以下',msg:'你的壓力指數還在能負荷的範圍。'},
+           {max:5,level:'y',label:'4～5 項',  msg:'壓力已經在困擾你了，雖然還應付得來，但值得認真學習壓力管理，也多跟信任的人聊一聊。'},
+           {max:8,level:'o',label:'6～8 項',  flag:true},
+           {max:12,level:'o',label:'9 項以上', flag:true}]
+  },
+
+  depression:{
+    no:7, nm:'情緒自我檢視表', short:'憂鬱情緒檢核', src:'課本 P.247・董氏基金會 心理衛生中心',
+    kind:'yn', mins:'約 4 分鐘', flag:true,
+    lead:'請按照你最近兩週的想法與感受，回答「是」或「否」',
+    qs:['我覺得現在比以前容易失去耐心。','我比平常更容易煩躁。','我想離開目前的生活環境。',
+        '我變得比以前容易生氣。','我心情變得很不好。','我變得整天懶洋洋、無精打采。',
+        '我覺得身體不舒服。','我常覺得胸悶。','最近大多數時候我覺得全身無力。',
+        '我變得睡眠不安寧，很容易失眠或驚醒。','我變得很不想上學。','我變得對許多事都失去興趣。',
+        '我變得坐立不安，靜不下來。','我變得只想一個人獨處。','我變得什麼事都不想做。',
+        '無論我做什麼都不會讓我變得更好。','我覺得自己很差勁。','我變得沒有辦法集中注意力。',
+        '我對自己很失望。','我想要消失不見。'],
+    /* 第 20 題是被動死亡意念，計入總分拆不開；只要勾選就直接紅旗，
+       且在教師看板用與「分數高」不同的標記區分（急迫度不同）。 */
+    critical:19,
+    bands:[{max:5, level:'g',label:'0～5 分', msg:'你真的不錯喔！憂鬱程度滿低的，平時就知道要如何調整情緒及紓解壓力，繼續保持下去。'},
+           {max:11,level:'y',label:'6～11 分',msg:'最近的心情是不是起起伏伏？試著把問題和感受向你信任的人說出來，一起討論解決的方法。也可以多做腹式深呼吸、每天運動，保持活動的習慣。'},
+           {max:20,level:'o',label:'12～20 分',flag:true}]
+  }
+};
+
+/* 紅旗門檻【送出前請老師確認】 */
+const FOLLOWUP = {
+  mood:      s => s >= 10,   // 心情溫度計 ≥10 分（中度以上）
+  stress:    s => s >= 6,    // 壓力偵測站 ≥6 項
+  depression:s => s >= 12    // 憂鬱情緒檢核 ≥12 分；第 20 題另計（見 critical）
+};
+
+/* ══ 關懷文案：固定內容，絕不接 AI，也不在此情境給生活習慣建議 ══ */
+function careHTML(critical){
+  return '<div class="care">'+
+    '<h4>謝謝你照實回答</h4>'+
+    '<p>願意誠實勾選，本身就需要一點勇氣。這份量表不是診斷，它只是說：你最近可能過得比較辛苦。</p>'+
+    (critical?'<p>剛剛有一題，是關於「想要消失不見」。會有這種念頭的人比你想像的多，而且這種時候找人談，不是因為不夠堅強，是因為這件事本來就不該一個人扛。</p>':
+              '<p>這種時候找人談，不是因為你不夠堅強，而是因為這本來就不是一個人扛的事。</p>')+
+    '<p>你可以：</p><ul>'+HELP.map(h=>'<li>'+h+'</li>').join('')+'</ul></div>';
+}
+
+/* ════════════════════════ 程式邏輯 ════════════════════════ */
+const $=id=>document.getElementById(id);
+const KEYS=Object.keys(SCALES);
+const state={};   // key → {ans:[], score, level, followup}
+
+function qCount(k){
+  const s=SCALES[k];
+  if(s.ext||s.kind==='tree') return null;
+  return s.groups ? s.groups.reduce((a,g)=>a+g.qs.length,0) : s.qs.length;
+}
+function subLine(k){
+  const s=SCALES[k];
+  return (qCount(k)===null ? s.qcount : qCount(k)+' 題') + '・' + s.mins;
+}
+function renderHome(){
+  $('cards').innerHTML=KEYS.map(k=>{
+    const s=SCALES[k], st=state[k];
+    if(s.ext) return '<a class="card ext" href="'+s.ext+'">'+
+      '<span class="no">'+s.no+'</span>'+
+      '<span class="tx"><b>'+s.nm+'</b><span>'+subLine(k)+'</span></span>'+
+      '<span class="st">另開 ↗</span></a>';
+    return '<button class="card'+(st?' done':'')+'" data-k="'+k+'">'+
+      '<span class="no">'+(st?'✓':s.no)+'</span>'+
+      '<span class="tx"><b>'+s.nm+'</b><span>'+subLine(k)+'</span></span>'+
+      '<span class="st">'+(st?'已完成':'尚未做')+'</span></button>';
+  }).join('');
+  const done=KEYS.filter(k=>state[k]).length;
+  $('pb').style.width=(done/KEYS.length*100)+'%';
+  $('cnt').textContent=KEYS.length+' 份檢測，完成 '+done+' 份';
+  $('srcs').innerHTML='題目出處：'+KEYS.map(k=>SCALES[k].short+'／'+SCALES[k].src.split('・')[1]).join('；')+'。';
+}
+
+let cur=null, ans=[];
+function open(k){
+  cur=k; ans=new Array(qCount(k)).fill(null);
+  const s=SCALES[k];
+  let body='';
+  if(s.kind==='light'){
+    body=s.qs.map((q,i)=>
+      '<div class="q"><div class="t"><i>'+(i+1)+'.</i><span>'+q+'</span></div>'+
+      '<div class="opts">'+s.opts.map((o,j)=>
+        '<button type="button" data-i="'+i+'" data-v="'+j+'" aria-pressed="false">'+o+'</button>').join('')+
+      '</div></div>').join('');
+  }else if(s.kind==='check'){
+    body='<div class="q" style="border:0;padding-bottom:4px"><div class="t"><span>'+s.ask+'</span></div></div>'+
+      s.qs.map((q,i)=>'<label class="chkq"><input type="checkbox" data-i="'+i+'"><span>'+q+'</span></label>').join('');
+    ans=new Array(s.qs.length).fill(0);
+  }else if(s.kind==='likert'){
+    let n=0; body=(s.lead?'<div class="q" style="border:0;padding-bottom:2px;color:var(--ink-soft);font-size:14px">'+s.lead+'</div>':'');
+    if(s.note224) body+='<div class="note" style="margin:8px 12px">'+s.note224+'</div>';
+    s.groups.forEach(g=>{ g.qs.forEach(q=>{
+      body+='<div class="q"><div class="t"><i>'+(n+1)+'.</i><span>'+q+'</span></div><div class="opts">'+
+        g.opts.map((o,j)=>'<button type="button" data-i="'+n+'" data-v="'+j+'" aria-pressed="false">'+o+'</button>').join('')+
+        '</div></div>'; n++; });});
+  }else if(s.kind==='tree'){
+    treeNode=1; treeHist=[];
+    $('quiz').innerHTML='<section id="treebox"></section><button class="back" id="qback">← 回到檢測清單</button>';
+    $('home').style.display='none'; $('quiz').style.display='block';
+    {const d=$('demoTip'); if(d) d.style.display='none';}
+    drawTree(); window.scrollTo({top:0}); return;
+  }else if(s.kind==='yn'){
+    body='<div class="q" style="border:0;padding-bottom:2px;color:var(--ink-soft);font-size:14px">'+s.lead+'</div>'+
+      s.qs.map((q,i)=>'<div class="q"><div class="t"><i>'+(i+1)+'.</i><span>'+q+'</span></div>'+
+        '<div class="opts"><button type="button" data-i="'+i+'" data-v="1" aria-pressed="false">是</button>'+
+        '<button type="button" data-i="'+i+'" data-v="0" aria-pressed="false">否</button></div></div>').join('');
+  }
+  $('quiz').innerHTML=
+    '<section><div class="sec-head"><h3>'+s.nm+'</h3><p>'+s.src+'</p></div>'+body+
+    '<div class="bar"><div class="prog" id="qp"></div>'+
+    '<button class="send" id="qsend" disabled>送出</button></div></section>'+
+    '<button class="back" id="qback">← 回到檢測清單</button>';
+  $('home').style.display='none'; $('quiz').style.display='block';
+  {const d=$('demoTip'); if(d) d.style.display='none';}
+  upd(); window.scrollTo({top:0});
+}
+let treeNode=1, treeHist=[];
+function drawTree(){
+  const s=SCALES[cur], n=s.tree[treeNode];
+  $('treebox').innerHTML=
+    '<div class="sec-head"><h3>'+s.nm+'</h3><p>第 '+(treeHist.length+1)+' 題・依你的答案決定下一題</p></div>'+
+    '<div class="q" style="border:0"><div class="t" style="font-size:16.5px;font-weight:600">'+n.t+'</div>'+
+    '<div class="opts wide">'+n.o.map((o,i)=>
+      '<button type="button" class="treeopt" data-i="'+i+'">'+o[0]+'</button>').join('')+'</div>'+
+    (treeHist.length?'<button class="back" id="treeback" style="margin-top:4px">← 上一題</button>':'')+
+    '</div>';
+}
+function treeResult(letter){
+  const s=SCALES[cur], r=s.results[letter];
+  state[cur]={type:letter,band:r.nm,followup:false,critical:false};
+  $('quiz').innerHTML=
+    '<section><div class="sec-head"><h3>'+s.nm+'・你的結果</h3><p>這不是成績，是一張此刻的照片</p></div>'+
+    '<div class="res"><div class="num">'+letter+' 型</div>'+
+    '<h4><span class="dot" style="background:var(--'+r.level+')"></span>'+r.nm+'</h4>'+
+    '<p>'+r.msg+'</p>'+
+    '<p style="color:var(--ink)"><b>可以試試看</b>　'+r.tip+'</p></div></section>'+
+    '<div class="note">這份結果只有你和健護老師看得到，不會給其他老師或同學，也不會算進任何成績。</div>'+
+    (DEBUG?'<div class="demo" style="margin:12px">原型：這一份會存成 <code>diet_type</code>'+
+      '<pre>'+JSON.stringify(state[cur])+'</pre></div>':'')+
+    '<button class="back" id="qback">← 回到檢測清單</button>';
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function upd(){
+  const s=SCALES[cur], n=qCount(cur);
+  const left = s.kind==='check' ? 0 : ans.filter(a=>a===null).length;
+  $('qp').textContent = left? '還有 '+left+' 題沒作答' : '都答完了，可以送出';
+  $('qsend').disabled = left>0;
+}
+
+function grade(){
+  const s=SCALES[cur];
+  let score, extra={};
+  if(s.kind==='light'){
+    const z=[[],[],[]];
+    ans.forEach((v,i)=>z[v].push(i+1));
+    extra.zones={green:z[0],yellow:z[1],red:z[2]};
+    score=z[0].length;
+  }else{
+    score=ans.reduce((a,b)=>a+(b||0),0);
+  }
+  let band=null, critical=false;
+  if(s.bands) band=s.bands.find(b=>score<=b.max)||s.bands[s.bands.length-1];
+  if(s.critical!==undefined && ans[s.critical]===1) critical=true;
+  const flag = (FOLLOWUP[cur]?FOLLOWUP[cur](score):false) || critical;
+  state[cur]={score,band:band?band.label:'',zones:extra.zones,followup:flag,critical};
+  return {s,score,band,critical,flag,zones:extra.zones};
+}
+
+function showResult(){
+  const {s,score,band,critical,flag,zones}=grade();
+  let html='<section><div class="sec-head"><h3>'+s.nm+'・你的結果</h3>'+
+           '<p>這不是成績，是一張此刻的照片</p></div><div class="res">';
+  if(s.kind==='light'){
+    html+='<div class="lights">'+s.zones.map((z,i)=>{
+      const arr=[zones.green,zones.yellow,zones.red][i];
+      return '<div class="light '+z.k+'"><b>'+z.nm+'</b><span class="n">'+arr.length+'</span>'+
+             '<small>'+(arr.length?'第 '+arr.join('、')+' 題':'沒有題目')+'</small></div>';
+    }).join('')+'</div>';
+    html+=s.zones.map((z,i)=>{const arr=[zones.green,zones.yellow,zones.red][i];
+      return arr.length?'<p><b>'+z.sub+'</b>　'+z.msg+'</p>':'';}).join('');
+    html+='<p style="color:var(--ink)">下一步：從<b>黃燈區或紅燈區</b>挑一項你最想改的，我們下節課會把它寫成一份自主管理計畫。</p>';
+  }else{
+    html+='<div class="num">'+score+(s.kind==='check'?' 項':' 分')+'</div>';
+    if(band) html+='<h4><span class="dot" style="background:var(--'+band.level+')"></span>'+band.label+'</h4>';
+    if(band && band.msg) html+='<p>'+band.msg+'</p>';
+    if(s.tail) html+='<p style="font-size:13px">'+s.tail+'</p>';
+  }
+  html+='</div></section>';
+  if(flag) html+=careHTML(critical);
+  html+='<div class="note">這份結果只有你和健護老師看得到，不會給其他老師或同學，也不會算進任何成績。</div>';
+  if(DEBUG) html+='<div class="demo" style="margin:12px">原型：這一份會存成 <code>'+cur+'</code>　'+
+        '<pre>'+JSON.stringify(state[cur])+'</pre></div>';
+  html+='<button class="back" id="qback">← 回到檢測清單</button>';
+  $('quiz').innerHTML=html; window.scrollTo({top:0,behavior:'smooth'});
+}
+
+document.addEventListener('click',e=>{
+  const c=e.target.closest('.card'); if(c && c.dataset.k){ open(c.dataset.k); return; }
+  if(e.target.id==='qback'){ $('quiz').style.display='none'; $('home').style.display='block';
+    {const d=$('demoTip'); if(d) d.style.display='block';} renderHome(); window.scrollTo({top:0}); return; }
+  if(e.target.id==='qsend'){ showResult(); return; }
+  if(e.target.id==='treeback'){ treeNode=treeHist.pop(); drawTree(); return; }
+  const to=e.target.closest('.treeopt');
+  if(to){ const nx=SCALES[cur].tree[treeNode].o[+to.dataset.i][1];
+    treeHist.push(treeNode);
+    if(typeof nx==='number'){ treeNode=nx; drawTree(); } else treeResult(nx);
+    return; }
+  const b=e.target.closest('.opts button');
+  if(b){ const i=+b.dataset.i;
+    document.querySelectorAll('.opts button[data-i="'+i+'"]').forEach(x=>x.setAttribute('aria-pressed','false'));
+    b.setAttribute('aria-pressed','true'); ans[i]=+b.dataset.v; upd(); }
+});
+document.addEventListener('change',e=>{
+  if(e.target.type==='checkbox' && e.target.dataset.i!==undefined){
+    ans[+e.target.dataset.i]=e.target.checked?1:0; upd(); }
+});
+
+$('plateLink').href = PLATE_URL;
+if(!DEBUG) $('demoTip').remove();
+renderHome();
+</script>
