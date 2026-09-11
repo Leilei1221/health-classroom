@@ -90,7 +90,7 @@ function onOpen() {
     .createMenu('健護課同步')
     .addItem('同步今天的點名', 'syncToday')
     .addItem('同步指定日期…', 'promptSyncDate')
-    .addItem('重算所有統計欄', 'recalcAllStats')
+    .addItem('重算上課表現統計（期末用）', 'recalcAllStats')
     .addSeparator()
     .addItem('安裝自動同步（週一～週五 12:00、16:00）', 'installSyncTriggers')
     .addItem('移除自動同步', 'removeSyncTriggers')
@@ -318,7 +318,10 @@ function syncClassDate_(ss, cls, dateStr, dayLessons) {
     : []
 
   writeLessonBlock_(sheet, students, blockTitle, periods, attendance, perf, cols, existingCol)
-  recalcStats_(sheet, cls, students, cols)
+
+  // 不在這裡重算統計：「上課表現」是期末結算才需要的欄位，
+  // 平時同步只寫當天的出缺席與特殊狀況。
+  // 期末請用選單的「重算上課表現統計（期末用）」。
   return existingCol > 0 ? 'updated' : 'created'
 }
 
@@ -442,14 +445,10 @@ function ensureSheet_(ss, name) {
     sheet.getRange(CONFIG.HEADER_ROW, i + 1, 2, 1).merge().setValue(h)
   })
 
-  // 統計區
-  const statStart = CONFIG.FIXED_HEADERS.length + 1
-  sheet.getRange(CONFIG.HEADER_ROW, statStart, 1, CONFIG.STAT_HEADERS.length)
-    .merge().setValue(CONFIG.STAT_GROUP_TITLE)
-  sheet.getRange(CONFIG.SUBHEADER_ROW, statStart, 1, CONFIG.STAT_HEADERS.length)
-    .setValues([CONFIG.STAT_HEADERS])
-
-  sheet.getRange(CONFIG.HEADER_ROW, 1, 2, statStart + CONFIG.STAT_HEADERS.length - 1)
+  // 刻意不建立「上課表現」統計區：那是期末才要的東西，
+  // 平時每次同步都讓它出現在畫面上只是干擾。
+  // 需要時由選單的「重算上課表現統計（期末用）」建立並填值。
+  sheet.getRange(CONFIG.HEADER_ROW, 1, 2, CONFIG.FIXED_HEADERS.length)
     .setFontWeight('bold')
     .setHorizontalAlignment('center')
     .setVerticalAlignment('middle')
@@ -598,9 +597,48 @@ function writeLessonBlock_(sheet, students, blockTitle, periods, attendance, per
 // =============================================================================
 
 /** 重算某班的統計欄；資料一律從 Supabase 重讀，不做增量累加 */
+/**
+ * 統計區該從第幾欄開始。
+ *
+ * 不能只用 getLastColumn() + 1：日期區塊固定佔 4 欄，但那天只有一節課時
+ * 後兩欄是空的，getLastColumn() 讀不到，統計區就會蓋掉區塊的後半。
+ * 因此以「最後一個有值的主標題」往右推 4 欄為準。
+ */
+function statBlockStart_(sheet) {
+  const header = headerRow_(sheet)
+  let last = 0
+  for (let i = 0; i < header.length; i++) if (header[i] !== '') last = i + 1
+
+  const afterBlocks = last > CONFIG.FIXED_HEADERS.length
+    ? last + 4
+    : CONFIG.FIXED_HEADERS.length + 1
+  return Math.max(sheet.getLastColumn() + 1, afterBlocks)
+}
+
+/**
+ * 建立「上課表現」統計區；已經有就原樣回傳欄號。
+ * 接在現有內容的右邊 —— 課堂區塊會插在統計區之前，
+ * 因此統計區永遠是最右邊的那一組。
+ */
+function ensureStatBlock_(sheet) {
+  const existing = findStatCols_(sheet)
+  if (Object.keys(existing).length > 0) return existing
+
+  const col = statBlockStart_(sheet)
+  sheet.getRange(CONFIG.HEADER_ROW, col, 1, CONFIG.STAT_HEADERS.length)
+    .merge().setValue(CONFIG.STAT_GROUP_TITLE)
+  sheet.getRange(CONFIG.SUBHEADER_ROW, col, 1, CONFIG.STAT_HEADERS.length)
+    .setValues([CONFIG.STAT_HEADERS])
+  sheet.getRange(CONFIG.HEADER_ROW, col, 2, CONFIG.STAT_HEADERS.length)
+    .setFontWeight('bold')
+    .setHorizontalAlignment('center')
+    .setVerticalAlignment('middle')
+  return findStatCols_(sheet)
+}
+
 function recalcStats_(sheet, cls, students, cols) {
-  const statCols = findStatCols_(sheet)
-  if (Object.keys(statCols).length === 0) return // 找不到統計區就不動它
+  const statCols = ensureStatBlock_(sheet)
+  if (Object.keys(statCols).length === 0) return
 
   const lessons = sbGet_('hc_lessons', 'class_id=eq.' + cls.id + '&select=id')
   const ids = lessons.map(function (l) { return l.id })
@@ -649,7 +687,10 @@ function recalcStats_(sheet, cls, students, cols) {
   })
 }
 
-/** 選單用：重算所有班級的統計欄，不新增課堂欄 */
+/**
+ * 選單用：重算所有班級的「上課表現」統計欄，不新增課堂欄。
+ * 統計區不存在時會一併建立，因此期末跑這一次就好。
+ */
 function recalcAllStats() {
   const ss = SpreadsheetApp.openById(spreadsheetId_())
   const classes = sbGet_('hc_classes', 'is_active=eq.true&select=id,name')
