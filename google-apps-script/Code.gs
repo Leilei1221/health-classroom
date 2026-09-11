@@ -664,16 +664,31 @@ function formatResult_(r) {
   if (r.updated.length) parts.push('更新：' + r.updated.join('、'))
   if (r.skipped.length) parts.push('略過：' + r.skipped.join('、'))
   if (r.empty.length) parts.push(r.empty.join('、'))
-  if (r.errors.length) parts.push('錯誤：' + r.errors.join('；'))
+  if (r.errors.length) parts.push('錯誤：\n' + r.errors.map(function (e) { return '・' + e }).join('\n'))
   if (parts.length === 1) parts.push('沒有需要同步的資料')
-  return parts.join('　')
+  return parts.join('\n')
 }
 
+/**
+ * 回報訊息。
+ *
+ * 一律先寫進執行記錄（觸發器執行時沒有前景試算表，那是唯一看得到的地方）。
+ * 成功用 toast，不打斷手邊的事；但 toast 有固定高度又會自動消失，
+ * 長的錯誤訊息會被截掉看不到後半，因此有錯誤時改用 alert：
+ * 內容完整、可以圈選複製，也不會自己關掉。
+ */
 function toast_(msg) {
+  console.log(msg)
+
+  const isError = msg.indexOf('錯誤：') >= 0 || msg.indexOf('失敗') >= 0
   try {
-    SpreadsheetApp.getActiveSpreadsheet().toast(msg, '健護課同步', 12)
+    if (isError) {
+      SpreadsheetApp.getUi().alert('健護課同步：有錯誤', msg, SpreadsheetApp.getUi().ButtonSet.OK)
+    } else {
+      SpreadsheetApp.getActiveSpreadsheet().toast(msg, '健護課同步', 12)
+    }
   } catch (e) {
-    console.log(msg) // 由觸發器執行時沒有前景試算表
+    // 由觸發器執行時沒有前景試算表，訊息已寫進執行記錄
   }
 }
 
