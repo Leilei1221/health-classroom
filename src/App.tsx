@@ -18,8 +18,13 @@ export default function App() {
       {/* 健康管理：自行處理登入與身分，不受下方教師路由影響 */}
       <Route path="/health" element={<HealthGate />} />
 
-      {/* 教師預覽學生登記畫面；非教師身分時與 /health 相同 */}
+      <Route path="/health/selfcheck" element={<HealthGate page="selfcheck" />} />
+      <Route path="/health/plate" element={<HealthGate page="plate" />} />
+
+      {/* 教師預覽學生畫面；非教師身分時與上面三條相同 */}
       <Route path="/health/preview" element={<HealthGate preview />} />
+      <Route path="/health/selfcheck/preview" element={<HealthGate page="selfcheck" preview />} />
+      <Route path="/health/plate/preview" element={<HealthGate page="plate" preview />} />
 
       {loading ? (
         <Route path="*" element={<Spinner />} />

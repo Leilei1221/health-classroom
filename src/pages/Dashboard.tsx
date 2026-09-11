@@ -119,8 +119,15 @@ export default function Dashboard() {
           <Button variant="secondary" onClick={() => setShowHealthQr(true)}>
             健康登記 QR code
           </Button>
+          {/* 三個學生頁各有入口；學生端彼此有分頁列，預覽也照走 */}
           <Button variant="secondary" onClick={() => nav('/health/preview')}>
-            以學生身分預覽
+            預覽・登記
+          </Button>
+          <Button variant="secondary" onClick={() => nav('/health/selfcheck/preview')}>
+            預覽・自我檢測
+          </Button>
+          <Button variant="secondary" onClick={() => nav('/health/plate/preview')}>
+            預覽・我的餐盤
           </Button>
           <Button variant="secondary" onClick={() => { setShowImport((v) => !v); setShowForm(false) }}>
             {showImport ? '取消匯入' : '匯入 Excel 名單'}

@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { friendlyError } from '../lib/errors'
+import HealthHeader from './Header'
 import { getMeasurement, saveMeasurement, semesterKey } from './api'
 import { ALL_FIELDS, REQUIRED, SECTIONS, type Field } from './fields'
 import { calcBmi, calcFatKg, calcWhr, judgeBmi, judgeBp, judgeWhr, type Verdict } from './rules'
@@ -28,8 +28,7 @@ function outOfRange(f: Field, raw: string): boolean {
  * 與其讓她按下送出吃一個錯誤，不如把送出停掉並講清楚。
  */
 export default function HealthRegister({ preview }: { preview?: StudentProfile }) {
-  const { student: signedInStudent, signOut } = useAuth()
-  const navigate = useNavigate()
+  const { student: signedInStudent } = useAuth()
   const isPreview = preview !== undefined
   const student = preview ?? signedInStudent
   const [values, setValues] = useState<Values>({})
@@ -112,23 +111,7 @@ export default function HealthRegister({ preview }: { preview?: StudentProfile }
   return (
     <div className="min-h-screen bg-[#E9F5F2] text-[#0E2E2B]">
       <div className="mx-auto max-w-[520px] pb-32">
-        <header className="bg-[#0B4A44] px-5 pb-4 pt-5 text-white">
-          <div className="flex items-start justify-between gap-3">
-            <div>
-              <div className="text-xl font-bold tracking-wide">{student.name}</div>
-              <div className="mt-0.5 text-[13px] opacity-70">
-                {student.class_name} 班・座號 {student.seat_no ?? '—'}・
-                {student.academic_year} 學年度第 {student.semester} 學期
-              </div>
-            </div>
-            <button
-              onClick={() => (isPreview ? navigate('/') : void signOut())}
-              className="shrink-0 text-[13px] opacity-70 hover:opacity-100"
-            >
-              {isPreview ? '離開預覽' : '登出'}
-            </button>
-          </div>
-        </header>
+        <HealthHeader student={student} isPreview={isPreview} tab="register" />
 
         {/* 自動計算讀數（sticky） */}
         <div className="sticky top-0 z-20 border-b border-white/15 bg-[#0B4A44] px-5 pb-4 pt-3 text-white">
