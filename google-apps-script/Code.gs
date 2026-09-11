@@ -13,10 +13,22 @@
 
 const CONFIG = {
   SUPABASE_URL: 'https://fcstpyiggvhduaztwlrf.supabase.co',
-  SPREADSHEET_ID: '1aB3z7xke9KmiVFJ0zcD2TPLjGAT9HGcLSUh4H5a2QkM',
+
+  /**
+   * 課室紀錄試算表（115成績表）。
+   *
+   * 可用指令碼屬性 SPREADSHEET_ID 覆寫，覆寫優先。
+   * 這裡寫死過一次舊的 114 檔案 ID，導致每次重貼程式碼都把設定改回舊檔案，
+   * 同步照常回報成功、資料卻進了去年的試算表。換學年度時改這裡，
+   * 或直接設指令碼屬性，就不會再被重貼覆蓋。
+   */
+  SPREADSHEET_ID: '1-PG1fcySM_YAANO2JdJIdvDDUYrmwi3BuHFUHzjXkHQ',
 
   /** service_role key 的 Script Property 名稱 */
   KEY_PROPERTY: 'SUPABASE_SERVICE_KEY',
+
+  /** 試算表 ID 的 Script Property 名稱；有設就蓋過上面的 SPREADSHEET_ID */
+  SPREADSHEET_ID_PROPERTY: 'SPREADSHEET_ID',
 
   /** 只同步這些班級；留空陣列表示同步全部有課的班級 */
   CLASS_FILTER: ['305', '306', '307', '308', '309'],
@@ -170,6 +182,13 @@ function serviceKey_() {
   return key
 }
 
+/** 實際要寫入的試算表 ID：指令碼屬性優先，其次才是 CONFIG */
+function spreadsheetId_() {
+  const override = PropertiesService.getScriptProperties()
+    .getProperty(CONFIG.SPREADSHEET_ID_PROPERTY)
+  return (override && override.trim()) || CONFIG.SPREADSHEET_ID
+}
+
 /** 對 Supabase REST 發 GET；query 為 PostgREST 查詢字串 */
 function sbGet_(table, query) {
   const key = serviceKey_()
@@ -234,7 +253,7 @@ function syncDate_(dateStr) {
     (byClass[l.class_id] = byClass[l.class_id] || []).push(l)
   })
 
-  const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID)
+  const ss = SpreadsheetApp.openById(spreadsheetId_())
 
   Object.keys(byClass).forEach(function (classId) {
     let label = classId
@@ -632,7 +651,7 @@ function recalcStats_(sheet, cls, students, cols) {
 
 /** 選單用：重算所有班級的統計欄，不新增課堂欄 */
 function recalcAllStats() {
-  const ss = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID)
+  const ss = SpreadsheetApp.openById(spreadsheetId_())
   const classes = sbGet_('hc_classes', 'is_active=eq.true&select=id,name')
   const done = []
   classes.forEach(function (cls) {
@@ -729,8 +748,9 @@ function debugSync() {
     lessons.forEach(function (l) { (byClass[l.class_id] = byClass[l.class_id] || []).push(l) })
 
     const ss = step('2 開啟試算表', function () {
-      const x = SpreadsheetApp.openById(CONFIG.SPREADSHEET_ID)
-      return x.getName()
+      const x = SpreadsheetApp.openById(spreadsheetId_())
+      // 一併印出檔名與 ID：寫進錯的試算表時，同步一樣會回報成功
+      return x.getName() + '（' + spreadsheetId_() + '）'
     })
 
     Object.keys(byClass).forEach(function (classId) {
