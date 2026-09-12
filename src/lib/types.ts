@@ -184,3 +184,54 @@ export interface HealthMeasurement {
   muscle_arms: number | null
   muscle_legs: number | null
 }
+
+/** 生活型態三燈區的題號分布（題號 1 起算） */
+export interface LifestyleZones {
+  green: number[]
+  yellow: number[]
+  red: number[]
+}
+
+/** 我的餐盤送出的結果，存成 hc_health_selfcheck.plate jsonb */
+export interface PlateResult {
+  grain: number
+  prot: number
+  milk: number
+  veg: number
+  fruit: number
+  fat: number
+  /** 喝水量 c.c.，含糖飲料不計入 */
+  water: number
+  /** 含糖飲料 c.c. */
+  sugar: number
+  kcalTarget: number
+  /** 實際總熱量，官方公布值優先 */
+  kcal: number
+  /** 通過幾條判定 */
+  matched: number
+  /** 判定總條數（六大類＋喝水＋三大營養素比例）*/
+  total: number
+  /** 吃了什麼，讓學生回頭看得到，也保留教學討論的素材 */
+  items: { name: string; n: number }[]
+}
+
+export interface HealthSelfcheck {
+  id: string
+  student_email: string
+  semester: string          // 例：'115-1'
+
+  lifestyle: LifestyleZones | null
+  h85210: Record<string, boolean>
+  diet_type: 'A' | 'B' | 'C' | 'D' | 'E' | 'F' | 'G' | null
+  sleep_isi: number | null
+  mood_scale: number | null
+  stress_level: number | null
+  depression: number | null
+  /** 第 20 題「我想要消失不見」；一旦為 true 就不再回復為 false */
+  depression_critical: boolean
+  plate: PlateResult | null
+  needs_followup: boolean
+
+  created_at: string
+  updated_at: string
+}
