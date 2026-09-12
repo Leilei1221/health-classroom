@@ -1,7 +1,9 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
+import { useNavigate } from 'react-router-dom'
 import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { ensureTeacher, findTeacher } from './lib/api'
+import { consumeRoute, rememberRoute } from './lib/pendingRoute'
 import { myStudentProfile } from './health/api'
 import type { StudentProfile, Teacher } from './lib/types'
 
@@ -28,15 +30,43 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [student, setStudent] = useState<StudentProfile | null>(null)
   const [role, setRole] = useState<Role>('resolving')
   const [loading, setLoading] = useState(true)
+  // 登入完成後要導回去的路徑（掃 QR code 進來的那一頁）
+  const [returnTo, setReturnTo] = useState<string | null>(null)
+  const navigate = useNavigate()
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
       setSession(data.session)
       setLoading(false)
     })
-    const { data: sub } = supabase.auth.onAuthStateChange((_e, s) => setSession(s))
+    /*
+      導回原本那一頁的時機只能掛在這裡，不能在元件 mount 就做。
+
+      PKCE 的回程網址是 ?code=xxx。auth-js 的 _initialize() 會依序：
+      交換 code → 從網址刪掉 code 參數並 replaceState → 存 session →
+      最後才發出 SIGNED_IN。所以收到 SIGNED_IN 的這一刻，code 早就用掉、
+      網址也清乾淨了，這時候改 hash 不會洗掉任何東西。
+
+      反過來說，如果在 mount 就改 hash，會趕在 auth-js 讀到 code 之前動網址，
+      那就是用另一種方式製造「登入靜靜失敗」的同一個問題。
+    */
+    const { data: sub } = supabase.auth.onAuthStateChange((event, s) => {
+      setSession(s)
+      if (event === 'SIGNED_IN' && s) {
+        // 沒有存過就是 null（包含無痕模式存不進去的情況），維持預設落點
+        const target = consumeRoute()
+        if (target) setReturnTo(target)
+      }
+    })
     return () => sub.subscription.unsubscribe()
   }, [])
+
+  // 真正的導頁分開做，避免把 navigate 綁進上面那個訂閱的相依
+  useEffect(() => {
+    if (!returnTo) return
+    setReturnTo(null)
+    navigate(returnTo, { replace: true })
+  }, [returnTo, navigate])
 
   /**
    * 判定登入者身分。
@@ -105,6 +135,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [session])
 
   const signInWithGoogle = async () => {
+    // 先記住現在在哪一頁。redirectTo 不含 hash（pathname 不含 hash），
+    // 不記的話掃 QR code 進 #/health 的學生登入完會掉到根路徑
+    rememberRoute(window.location.hash)
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
       options: {
