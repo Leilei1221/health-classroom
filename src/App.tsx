@@ -18,6 +18,9 @@ export default function App() {
       {/* 健康管理：自行處理登入與身分，不受下方教師路由影響 */}
       <Route path="/health" element={<HealthGate />} />
 
+      {/* 教師紅旗查詢：唯讀，擋人條件在 FlagList 裡（要有帶班級）*/}
+      <Route path="/health/teacher" element={<HealthGate page="teacher" />} />
+
       <Route path="/health/selfcheck" element={<HealthGate page="selfcheck" />} />
       <Route path="/health/plate" element={<HealthGate page="plate" />} />
 
