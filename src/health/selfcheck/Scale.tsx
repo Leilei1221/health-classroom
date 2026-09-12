@@ -258,7 +258,18 @@ export function ScaleResult({ scaleKey, outcome, onBack, onRetake }: {
         </div>
       </section>
 
-      {outcome.flag && <Care critical={outcome.critical} />}
+      {/*
+        關懷文案與上面的分級文案中間留一道分隔線和空白。
+        兩段文字都是固定內容、一個字都不改，但分數低、分級文案樂觀
+        卻又要出現關懷文案時（第 20 題勾過就會這樣），
+        擠在一起讀起來會互相打架，分開成兩張卡片就不會。
+      */}
+      {outcome.flag && (
+        <>
+          <div className="mx-6 mb-5 mt-7 border-t border-[#C7E2DC]" />
+          <Care critical={outcome.critical} />
+        </>
+      )}
 
       <div className="mx-3 rounded-xl border border-dashed border-[#C7E2DC] bg-[#F7FCFB] px-4 py-3.5 text-[13px] leading-relaxed text-[#4A6461]">
         這份結果只有你和健護老師看得到，不會給其他老師或同學，也不會算進任何成績。

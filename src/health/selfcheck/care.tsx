@@ -13,7 +13,7 @@
 /** critical：第 20 題「我想要消失不見」勾選時，換掉中間那一段 */
 export default function Care({ critical }: { critical: boolean }) {
   return (
-    <div className="mx-3 my-3.5 rounded-2xl border border-[#E2C9A6] bg-[#FDF3E3] px-4 py-4 text-[#7A4A08]">
+    <div className="mx-3 mb-3.5 rounded-2xl border border-[#E2C9A6] bg-[#FDF3E3] px-4 py-5 text-[#7A4A08]">
       <h4 className="mb-1.5 text-[15.5px] font-bold">謝謝你照實回答</h4>
       <p className="mb-2 text-[14px] leading-relaxed">
         願意誠實勾選，本身就需要一點勇氣。這份量表不是診斷，它只是說：你最近可能過得比較辛苦。
