@@ -3,18 +3,20 @@ import { Spinner } from '../components/ui'
 import HealthRegister from './HealthRegister'
 import SelfCheck from './selfcheck/SelfCheck'
 import Plate from './plate/Plate'
+import FlagList from './teacher/FlagList'
 import { PREVIEW_STUDENT } from './preview'
 import type { StudentProfile } from '../lib/types'
 
-export type HealthPage = 'register' | 'selfcheck' | 'plate'
+export type HealthPage = 'register' | 'selfcheck' | 'plate' | 'teacher'
 
-const PAGES: Record<HealthPage, (p?: StudentProfile) => JSX.Element> = {
+/** 學生填寫的三個頁面；教師查詢頁走另一條路，不在這裡 */
+const PAGES: Record<Exclude<HealthPage, 'teacher'>, (p?: StudentProfile) => JSX.Element> = {
   register: (p) => <HealthRegister preview={p} />,
   selfcheck: (p) => <SelfCheck preview={p} />,
   plate: (p) => <Plate preview={p} />,
 }
 
-const PAGE_NAMES: Record<HealthPage, string> = {
+const PAGE_NAMES: Record<Exclude<HealthPage, 'teacher'>, string> = {
   register: '身體數值登記',
   selfcheck: '課本自我檢測',
   plate: '我的餐盤',
@@ -33,6 +35,14 @@ export default function HealthGate({ page = 'register', preview = false }: {
   if (loading || (session && role === 'resolving')) return <Spinner />
 
   if (!session) return <SignIn onSignIn={signInWithGoogle} />
+
+  /*
+    教師查詢頁的身分判斷方向與學生頁相反，不能走下面那段。
+    老師會把自己掛進測試班級，student 與 teacher 同時成立，
+    若照學生頁的順序判斷，她自己就會被擋在紅旗頁外面。
+    實際擋人的條件（有沒有帶班級）在 FlagList 裡，與 RLS 同一套。
+  */
+  if (page === 'teacher') return <FlagList />
 
   // 名單上有這個人就顯示真正的登記表單，不看是學生還是老師 ——
   // 老師把自己掛進測試班級實測時，兩種身分會同時成立

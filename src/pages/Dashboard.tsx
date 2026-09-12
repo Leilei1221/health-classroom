@@ -116,6 +116,9 @@ export default function Dashboard() {
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-slate-500">共 {classes.length} 個班級</p>
         <div className="flex gap-2">
+          <Button variant="secondary" onClick={() => nav('/health/teacher')}>
+            需要關心的學生
+          </Button>
           <Button variant="secondary" onClick={() => setShowHealthQr(true)}>
             健康登記 QR code
           </Button>
