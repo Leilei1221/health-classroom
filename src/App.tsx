@@ -20,6 +20,8 @@ export default function App() {
 
       {/* 教師紅旗查詢：唯讀，擋人條件在 FlagList 裡（要有帶班級）*/}
       <Route path="/health/teacher" element={<HealthGate page="teacher" />} />
+      {/* 班級進度表：只顯示做了沒，可以投影 */}
+      <Route path="/health/progress" element={<HealthGate page="progress" />} />
 
       <Route path="/health/selfcheck" element={<HealthGate page="selfcheck" />} />
       <Route path="/health/plate" element={<HealthGate page="plate" />} />

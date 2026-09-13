@@ -19,6 +19,12 @@ export async function myStudentProfile(): Promise<StudentProfile[]> {
 /** 學年度學期組成資料表用的 semester 字串 */
 export const semesterKey = (p: StudentProfile) => `${p.academic_year}-${p.semester}`
 
+/**
+ * 第一版只做期初；期中／期末沿用同一頁，改這個常數即可。
+ * 登記頁與進度表共用，兩邊不會各說各話。
+ */
+export const ROUND: MeasurementRound = 'initial'
+
 export async function getMeasurement(
   email: string, semester: string, round: MeasurementRound,
 ): Promise<HealthMeasurement | null> {
@@ -237,4 +243,118 @@ export async function listFlagged(semesters: string[]): Promise<FlaggedStudent[]
       if (a.level !== b.level) return a.level === 'critical' ? -1 : 1
       return b.updated_at.localeCompare(a.updated_at)
     })
+}
+
+/* ------------------------------------------------- 教師端班級進度表（唯讀） */
+
+/** 進度表的九個欄位，順序即畫面上的欄位順序 */
+export const PROGRESS_TASKS = [
+  { key: 'measurement', label: '身體數值登記', short: '登記' },
+  { key: 'lifestyle', label: '生活型態', short: '生活' },
+  { key: 'h85210', label: '85210', short: '85210' },
+  { key: 'pyramid', label: '飲食金字塔', short: '金字塔' },
+  { key: 'sleep', label: '睡眠檢測', short: '睡眠' },
+  { key: 'mood', label: '心情溫度計', short: '心情' },
+  { key: 'stress', label: '壓力偵測站', short: '壓力' },
+  { key: 'depression', label: '情緒自我檢視表', short: '情緒' },
+  { key: 'plate', label: '我的餐盤', short: '餐盤' },
+] as const
+
+export type TaskKey = (typeof PROGRESS_TASKS)[number]['key']
+
+/** 摘要說的「七份」＝七份量表，不含身體數值登記與餐盤活動 */
+export const SCALE_TASK_KEYS: TaskKey[] = [
+  'lifestyle', 'h85210', 'pyramid', 'sleep', 'mood', 'stress', 'depression',
+]
+
+export interface ProgressStudent {
+  student_id: string
+  class_id: string
+  seat_no: number | null
+  name: string
+  done: Record<TaskKey, boolean>
+  /** 七份量表完成幾份 */
+  scalesDone: number
+  /** 還沒做的量表名稱，手機版用 */
+  missing: string[]
+}
+
+/**
+ * 班級進度：每個學生每一份「做了沒」。
+ *
+ * 這一頁會投影給全班看，所以**分數不能進到瀏覽器**——不是「查回來但不顯示」，
+ * 是根本不查。下面每一條查詢都只 select('student_email')，
+ * 「做了沒」交給 where 條件判斷（欄位 is not null），
+ * 分數、三燈區題號、85210 勾了哪幾項，一個位元組都不會離開資料庫。
+ * 想在這一頁顯示分數也顯示不出來，因為手上沒有。
+ *
+ * 以班級名單為底左外接答題資料，不是反過來：完全沒做過的人在
+ * hc_health_selfcheck 裡一列都沒有，從答題資料撈會整個漏掉，
+ * 而那正是最需要看到的人。
+ */
+export async function listProgress(semesters: string[]): Promise<ProgressStudent[]> {
+  const roster = unwrap<
+    { id: string; class_id: string; seat_no: number | null; name: string;
+      email: string; login_email: string | null }[]
+  >(
+    await supabase
+      .from('hc_students')
+      .select('id, class_id, seat_no, name, email, login_email')
+      .eq('is_active', true)
+      .order('seat_no', { ascending: true, nullsFirst: false }),
+  )
+  if (semesters.length === 0) return []
+
+  const sc = () =>
+    supabase.from('hc_health_selfcheck').select('student_email').in('semester', semesters)
+  const emails = (rows: { student_email: string }[]) =>
+    new Set(rows.map((r) => r.student_email))
+
+  // 九條查詢平行送，每一條都只要 email 清單
+  const [measurement, lifestyle, h85210, pyramid, sleep, mood, stress, depression, plate] =
+    await Promise.all([
+      supabase.from('hc_health_measurement').select('student_email')
+        .in('semester', semesters).eq('round', ROUND),
+      sc().not('lifestyle', 'is', null),
+      // h85210 是 NOT NULL 預設 '{}'，不能用 is null 判斷；
+      // 有送出過就一定寫滿七個 key，所以檢查其中一個 key 在不在
+      sc().not('h85210->>sleep8', 'is', null),
+      sc().not('diet_type', 'is', null),
+      sc().not('sleep_isi', 'is', null),
+      sc().not('mood_scale', 'is', null),
+      sc().not('stress_level', 'is', null),
+      sc().not('depression', 'is', null),
+      sc().not('plate', 'is', null),
+    ])
+
+  const sets: Record<TaskKey, Set<string>> = {
+    measurement: emails(unwrap(measurement)),
+    lifestyle: emails(unwrap(lifestyle)),
+    h85210: emails(unwrap(h85210)),
+    pyramid: emails(unwrap(pyramid)),
+    sleep: emails(unwrap(sleep)),
+    mood: emails(unwrap(mood)),
+    stress: emails(unwrap(stress)),
+    depression: emails(unwrap(depression)),
+    plate: emails(unwrap(plate)),
+  }
+
+  return roster.map((s) => {
+    // 與 hc_my_student_profile 和 RLS 判斷用的是同一個值
+    const account = s.login_email ?? s.email
+    const done = {} as Record<TaskKey, boolean>
+    for (const t of PROGRESS_TASKS) done[t.key] = sets[t.key].has(account)
+    const missing = PROGRESS_TASKS
+      .filter((t) => SCALE_TASK_KEYS.includes(t.key) && !done[t.key])
+      .map((t) => t.label)
+    return {
+      student_id: s.id,
+      class_id: s.class_id,
+      seat_no: s.seat_no,
+      name: s.name,
+      done,
+      scalesDone: SCALE_TASK_KEYS.filter((k) => done[k]).length,
+      missing,
+    }
+  })
 }
