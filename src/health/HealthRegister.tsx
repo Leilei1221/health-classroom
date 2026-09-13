@@ -2,13 +2,10 @@ import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../auth'
 import { friendlyError } from '../lib/errors'
 import HealthHeader from './Header'
-import { getMeasurement, saveMeasurement, semesterKey } from './api'
+import { ROUND, getMeasurement, saveMeasurement, semesterKey } from './api'
 import { ALL_FIELDS, REQUIRED, SECTIONS, type Field } from './fields'
 import { calcBmi, calcFatKg, calcWhr, judgeBmi, judgeBp, judgeWhr, type Verdict } from './rules'
-import type { HealthMeasurement, MeasurementRound, StudentProfile } from '../lib/types'
-
-/** 第一版只做期初；期中／期末沿用同一頁，改這個常數即可 */
-const ROUND: MeasurementRound = 'initial'
+import type { HealthMeasurement, StudentProfile } from '../lib/types'
 
 type Values = Record<string, string>
 
