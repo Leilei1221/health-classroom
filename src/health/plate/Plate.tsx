@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react'
 import { useAuth } from '../../auth'
 import { friendlyError } from '../../lib/errors'
 import HealthHeader, { PreviewBanner } from '../Header'
+import Handover from '../Handover'
 import { getSelfcheck, saveSelfcheck, semesterKey } from '../api'
 import {
   CAT, CAT_KEYS, DEFAULT_KCAL, GOALS, GROUPS, KCAL_CHOICES, SCALE, WATER_GOAL,
@@ -342,6 +343,9 @@ export default function Plate({ preview }: { preview?: StudentProfile }) {
             </p>
           </>
         )}
+
+        {/* 共用平板：一定要有顯眼的交接按鈕 */}
+        {!isPreview && <Handover />}
       </div>
 
       {toast && (
