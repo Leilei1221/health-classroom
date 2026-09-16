@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth'
 import { friendlyError } from '../../lib/errors'
 import HealthHeader, { PreviewBanner } from '../Header'
+import Handover from '../Handover'
 import { getSelfcheck, saveSelfcheck, semesterKey, type SelfcheckPatch } from '../api'
 import DietTree from './DietTree'
 import Scale, { ScaleResult } from './Scale'
@@ -215,6 +216,9 @@ function Home({ row, onOpen, isPreview }: {
       </section>
 
       <p className="mx-3 pb-2 text-[11.5px] leading-relaxed text-[#8CA5A2]">{SOURCE_LINE}</p>
+
+      {/* 共用平板：交接按鈕只放在清單頁，作答到一半不要打斷 */}
+      {!isPreview && <Handover />}
     </>
   )
 }

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../auth'
 import { friendlyError } from '../lib/errors'
 import HealthHeader from './Header'
+import Handover from './Handover'
 import { ROUND, getMeasurement, saveMeasurement, semesterKey } from './api'
 import { ALL_FIELDS, REQUIRED, SECTIONS, type Field } from './fields'
 import { calcBmi, calcFatKg, calcWhr, judgeBmi, judgeBp, judgeWhr, type Verdict } from './rules'
@@ -213,6 +214,9 @@ export default function HealthRegister({ preview }: { preview?: StudentProfile }
             )}
           </>
         )}
+
+        {/* 共用平板：一定要有顯眼的交接按鈕，頁首的小字沒人會按 */}
+        {!isPreview && <Handover />}
       </div>
 
       {!saved && (

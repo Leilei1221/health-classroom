@@ -4,6 +4,7 @@ import type { Session } from '@supabase/supabase-js'
 import { supabase } from './lib/supabase'
 import { ensureTeacher, findTeacher } from './lib/api'
 import { consumeRoute, rememberRoute } from './lib/pendingRoute'
+import { wipeLocalAuthState } from './lib/handover'
 import { myStudentProfile } from './health/api'
 import type { StudentProfile, Teacher } from './lib/types'
 
@@ -142,15 +143,28 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       provider: 'google',
       options: {
         redirectTo: window.location.origin + window.location.pathname,
-        // hd 只是提示，會讓 Google 優先顯示學校帳號；真正的限制在
-        // OAuth 同意畫面的「內部」設定與資料庫 RLS，不能只靠這個參數
-        queryParams: { hd: SCHOOL_DOMAIN },
+        queryParams: {
+          // hd 只是提示，會讓 Google 優先顯示學校帳號；真正的限制在
+          // OAuth 同意畫面的「內部」設定與資料庫 RLS，不能只靠這個參數
+          hd: SCHOOL_DOMAIN,
+          // 共用平板必備：沒有這個參數時，Google 偵測到已登入的帳號會直接
+          // 沿用、不問、立刻彈回來——下一位同學就這樣進了上一位的帳號。
+          // 加了之後每次都會顯示帳號選擇畫面，必須自己選。
+          prompt: 'select_account',
+        },
       },
     })
     if (error) throw error
   }
 
-  const signOut = async () => { await supabase.auth.signOut() }
+  const signOut = async () => {
+    try {
+      await supabase.auth.signOut()
+    } finally {
+      // 網路請求失敗也要把本機那份清掉，共用平板不能留給下一位
+      wipeLocalAuthState()
+    }
+  }
 
   return (
     <Ctx.Provider
