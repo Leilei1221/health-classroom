@@ -1,6 +1,23 @@
 /**
  * 教師端的數值判讀：哪一列要標紅、標琥珀，右邊寫什麼。
  *
+ * ── 紅與琥珀的分層原則（蕾蕾 2026-09-19 定案，改這裡之前先讀完）──────
+ *
+ *   紅色 ＝ **今天要處理**。
+ *     血壓、血氧、脈搏屬於這一類：單次數值本來就會浮動，看到了就請學生
+ *     坐下休息再量一次，必要時當天帶去保健室。紅色要能驅動一個當天的動作。
+ *
+ *   琥珀 ＝ **長期指標，課堂上談**。
+ *     BMI 屬於這一類。體位是幾個月、幾學期的事，沒有哪一個當天的動作
+ *     可以處理它，標成紅色只會稀釋紅色的意思——紅的東西一多，老師就不看了。
+ *
+ * 所以 BMI 不論多高多低都只標琥珀。這不是「紅標太多所以調鬆」，
+ * 是紅色的定義本來就該是「今天要處理」。日後要加新欄位時照這個問題判斷：
+ * 「看到這個數字，老師今天做得了什麼？」做得了 → 紅；做不了 → 琥珀。
+ *
+ * 【還沒決定】腰臀比目前 ≥0.95 仍然是紅的。照上面的原則它其實也是長期指標，
+ * 要不要一起改成只標琥珀，等蕾蕾決定，不要自己改。
+ *
  * BMI／腰臀比／血壓三項直接呼叫 rules.ts 的 judgeBmi／judgeWhr／judgeBp，
  * 不在這裡另外寫一組數字。學生看到的燈號和老師看到的紅字必須出自同一個判斷，
  * 否則會變成學生說「我的是綠燈」、老師說「你這個要重測」，兩邊各說各話。
@@ -44,10 +61,12 @@ export function marksOf(m: HealthMeasurement | null): Marks {
     const bmi = calcBmi(m.height_cm, m.weight_kg)
     const v = judgeBmi(bmi)
     if (v.level !== 'g') {
-      // rules.ts 的過輕只有一級（< 17.7，判 y），所以偏低不會是紅的
-      out.bmi = bmi < 17.7
-        ? { tone: 'amber', note: '偏低' }
-        : { tone: v.level === 'o' ? 'red' : 'amber', note: v.level === 'o' ? '偏高' : '略高' }
+      // 一律 amber —— 見檔案開頭的分層原則。學生端該亮橘燈還是亮橘燈，
+      // 那是「值得投入改善的方向」，與教師端「今天要不要處理」是兩回事。
+      out.bmi = {
+        tone: 'amber',
+        note: bmi < 17.7 ? '偏低' : v.level === 'o' ? '偏高' : '略高',
+      }
     }
   }
 
@@ -90,12 +109,17 @@ export const MARK_LABEL: Record<MarkKey, string> = {
   bmi: 'BMI', whr: '腰臀比', sbp: '收縮壓', dbp: '舒張壓', pulse: '脈搏', spo2: '血氧',
 }
 
-/** 例：「BMI 偏高、收縮壓 建議重測」；沒有要注意的回空字串 */
-export function marksSummary(marks: Marks): string {
+/** 要注意的項目，紅的排前面——摘要那一欄位置有限，先看到今天要處理的 */
+export function markList(marks: Marks): { key: MarkKey; label: string; mark: Mark }[] {
   return (Object.keys(MARK_LABEL) as MarkKey[])
     .filter((k) => marks[k])
-    .map((k) => `${MARK_LABEL[k]} ${marks[k]!.note}`)
-    .join('、')
+    .map((k) => ({ key: k, label: MARK_LABEL[k], mark: marks[k]! }))
+    .sort((a, b) => Number(b.mark.tone === 'red') - Number(a.mark.tone === 'red'))
+}
+
+/** 例：「收縮壓 建議重測、BMI 偏高」；沒有要注意的回空字串。CSV 用這個 */
+export function marksSummary(marks: Marks): string {
+  return markList(marks).map((m) => `${m.label} ${m.mark.note}`).join('、')
 }
 
 export const hasRed = (marks: Marks) => Object.values(marks).some((m) => m.tone === 'red')

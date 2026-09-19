@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../auth'
 import { listClasses } from '../../lib/api'
 import { friendlyError } from '../../lib/errors'
@@ -10,7 +10,7 @@ import { outcomeFromRow } from '../selfcheck/state'
 import { CAT, CAT_KEYS } from '../plate/foods'
 import { H85210_KEYS, H85210_SHORT } from './labels'
 import { buildClassCsv, computed, downloadCsv } from './csv'
-import { hasRed, marksOf, marksSummary, type Mark, type MarkKey } from './thresholds'
+import { hasRed, markList, marksOf, type Mark, type MarkKey, type Marks } from './thresholds'
 import type { ClassRow, HealthMeasurement, MeasurementRound } from '../../lib/types'
 
 /**
@@ -28,8 +28,12 @@ import type { ClassRow, HealthMeasurement, MeasurementRound } from '../../lib/ty
  */
 export default function Detail() {
   const { student, teacher } = useAuth()
+  // 從班級進度按過來時會帶 ?class=，直接停在同一個班，不用再選一次
+  const [params] = useSearchParams()
+  const wantClass = params.get('class')
   const [classes, setClasses] = useState<ClassRow[] | null>(null)
-  const [classId, setClassId] = useState<string | null>(null)
+  const [classId, setClassId] = useState<string | null>(wantClass)
+  const [q, setQ] = useState('')
   const [round, setRound] = useState<MeasurementRound>('initial')
   const [rows, setRows] = useState<DetailStudent[] | null>(null)
   const [openId, setOpenId] = useState<string | null>(null)
@@ -38,15 +42,23 @@ export default function Detail() {
   useEffect(() => {
     let cancelled = false
     listClasses()
-      .then((cs) => {
-        if (cancelled) return
-        setClasses(cs)
-        const active = cs.filter((c) => c.is_active)
-        if (active.length > 0) setClassId((prev) => prev ?? active[0].id)
-      })
+      .then((cs) => { if (!cancelled) setClasses(cs) })
       .catch((e) => { if (!cancelled) setError(friendlyError(e)) })
     return () => { cancelled = true }
   }, [])
+
+  /*
+    決定停在哪一個班。跟著網址跑而不是只在第一次掛載時看一眼——
+    已經停在這一頁時再按一次帶 ?class= 的連結，只會換 hash 不會重新掛載，
+    只看初始值的話畫面會不動，看起來像連結壞掉。
+    網址沒帶、或帶了一個對不到的班，就退回目前選的班或第一個班。
+  */
+  useEffect(() => {
+    const active = (classes ?? []).filter((c) => c.is_active)
+    if (active.length === 0) return
+    const ok = (id: string | null) => !!id && active.some((c) => c.id === id)
+    setClassId((prev) => (ok(wantClass) ? wantClass : ok(prev) ? prev : active[0].id))
+  }, [classes, wantClass])
 
   const active = useMemo(() => (classes ?? []).filter((c) => c.is_active), [classes])
   const cls = active.find((c) => c.id === classId) ?? null
@@ -56,11 +68,23 @@ export default function Detail() {
     let cancelled = false
     setRows(null)
     setOpenId(null)
+    setQ('')
     listClassDetail(cls.id, `${cls.academic_year}-${cls.semester}`)
       .then((r) => { if (!cancelled) setRows(r) })
       .catch((e) => { if (!cancelled) setError(friendlyError(e)) })
     return () => { cancelled = true }
   }, [cls?.id, cls?.academic_year, cls?.semester])
+
+  /** 座號、姓名、學號都能搜；座號打 7 就找得到 7 號，不用管有沒有補零 */
+  const shown = useMemo(() => {
+    const key = q.trim()
+    if (!key || !rows) return rows
+    const lower = key.toLowerCase()
+    return rows.filter((r) =>
+      r.name.includes(key)
+      || String(r.seat_no ?? '') === key
+      || r.student_no.toLowerCase().includes(lower))
+  }, [rows, q])
 
   const open = (rows ?? []).find((r) => r.student_id === openId) ?? null
   const counts = useMemo(() => {
@@ -148,12 +172,33 @@ export default function Detail() {
         </span>
       </div>
 
+      <div className="mb-3 flex flex-wrap items-center gap-2">
+        <input
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+          placeholder="找學生：座號、姓名或學號"
+          className="w-56 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm placeholder:text-slate-400"
+        />
+        {q && (
+          <button onClick={() => setQ('')} className="text-sm text-slate-500 hover:text-slate-900">
+            清除
+          </button>
+        )}
+        {rows && (
+          <span className="text-xs tabular-nums text-slate-500">
+            {shown?.length ?? 0} / {rows.length} 人
+          </span>
+        )}
+      </div>
+
       {rows === null ? (
         <Box>載入中…</Box>
       ) : rows.length === 0 ? (
         <Box>這個班的名單是空的。</Box>
+      ) : shown!.length === 0 ? (
+        <Box>這個班沒有符合「{q}」的學生。</Box>
       ) : (
-        <Roster rows={rows} round={round} onOpen={setOpenId} />
+        <Roster rows={shown!} round={round} onOpen={setOpenId} />
       )}
 
       {open && cls && (
@@ -202,9 +247,7 @@ function Roster({ rows, round, onOpen }: {
                   {m ? '已登記' : '未登記'}・量表 {scales}/7
                 </span>
               </div>
-              {marksSummary(marks) && (
-                <p className="mt-1 text-[13px] font-medium text-[#A8403C]">{marksSummary(marks)}</p>
-              )}
+              <Notes marks={marks} className="mt-1 text-[13px]" />
             </button>
           )
         })}
@@ -241,8 +284,8 @@ function Roster({ rows, round, onOpen }: {
                   <td className="px-3 py-2.5 tabular-nums">
                     <Val v={computed(m).bmi} mark={marks.bmi} />
                   </td>
-                  <td className="px-3 py-2.5 text-[13px] font-medium text-[#A8403C]">
-                    {marksSummary(marks)}
+                  <td className="px-3 py-2.5">
+                    <Notes marks={marks} className="text-[13px]" />
                   </td>
                   <td className="px-3 py-2.5 tabular-nums text-slate-600">{scales} / 7</td>
                   <td className="px-3 py-2.5 text-right text-xs text-slate-400">看明細 ›</td>
@@ -257,6 +300,25 @@ function Roster({ rows, round, onOpen }: {
 }
 
 const SCALE_KEYS = ['lifestyle', 'h85210', 'pyramid', 'sleep', 'mood', 'stress', 'depression'] as const
+
+/**
+ * 「需要注意」那一欄。每一項各自照自己的顏色，不是整欄都塗紅——
+ * 整欄塗紅的話，只有 BMI 略高的人看起來會跟血壓要重測的人一樣嚴重。
+ */
+function Notes({ marks, className = '' }: { marks: Marks; className?: string }) {
+  const items = markList(marks)
+  if (items.length === 0) return null
+  return (
+    <p className={`font-medium ${className}`}>
+      {items.map((m, i) => (
+        <span key={m.key} className={m.mark.tone === 'red' ? 'text-[#A8403C]' : 'text-[#8A5310]'}>
+          {i > 0 && <span className="text-slate-400">、</span>}
+          {m.label} {m.mark.note}
+        </span>
+      ))}
+    </p>
+  )
+}
 
 function Val({ v, mark }: { v: number | null; mark?: Mark }) {
   if (v === null) return <span className="text-slate-300">—</span>

@@ -77,7 +77,7 @@ export default function Progress() {
   return (
     <Shell subtitle={teacher?.display_name}>
       {/* 班級切換 */}
-      <div className="mb-3 flex flex-wrap gap-1.5">
+      <div className="mb-3 flex flex-wrap items-center gap-1.5">
         {active.map((c) => (
           <button
             key={c.id}
@@ -91,6 +91,21 @@ export default function Progress() {
             {c.name}
           </button>
         ))}
+        {/*
+          去明細頁的入口。放在這裡而不是埋在頁尾，是因為上課中要查一個人
+          不該先捲到最底下再找一行小字；帶著 ?class= 過去，落地就是同一個班。
+          明細頁有分數，所以標上「不要投影」，樣式也刻意比班級按鈕淡，
+          避免投影中誤觸。
+        */}
+        {classId && (
+          <Link
+            to={`/health/detail?class=${classId}`}
+            className="ml-auto rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
+          >
+            學生明細 ›
+            <span className="ml-1 text-xs text-slate-400">不要投影</span>
+          </Link>
+        )}
       </div>
 
       {rows === null ? (
