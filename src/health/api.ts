@@ -358,3 +358,88 @@ export async function listProgress(semesters: string[]): Promise<ProgressStudent
     }
   })
 }
+
+/* --------------------------------------------- 教師端明細檢視（唯讀，不投影） */
+
+export const ROUNDS: { key: MeasurementRound; label: string }[] = [
+  { key: 'initial', label: '期初' },
+  { key: 'mid', label: '期中' },
+  { key: 'final', label: '期末' },
+]
+
+export interface DetailStudent {
+  student_id: string
+  class_id: string
+  student_no: string
+  seat_no: number | null
+  name: string
+  /** 與 hc_my_student_profile 和 RLS 判斷用的是同一個值 */
+  account: string
+  /** 三次測量，沒登記的是 null */
+  rounds: Record<MeasurementRound, HealthMeasurement | null>
+  selfcheck: HealthSelfcheck | null
+}
+
+/**
+ * 一個班的完整明細。
+ *
+ * 只讀，不寫——這一頁沒有任何編輯功能，學生要改資料一律自己回登記頁重送。
+ * 讀得到誰由 RLS 決定（教師只能讀自己帶的班），這裡不再自己做一次權限判斷。
+ *
+ * 與班級進度表 listProgress() 相反：那一頁刻意只查 student_email，
+ * 因為會投影給全班看；這一頁是老師自己看的，所以查整列。
+ * 兩個函式分開寫就是為了讓這件事在程式碼裡看得出來，不要合併。
+ *
+ * 一次把整班撈回來（三條查詢），不是點一個學生查一次：
+ * 匯出 CSV 和明細用的是同一份資料，畫面上的數字和匯出的檔案不會兜不起來。
+ */
+export async function listClassDetail(
+  classId: string, semester: string,
+): Promise<DetailStudent[]> {
+  const roster = unwrap<
+    { id: string; class_id: string; student_no: string; seat_no: number | null;
+      name: string; email: string; login_email: string | null }[]
+  >(
+    await supabase
+      .from('hc_students')
+      .select('id, class_id, student_no, seat_no, name, email, login_email')
+      .eq('class_id', classId)
+      .eq('is_active', true)
+      .order('seat_no', { ascending: true, nullsFirst: false }),
+  )
+  if (roster.length === 0) return []
+
+  const accounts = [...new Set(roster.map((s) => s.login_email ?? s.email))]
+
+  const [ms, scs] = await Promise.all([
+    supabase.from('hc_health_measurement').select('*')
+      .eq('semester', semester).in('student_email', accounts),
+    supabase.from('hc_health_selfcheck').select('*')
+      .eq('semester', semester).in('student_email', accounts),
+  ])
+
+  const byRound = new Map<string, Record<MeasurementRound, HealthMeasurement | null>>()
+  for (const m of unwrap<HealthMeasurement[]>(ms)) {
+    const slot = byRound.get(m.student_email)
+      ?? { initial: null, mid: null, final: null }
+    slot[m.round] = m
+    byRound.set(m.student_email, slot)
+  }
+  const scByEmail = new Map(
+    unwrap<HealthSelfcheck[]>(scs).map((r) => [r.student_email, r]),
+  )
+
+  return roster.map((s): DetailStudent => {
+    const account = s.login_email ?? s.email
+    return {
+      student_id: s.id,
+      class_id: s.class_id,
+      student_no: s.student_no,
+      seat_no: s.seat_no,
+      name: s.name,
+      account,
+      rounds: byRound.get(account) ?? { initial: null, mid: null, final: null },
+      selfcheck: scByEmail.get(account) ?? null,
+    }
+  })
+}

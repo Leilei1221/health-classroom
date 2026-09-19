@@ -175,7 +175,9 @@ export default function Progress() {
 
           <p className="mt-3 text-xs leading-relaxed text-slate-500">
             這一頁只顯示做了沒有，不顯示任何分數或結果——可以直接投影。
-            需要看誰要關心請到 <Link to="/health/teacher" className="underline">另一頁</Link>（那一頁不要投影）。
+            需要看誰要關心請到 <Link to="/health/teacher" className="underline">另一頁</Link>，
+            要看同學填了什麼請到 <Link to="/health/detail" className="underline">學生明細</Link>
+            （那兩頁都不要投影）。
           </p>
         </>
       )}

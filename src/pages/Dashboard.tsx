@@ -119,6 +119,9 @@ export default function Dashboard() {
           <Button variant="secondary" onClick={() => nav('/health/progress')}>
             班級進度
           </Button>
+          <Button variant="secondary" onClick={() => nav('/health/detail')}>
+            學生明細
+          </Button>
           <Button variant="secondary" onClick={() => nav('/health/teacher')}>
             需要關心的學生
           </Button>

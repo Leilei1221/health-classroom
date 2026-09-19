@@ -156,7 +156,10 @@ export default function FlagList() {
           分數落在需要關心的區間：心情溫度計 10 分以上、壓力偵測站 6 項以上、
           情緒自我檢視表 12 分以上。
         </p>
-        <p>這一頁只能看，還不能標記「已關懷」。清除功能在下一版。</p>
+        <p>
+          這一頁只能看，還不能標記「已關懷」。清除功能在下一版。
+          要看某位同學填了什麼，到 <Link to="/health/detail" className="underline">學生明細</Link>。
+        </p>
       </div>
     </Shell>
   )
