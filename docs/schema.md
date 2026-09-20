@@ -9,13 +9,13 @@ Migration：`supabase/migrations/20260829000000_health_classroom_init.sql`
 | # | Table | 用途 |
 |---|---|---|
 | 1 | `hc_teachers` | 教師，PK 對應 `auth.users.id`；註冊時由 trigger 自動建檔 |
-| 2 | `hc_classes` | 授課班級（學年度＋學期＋班名），含分組設定與 `join_code` |
+| 2 | `hc_classes` | 授課班級（學年度＋學期＋班名），含分組設定與 `join_code`；`grade_confirmed = false` 代表年級未確認，健康模組不套 BMI 年齡別門檻；`health_enabled` 是健康模組白名單（預設 false）|
 | 3 | `hc_students` | 學生名單，Excel 匯入目標；轉學休學以 `is_active` 停用而非刪除 |
 | 4 | `hc_seat_assignments` | 座位登記，以 `(group_no, seat_slot)` 定位，一生一位、一位一生 |
 | 5 | `hc_lessons` | 每一堂課（班級＋日期＋節次） |
 | 6 | `hc_attendance_statuses` | 點名狀態字典（5 種，扣分值可調） |
 | 7 | `hc_attendance` | 點名紀錄，每堂課每生一筆 |
-| 8 | `hc_performance_items` | 表現項目字典，含 8 筆系統預設 |
+| 8 | `hc_performance_items` | 表現項目字典，含 11 筆系統預設（`teacher_id is null`）；`requires_note` 的項目按下去會先問理由 |
 | 9 | `hc_performance_records` | 上課表現，累計制、同堂課同生可多筆 |
 | 10 | `hc_groups` | 分組 |
 | 11 | `hc_group_members` | 組員 |

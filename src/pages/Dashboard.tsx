@@ -33,7 +33,12 @@ export default function Dashboard() {
 
   // 編輯班級
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [editForm, setEditForm] = useState({ name: '', group_count: 7, group_capacity: 5, grade: 3 })
+  const [editForm, setEditForm] = useState(
+    {
+      name: '', group_count: 7, group_capacity: 5,
+      grade: 3, grade_confirmed: true, health_enabled: false,
+    },
+  )
 
   const [form, setForm] = useState({
     academic_year: currentAcademicYear(),
@@ -83,7 +88,11 @@ export default function Dashboard() {
   /** 開始編輯班級 */
   const startEdit = (c: ClassRow) => {
     setEditingId(c.id)
-    setEditForm({ name: c.name, group_count: c.group_count, group_capacity: c.group_capacity, grade: c.grade ?? 3 })
+    setEditForm({
+      name: c.name, group_count: c.group_count, group_capacity: c.group_capacity,
+      grade: c.grade ?? 3, grade_confirmed: c.grade_confirmed,
+      health_enabled: c.health_enabled,
+    })
   }
 
   /** 儲存編輯 */
@@ -97,6 +106,8 @@ export default function Dashboard() {
         group_count: editForm.group_count,
         group_capacity: editForm.group_capacity,
         grade: editForm.grade,
+        grade_confirmed: editForm.grade_confirmed,
+        health_enabled: editForm.health_enabled,
       })
       setEditingId(null)
       reload()
@@ -118,6 +129,9 @@ export default function Dashboard() {
         <div className="flex gap-2">
           <Button variant="secondary" onClick={() => nav('/health/progress')}>
             班級進度
+          </Button>
+          <Button variant="secondary" onClick={() => nav('/health/detail')}>
+            學生明細
           </Button>
           <Button variant="secondary" onClick={() => nav('/health/teacher')}>
             需要關心的學生
@@ -253,7 +267,15 @@ export default function Dashboard() {
                         <input className={inputClass} value={editForm.name}
                           onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
                       </Field>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-3 gap-3">
+                        <Field label="年級">
+                          <select className={inputClass} value={editForm.grade}
+                            onChange={(e) => setEditForm({ ...editForm, grade: +e.target.value })}>
+                            <option value={1}>一年級</option>
+                            <option value={2}>二年級</option>
+                            <option value={3}>三年級</option>
+                          </select>
+                        </Field>
                         <Field label="組數">
                           <input type="number" min={1} max={12} className={inputClass} value={editForm.group_count}
                             onChange={(e) => setEditForm({ ...editForm, group_count: +e.target.value })} />
@@ -263,6 +285,35 @@ export default function Dashboard() {
                             onChange={(e) => setEditForm({ ...editForm, group_capacity: +e.target.value })} />
                         </Field>
                       </div>
+                      {/*
+                        健康模組的 BMI 門檻是年齡別的，要靠年級推年齡。
+                        多元選修混年級時一個年級說不清楚，取消勾選就不會套門檻。
+                      */}
+                      <label className="flex items-start gap-2 text-sm text-slate-700">
+                        <input type="checkbox" className="mt-0.5" checked={editForm.grade_confirmed}
+                          onChange={(e) => setEditForm({ ...editForm, grade_confirmed: e.target.checked })} />
+                        <span>
+                          年級已確認
+                          <span className="ml-1.5 text-xs text-slate-500">
+                            取消勾選代表這個班混年級或還沒查證，健康模組就不會套 BMI 的年齡別門檻
+                          </span>
+                        </span>
+                      </label>
+                      {/*
+                        健康模組白名單。預設關閉，要用的班自己開——
+                        新增班級時忘記設定，結果是「看不到」而不是「全校都能填」。
+                      */}
+                      <label className="flex items-start gap-2 text-sm text-slate-700">
+                        <input type="checkbox" className="mt-0.5" checked={editForm.health_enabled}
+                          onChange={(e) => setEditForm({ ...editForm, health_enabled: e.target.checked })} />
+                        <span>
+                          使用健康管理模組
+                          <span className="ml-1.5 text-xs text-slate-500">
+                            沒勾的班級，學生掃 QR code 進來也看不到登記表單，
+                            教師端的進度與明細也不會列出這個班
+                          </span>
+                        </span>
+                      </label>
                       <div className="flex gap-2">
                         <Button onClick={saveEdit}>儲存</Button>
                         <Button variant="ghost" onClick={() => setEditingId(null)}>取消</Button>

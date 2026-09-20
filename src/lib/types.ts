@@ -18,6 +18,10 @@ export interface ClassRow {
   group_capacity: number
   /** 個別組別的人數上限覆寫，鍵為組號字串，例：{"6": 6} */
   group_capacity_overrides: Record<string, number>
+  /** false = 年級未確認（多元選修混年級、或還沒查），不套年齡別門檻 */
+  grade_confirmed: boolean
+  /** 健康模組白名單。false 的班看不到健康登記與自我檢測 */
+  health_enabled: boolean
   join_code: string
   seat_picking_open: boolean
   seat_picking_require_student_no: boolean
@@ -80,6 +84,8 @@ export interface PerformanceItem {
   category: string
   sort_order: number
   is_active: boolean
+  /** 按下去要先讓老師填一行理由（「其他」就是靠這個） */
+  requires_note: boolean
 }
 
 export interface PerformanceRecord {

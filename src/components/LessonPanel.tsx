@@ -57,6 +57,9 @@ export default function LessonPanel({ cls, teacherId }: {
   // 座號模式是「先改本地、按鈕才寫入」；記下實際被改過的學生，
   // 切換模式時只寫入這些人，其餘維持「未點名」讓座位圖看得出還有誰沒點
   const [dirtyIds, setDirtyIds] = useState<Set<string>>(new Set())
+  // 要填理由的項目：按下去先記在這裡，填完（或留空按確定）才寫入
+  const [noteFor, setNoteFor] = useState<{ studentId: string; item: PerformanceItem } | null>(null)
+  const [note, setNote] = useState('')
 
   useEffect(() => {
     setLoading(true)
@@ -208,16 +211,32 @@ export default function LessonPanel({ cls, teacherId }: {
     try { localStorage.setItem(MODE_KEY, next) } catch { /* 隱私模式下忽略 */ }
   }
 
+  /**
+   * 記一筆表現。
+   *
+   * requires_note 的項目（目前是「其他」）先跳輸入框讓老師打一行字，
+   * 不是直接寫進去——不然事後看到一排「其他 -1」會想不起來發生什麼事。
+   * 判斷條件讀資料庫欄位而不是寫死 code === 'other'，
+   * 日後想讓別的項目也能填理由，改一列資料就好。
+   */
   const addRecord = async (studentId: string, item: PerformanceItem) => {
+    if (item.requires_note) { setNoteFor({ studentId, item }); setNote(''); return }
+    await writeRecord(studentId, item, '')
+  }
+
+  const writeRecord = async (studentId: string, item: PerformanceItem, text: string) => {
     if (!current) return
+    const note = text.trim()
     try {
       await addPerformanceRecord({
         lesson_id: current.id,
         student_id: studentId,
         item_id: item.id,
-        label: item.label,
+        // 理由併進 label，本堂紀錄那排才看得出是哪一件事；
+        // 同時原樣存進 reason，之後要做統計不用再從 label 拆字串
+        label: note ? `${item.label}：${note}` : item.label,
         points: item.default_points,
-        reason: '',
+        reason: note,
         created_by: teacherId,
       })
       setRecords(await listPerformanceRecords(current.id))
@@ -509,6 +528,78 @@ export default function LessonPanel({ cls, teacherId }: {
           onClose={() => setOpenStudent(null)}
         />
       )}
+
+      {noteFor && (
+        <NotePrompt
+          title={noteFor.item.label}
+          points={noteFor.item.default_points}
+          studentName={studentOf(noteFor.studentId)?.name ?? ''}
+          value={note}
+          onChange={setNote}
+          onCancel={() => setNoteFor(null)}
+          onConfirm={() => {
+            const { studentId, item } = noteFor
+            setNoteFor(null)
+            void writeRecord(studentId, item, note)
+          }}
+        />
+      )}
+    </div>
+  )
+}
+
+/**
+ * 「其他」按下去跳的輸入框。
+ *
+ * 理由可以留空——老師在教室裡有時就是先記下來、事後再說，
+ * 留空就記成原本的項目名稱，不會擋著她。
+ * z-60 是為了蓋在座位圖的點名視窗（z-50）上面。
+ */
+function NotePrompt({ title, points, studentName, value, onChange, onCancel, onConfirm }: {
+  title: string
+  points: number
+  studentName: string
+  value: string
+  onChange: (v: string) => void
+  onCancel: () => void
+  onConfirm: () => void
+}) {
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${studentName} ${title}`}
+      className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-900/60 p-0 sm:items-center sm:p-6"
+      onClick={onCancel}
+    >
+      <div
+        className="w-full max-w-sm rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <h3 className="text-base font-semibold">
+          {studentName}　{title}
+          <span className="ml-1.5 text-sm font-normal text-red-700">
+            {points > 0 ? '+' : ''}{points}
+          </span>
+        </h3>
+        <p className="mt-1 text-xs text-slate-500">可以留空，之後再補。</p>
+        <input
+          autoFocus
+          value={value}
+          maxLength={20}
+          placeholder="發生什麼事（選填）"
+          onChange={(e) => onChange(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') onConfirm()
+            if (e.key === 'Escape') onCancel()
+          }}
+          className={`${inputClass} mt-3`}
+        />
+        <div className="mt-4 flex justify-end gap-2">
+          <Button variant="ghost" onClick={onCancel}>取消</Button>
+          <Button onClick={onConfirm}>記下來</Button>
+        </div>
+      </div>
     </div>
   )
 }

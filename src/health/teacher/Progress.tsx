@@ -33,7 +33,7 @@ export default function Progress() {
       .then(async (cs) => {
         if (cancelled) return
         setClasses(cs)
-        const active = cs.filter((c) => c.is_active)
+        const active = cs.filter((c) => c.is_active && c.health_enabled)
         if (active.length === 0) { setRows([]); return }
         setClassId((prev) => prev ?? active[0].id)
         const semesters = [...new Set(active.map((c) => `${c.academic_year}-${c.semester}`))]
@@ -44,7 +44,9 @@ export default function Progress() {
     return () => { cancelled = true }
   }, [])
 
-  const active = useMemo(() => (classes ?? []).filter((c) => c.is_active), [classes])
+  // 只列白名單內的班，與明細頁同一個條件
+  const active = useMemo(
+    () => (classes ?? []).filter((c) => c.is_active && c.health_enabled), [classes])
   const mine = useMemo(
     () => (rows ?? []).filter((r) => r.class_id === classId),
     [rows, classId],
@@ -67,7 +69,11 @@ export default function Progress() {
               要填自己的資料請到 <Link to="/health" className="font-medium underline">健康登記頁</Link>。
             </>
           ) : (
-            <>這個帳號沒有帶任何班級，看不到學生資料。</>
+            <>
+              這個帳號沒有任何開啟健康管理的班級。
+              班級有開但這裡看不到的話，到班級管理編輯那個班，
+              把「使用健康管理模組」勾起來。
+            </>
           )}
         </Box>
       </Shell>
@@ -77,7 +83,7 @@ export default function Progress() {
   return (
     <Shell subtitle={teacher?.display_name}>
       {/* 班級切換 */}
-      <div className="mb-3 flex flex-wrap gap-1.5">
+      <div className="mb-3 flex flex-wrap items-center gap-1.5">
         {active.map((c) => (
           <button
             key={c.id}
@@ -91,6 +97,21 @@ export default function Progress() {
             {c.name}
           </button>
         ))}
+        {/*
+          去明細頁的入口。放在這裡而不是埋在頁尾，是因為上課中要查一個人
+          不該先捲到最底下再找一行小字；帶著 ?class= 過去，落地就是同一個班。
+          明細頁有分數，所以標上「不要投影」，樣式也刻意比班級按鈕淡，
+          避免投影中誤觸。
+        */}
+        {classId && (
+          <Link
+            to={`/health/detail?class=${classId}`}
+            className="ml-auto rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-600 hover:bg-slate-50"
+          >
+            學生明細 ›
+            <span className="ml-1 text-xs text-slate-400">不要投影</span>
+          </Link>
+        )}
       </div>
 
       {rows === null ? (
@@ -175,7 +196,9 @@ export default function Progress() {
 
           <p className="mt-3 text-xs leading-relaxed text-slate-500">
             這一頁只顯示做了沒有，不顯示任何分數或結果——可以直接投影。
-            需要看誰要關心請到 <Link to="/health/teacher" className="underline">另一頁</Link>（那一頁不要投影）。
+            需要看誰要關心請到 <Link to="/health/teacher" className="underline">另一頁</Link>，
+            要看同學填了什麼請到 <Link to="/health/detail" className="underline">學生明細</Link>
+            （那兩頁都不要投影）。
           </p>
         </>
       )}

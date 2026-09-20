@@ -24,7 +24,8 @@ export default function FlagList() {
       .then(async (cs) => {
         if (cancelled) return
         setClasses(cs)
-        const active = cs.filter((c) => c.is_active)
+        // 只看白名單內的班，與另外兩頁同一個條件
+        const active = cs.filter((c) => c.is_active && c.health_enabled)
         if (active.length === 0) { setRows([]); return }
         // 學期字串與登記頁的 semesterKey() 同一個組法
         const semesters = [...new Set(active.map((c) => `${c.academic_year}-${c.semester}`))]
@@ -44,7 +45,7 @@ export default function FlagList() {
     只看 role 會把他們當成老師放進來；而「帶班級」正好也是 RLS
     判斷讀得到誰的同一個條件，兩邊不會各說各話。
   */
-  if (classes.length === 0) {
+  if (classes.filter((c) => c.is_active && c.health_enabled).length === 0) {
     return (
       <Shell>
         <Box tone="error">
@@ -55,7 +56,11 @@ export default function FlagList() {
               要填自己的資料請到 <Link to="/health" className="font-medium underline">健康登記頁</Link>。
             </>
           ) : (
-            <>這個帳號沒有帶任何班級，看不到學生資料。如果你是健護老師，請跟系統管理者確認班級設定。</>
+            <>
+              這個帳號沒有任何開啟健康管理的班級。
+              班級有開但這裡看不到的話，到班級管理編輯那個班，
+              把「使用健康管理模組」勾起來。
+            </>
           )}
         </Box>
       </Shell>
@@ -63,7 +68,7 @@ export default function FlagList() {
   }
 
   return (
-    <Shell subtitle={`${teacher?.display_name ?? ''}　${classes.filter((c) => c.is_active).length} 個班級`}>
+    <Shell subtitle={`${teacher?.display_name ?? ''}　${classes.filter((c) => c.is_active && c.health_enabled).length} 個班級`}>
       {rows === null ? (
         <Box>載入中…</Box>
       ) : rows.length === 0 ? (
@@ -156,7 +161,10 @@ export default function FlagList() {
           分數落在需要關心的區間：心情溫度計 10 分以上、壓力偵測站 6 項以上、
           情緒自我檢視表 12 分以上。
         </p>
-        <p>這一頁只能看，還不能標記「已關懷」。清除功能在下一版。</p>
+        <p>
+          這一頁只能看，還不能標記「已關懷」。清除功能在下一版。
+          要看某位同學填了什麼，到 <Link to="/health/detail" className="underline">學生明細</Link>。
+        </p>
       </div>
     </Shell>
   )
