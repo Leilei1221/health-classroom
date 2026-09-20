@@ -5,7 +5,10 @@ import HealthHeader from './Header'
 import Handover from './Handover'
 import { ROUND, getMeasurement, saveMeasurement, semesterKey } from './api'
 import { ALL_FIELDS, REQUIRED, SECTIONS, type Field } from './fields'
-import { calcBmi, calcFatKg, calcWhr, judgeBmi, judgeBp, judgeWhr, type Verdict } from './rules'
+import {
+  STUDENT_GRADE, bmiAge, calcBmi, calcFatKg, calcWhr,
+  judgeBmi, judgeBp, judgeWhr, type Verdict,
+} from './rules'
 import type { HealthMeasurement, StudentProfile } from '../lib/types'
 
 type Values = Record<string, string>
@@ -247,7 +250,15 @@ function Result({ bmi, whr, sbp, dbp, onEdit }: {
   bmi: number | null; whr: number | null; sbp: number; dbp: number; onEdit: () => void
 }) {
   const items: [string, string, Verdict][] = []
-  if (bmi !== null) items.push(['BMI', bmi.toFixed(1), judgeBmi(bmi)])
+  /*
+    BMI 門檻是年齡別的（rules.ts 的 GRADE_ROUND_AGE）。
+    學生端拿不到自己的年級——hc_my_student_profile() 沒回傳，
+    而學生讀不到 hc_classes（RLS 只開給帶班的老師）——所以用 STUDENT_GRADE。
+    這學期健康模組只有高三在用，見 rules.ts 的說明。
+    真的判不出年齡時寧可不顯示這一列，也不要挑一列來湊。
+  */
+  const bmiVerdict = bmi === null ? null : judgeBmi(bmi, bmiAge(STUDENT_GRADE, ROUND))
+  if (bmi !== null && bmiVerdict) items.push(['BMI', bmi.toFixed(1), bmiVerdict])
   if (!Number.isNaN(sbp) && !Number.isNaN(dbp)) {
     items.push(['血壓', `${sbp} / ${dbp}`, judgeBp(sbp, dbp)])
   }

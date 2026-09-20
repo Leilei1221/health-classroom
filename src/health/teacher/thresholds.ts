@@ -8,32 +8,32 @@
  *     坐下休息再量一次，必要時當天帶去保健室。紅色要能驅動一個當天的動作。
  *
  *   琥珀 ＝ **長期指標，課堂上談**。
- *     BMI 屬於這一類。體位是幾個月、幾學期的事，沒有哪一個當天的動作
- *     可以處理它，標成紅色只會稀釋紅色的意思——紅的東西一多，老師就不看了。
+ *     BMI、體脂率、腰圍、腰臀比都屬於這一類。體位是幾個月、幾學期的事，
+ *     沒有哪一個當天的動作可以處理它，標成紅色只會稀釋紅色的意思——
+ *     紅的東西一多，老師就不看了。
  *
- * 所以 BMI 不論多高多低都只標琥珀。這不是「紅標太多所以調鬆」，
+ * 所以這四項不論多高多低都只標琥珀。這不是「紅標太多所以調鬆」，
  * 是紅色的定義本來就該是「今天要處理」。日後要加新欄位時照這個問題判斷：
  * 「看到這個數字，老師今天做得了什麼？」做得了 → 紅；做不了 → 琥珀。
  *
- * 【還沒決定】腰臀比目前 ≥0.95 仍然是紅的。照上面的原則它其實也是長期指標，
- * 要不要一起改成只標琥珀，等蕾蕾決定，不要自己改。
- *
- * BMI／腰臀比／血壓三項直接呼叫 rules.ts 的 judgeBmi／judgeWhr／judgeBp，
- * 不在這裡另外寫一組數字。學生看到的燈號和老師看到的紅字必須出自同一個判斷，
+ * BMI／腰臀比／血壓／體脂率／腰圍的門檻都放在 rules.ts，不在這裡另外寫一組。
+ * 學生看到的燈號和老師看到的標記必須出自同一組數字，
  * 否則會變成學生說「我的是綠燈」、老師說「你這個要重測」，兩邊各說各話。
  *
- * 原型 docs/教師端進度看板_原型.html 的 judge() 用的是成人 BMI 24／27，
- * 這裡刻意沒有照抄——理由見 rules.ts 開頭：高三學生要用國健署 18 歲那一列
- * （過輕 < 17.7、過重 ≥ 21.9、肥胖 ≥ 23.2）。套成人標準會把偏瘦的判成正常。
+ * BMI 是年齡別的，所以 marksOf() 要帶 age 進來（由呼叫端從班級年級推出，
+ * 見 rules.ts 的 GRADE_ROUND_AGE）。age 為 null＝年級未確認，那就不判 BMI。
  *
- * 脈搏與血氧學生端沒有燈號，門檻取自原型：
+ * 脈搏與血氧學生端沒有燈號，門檻取自 docs/教師端進度看板_原型.html：
  * 血氧 < 95 偏低、脈搏 > 100 偏快、脈搏 < 50 偏慢。
  *
- * 其餘欄位（體脂率、內臟脂肪、基礎代謝率、身體年齡、皮下脂肪率、骨骼肌率）
+ * 其餘欄位（內臟脂肪、基礎代謝率、身體年齡、皮下脂肪率、骨骼肌率）
  * 目前沒有議定好的門檻，一律不標記。寧可不標，也不要自己編一組數字出來——
  * 這些數字會被老師拿去跟學生談話，標錯的代價是實的。
  */
-import { calcBmi, calcWhr, judgeBmi, judgeBp, judgeWhr } from '../rules'
+import {
+  BODY_FAT_MALE_U30, WAIST_MALE_OBESE,
+  calcBmi, calcWhr, judgeBmi, judgeBp, judgeWhr, type BmiAge,
+} from '../rules'
 import type { HealthMeasurement } from '../../lib/types'
 
 /** red＝建議老師看一眼、必要時請學生重測；amber＝邊界值 */
@@ -46,26 +46,31 @@ export interface Mark {
 }
 
 /** 會被標記的列。前三個是自動計算出來的，其餘是登記欄位名 */
-export type MarkKey = 'bmi' | 'whr' | 'sbp' | 'dbp' | 'pulse' | 'spo2'
+export type MarkKey =
+  | 'bmi' | 'whr' | 'body_fat_pct' | 'waist_cm' | 'sbp' | 'dbp' | 'pulse' | 'spo2'
 
 export type Marks = Partial<Record<MarkKey, Mark>>
 
 const num = (v: number | null | undefined): v is number =>
   typeof v === 'number' && Number.isFinite(v)
 
-export function marksOf(m: HealthMeasurement | null): Marks {
+/**
+ * age 為 null＝年級未確認，BMI 就不判。
+ * 不要在這裡挑一列來湊——套錯一列（15 歲過重 22.9 vs 18 歲 24.0）會冤枉人。
+ */
+export function marksOf(m: HealthMeasurement | null, age: BmiAge | null): Marks {
   const out: Marks = {}
   if (!m) return out
 
   if (num(m.height_cm) && num(m.weight_kg) && m.height_cm > 0) {
     const bmi = calcBmi(m.height_cm, m.weight_kg)
-    const v = judgeBmi(bmi)
-    if (v.level !== 'g') {
-      // 一律 amber —— 見檔案開頭的分層原則。學生端該亮橘燈還是亮橘燈，
-      // 那是「值得投入改善的方向」，與教師端「今天要不要處理」是兩回事。
+    const v = judgeBmi(bmi, age)
+    // 一律 amber —— 見檔案開頭的分層原則。學生端該亮橘燈還是亮橘燈，
+    // 那是「值得投入改善的方向」，與教師端「今天要不要處理」是兩回事。
+    if (v && v.level !== 'g') {
       out.bmi = {
         tone: 'amber',
-        note: bmi < 17.7 ? '偏低' : v.level === 'o' ? '偏高' : '略高',
+        note: v.label === '目前偏低' ? '偏低' : v.level === 'o' ? '偏高' : '略高',
       }
     }
   }
@@ -73,10 +78,21 @@ export function marksOf(m: HealthMeasurement | null): Marks {
   if (num(m.waist_cm) && num(m.hip_cm) && m.hip_cm > 0) {
     const v = judgeWhr(calcWhr(m.waist_cm, m.hip_cm))
     if (v.level !== 'g') {
-      out.whr = v.level === 'o'
-        ? { tone: 'red', note: '偏高' }
-        : { tone: 'amber', note: '略高' }
+      out.whr = { tone: 'amber', note: v.level === 'o' ? '偏高' : '略高' }
     }
+  }
+
+  // 體脂率：30 歲以下男性正常 14–20%，≥ 25% 為肥胖
+  if (num(m.body_fat_pct)) {
+    const { low, high, obese } = BODY_FAT_MALE_U30
+    if (m.body_fat_pct >= obese) out.body_fat_pct = { tone: 'amber', note: '偏高' }
+    else if (m.body_fat_pct > high) out.body_fat_pct = { tone: 'amber', note: '略高' }
+    else if (m.body_fat_pct < low) out.body_fat_pct = { tone: 'amber', note: '偏低' }
+  }
+
+  // 腰圍：男性 > 90 公分為肥胖。課本寫的是「大於」，所以剛好 90.0 不標
+  if (num(m.waist_cm) && m.waist_cm > WAIST_MALE_OBESE) {
+    out.waist_cm = { tone: 'amber', note: '偏高' }
   }
 
   if (num(m.sbp) && num(m.dbp)) {
@@ -106,7 +122,8 @@ export function marksOf(m: HealthMeasurement | null): Marks {
 
 /** 標記的中文名稱，給摘要與 CSV 用 */
 export const MARK_LABEL: Record<MarkKey, string> = {
-  bmi: 'BMI', whr: '腰臀比', sbp: '收縮壓', dbp: '舒張壓', pulse: '脈搏', spo2: '血氧',
+  bmi: 'BMI', whr: '腰臀比', body_fat_pct: '體脂率', waist_cm: '腰圍',
+  sbp: '收縮壓', dbp: '舒張壓', pulse: '脈搏', spo2: '血氧',
 }
 
 /** 要注意的項目，紅的排前面——摘要那一欄位置有限，先看到今天要處理的 */

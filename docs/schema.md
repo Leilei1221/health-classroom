@@ -9,7 +9,7 @@ Migration：`supabase/migrations/20260829000000_health_classroom_init.sql`
 | # | Table | 用途 |
 |---|---|---|
 | 1 | `hc_teachers` | 教師，PK 對應 `auth.users.id`；註冊時由 trigger 自動建檔 |
-| 2 | `hc_classes` | 授課班級（學年度＋學期＋班名），含分組設定與 `join_code` |
+| 2 | `hc_classes` | 授課班級（學年度＋學期＋班名），含分組設定與 `join_code`；`grade_confirmed = false` 代表年級未確認，健康模組不套 BMI 年齡別門檻 |
 | 3 | `hc_students` | 學生名單，Excel 匯入目標；轉學休學以 `is_active` 停用而非刪除 |
 | 4 | `hc_seat_assignments` | 座位登記，以 `(group_no, seat_slot)` 定位，一生一位、一位一生 |
 | 5 | `hc_lessons` | 每一堂課（班級＋日期＋節次） |

@@ -33,7 +33,9 @@ export default function Dashboard() {
 
   // 編輯班級
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [editForm, setEditForm] = useState({ name: '', group_count: 7, group_capacity: 5, grade: 3 })
+  const [editForm, setEditForm] = useState(
+    { name: '', group_count: 7, group_capacity: 5, grade: 3, grade_confirmed: true },
+  )
 
   const [form, setForm] = useState({
     academic_year: currentAcademicYear(),
@@ -83,7 +85,10 @@ export default function Dashboard() {
   /** 開始編輯班級 */
   const startEdit = (c: ClassRow) => {
     setEditingId(c.id)
-    setEditForm({ name: c.name, group_count: c.group_count, group_capacity: c.group_capacity, grade: c.grade ?? 3 })
+    setEditForm({
+      name: c.name, group_count: c.group_count, group_capacity: c.group_capacity,
+      grade: c.grade ?? 3, grade_confirmed: c.grade_confirmed,
+    })
   }
 
   /** 儲存編輯 */
@@ -97,6 +102,7 @@ export default function Dashboard() {
         group_count: editForm.group_count,
         group_capacity: editForm.group_capacity,
         grade: editForm.grade,
+        grade_confirmed: editForm.grade_confirmed,
       })
       setEditingId(null)
       reload()
@@ -256,7 +262,15 @@ export default function Dashboard() {
                         <input className={inputClass} value={editForm.name}
                           onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
                       </Field>
-                      <div className="grid grid-cols-2 gap-3">
+                      <div className="grid grid-cols-3 gap-3">
+                        <Field label="年級">
+                          <select className={inputClass} value={editForm.grade}
+                            onChange={(e) => setEditForm({ ...editForm, grade: +e.target.value })}>
+                            <option value={1}>一年級</option>
+                            <option value={2}>二年級</option>
+                            <option value={3}>三年級</option>
+                          </select>
+                        </Field>
                         <Field label="組數">
                           <input type="number" min={1} max={12} className={inputClass} value={editForm.group_count}
                             onChange={(e) => setEditForm({ ...editForm, group_count: +e.target.value })} />
@@ -266,6 +280,20 @@ export default function Dashboard() {
                             onChange={(e) => setEditForm({ ...editForm, group_capacity: +e.target.value })} />
                         </Field>
                       </div>
+                      {/*
+                        健康模組的 BMI 門檻是年齡別的，要靠年級推年齡。
+                        多元選修混年級時一個年級說不清楚，取消勾選就不會套門檻。
+                      */}
+                      <label className="flex items-start gap-2 text-sm text-slate-700">
+                        <input type="checkbox" className="mt-0.5" checked={editForm.grade_confirmed}
+                          onChange={(e) => setEditForm({ ...editForm, grade_confirmed: e.target.checked })} />
+                        <span>
+                          年級已確認
+                          <span className="ml-1.5 text-xs text-slate-500">
+                            取消勾選代表這個班混年級或還沒查證，健康模組就不會套 BMI 的年齡別門檻
+                          </span>
+                        </span>
+                      </label>
                       <div className="flex gap-2">
                         <Button onClick={saveEdit}>儲存</Button>
                         <Button variant="ghost" onClick={() => setEditingId(null)}>取消</Button>

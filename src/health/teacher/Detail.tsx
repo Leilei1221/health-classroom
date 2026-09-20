@@ -8,6 +8,7 @@ import { SECTIONS, type Field } from '../fields'
 import { SCALES } from '../selfcheck/scales'
 import { outcomeFromRow } from '../selfcheck/state'
 import { CAT, CAT_KEYS } from '../plate/foods'
+import { BMI_SOURCE, bmiAge, type BmiAge } from '../rules'
 import { H85210_KEYS, H85210_SHORT } from './labels'
 import { buildClassCsv, computed, downloadCsv } from './csv'
 import { hasRed, markList, marksOf, type Mark, type MarkKey, type Marks } from './thresholds'
@@ -86,6 +87,13 @@ export default function Detail() {
       || r.student_no.toLowerCase().includes(lower))
   }, [rows, q])
 
+  /*
+    BMI 門檻是年齡別的，要看班級年級與這是第幾次測量。
+    年級未確認的班（多元選修混年級）回 null，整頁就不判 BMI——
+    套錯一列（15 歲過重 22.9 vs 18 歲 24.0）會冤枉人。
+  */
+  const age = cls ? bmiAge(cls.grade, round, cls.grade_confirmed) : null
+
   const open = (rows ?? []).find((r) => r.student_id === openId) ?? null
   const counts = useMemo(() => {
     const out = {} as Record<MeasurementRound, number>
@@ -160,7 +168,7 @@ export default function Detail() {
             const label = ROUNDS.find((r) => r.key === round)!.label
             downloadCsv(
               `健康數值_${cls.name}_${cls.academic_year}-${cls.semester}_${label}.csv`,
-              buildClassCsv(cls.name, rows, round),
+              buildClassCsv(cls.name, rows, round, age),
             )
           }}
           className="rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-sm text-slate-700 hover:bg-slate-50 disabled:opacity-40"
@@ -171,6 +179,21 @@ export default function Detail() {
           匯出目前這個班、這一次測量的所有欄位
         </span>
       </div>
+
+      {/* 用哪一列門檻要看得見：年級設錯的話，這一行會先露餡 */}
+      <p className="mb-3 text-xs text-slate-500">
+        {age === null ? (
+          <span className="rounded bg-[#FDF3E3] px-1.5 py-0.5 font-medium text-[#8A5310]">
+            年級未確認，這個班不套 BMI 門檻
+          </span>
+        ) : (
+          <>
+            BMI 門檻用 <strong>{age} 歲男性</strong>那一列
+            （{cls?.name} 是 {cls?.grade} 年級，這次是
+            {ROUNDS.find((r) => r.key === round)!.label}）
+          </>
+        )}
+      </p>
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
         <input
@@ -198,7 +221,7 @@ export default function Detail() {
       ) : shown!.length === 0 ? (
         <Box>這個班沒有符合「{q}」的學生。</Box>
       ) : (
-        <Roster rows={shown!} round={round} onOpen={setOpenId} />
+        <Roster rows={shown!} round={round} age={age} onOpen={setOpenId} />
       )}
 
       {open && cls && (
@@ -206,6 +229,7 @@ export default function Detail() {
           student={open}
           className={cls.name}
           round={round}
+          age={age}
           onRound={setRound}
           onClose={() => setOpenId(null)}
         />
@@ -216,12 +240,13 @@ export default function Detail() {
 
 /* ------------------------------------------------------------------ 名單 */
 
-function Roster({ rows, round, onOpen }: {
-  rows: DetailStudent[]; round: MeasurementRound; onOpen: (id: string) => void
+function Roster({ rows, round, age, onOpen }: {
+  rows: DetailStudent[]; round: MeasurementRound; age: BmiAge | null
+  onOpen: (id: string) => void
 }) {
   const line = (s: DetailStudent) => {
     const m = s.rounds[round]
-    const marks = marksOf(m)
+    const marks = marksOf(m, age)
     const scales = SCALE_KEYS.filter((k) => outcomeFromRow(s.selfcheck, k)).length
     return { m, marks, scales }
   }
@@ -336,16 +361,17 @@ const AFTER: Record<string, 'bmi' | 'fat' | 'whr'> = {
   weight_kg: 'bmi', body_fat_pct: 'fat', hip_cm: 'whr',
 }
 
-function Sheet({ student, className, round, onRound, onClose }: {
+function Sheet({ student, className, round, age, onRound, onClose }: {
   student: DetailStudent
   className: string
   round: MeasurementRound
+  age: BmiAge | null
   onRound: (r: MeasurementRound) => void
   onClose: () => void
 }) {
   const m = student.rounds[round]
   const base = student.rounds.initial
-  const marks = marksOf(m)
+  const marks = marksOf(m, age)
   const c = computed(m)
   const cBase = computed(base)
   const done = ROUNDS.filter((r) => student.rounds[r.key])
@@ -428,8 +454,14 @@ function Sheet({ student, className, round, onRound, onClose }: {
                   </div>
                 ))}
                 <p className="mt-3 text-xs leading-relaxed text-slate-400">
-                  只標記有議定門檻的項目：BMI（國健署 18 歲男生）、腰臀比、血壓、脈搏、血氧。
-                  體脂率、內臟脂肪、骨骼肌率等沒有標記，不是代表正常，是還沒有可以照的標準。
+                  有門檻的項目：BMI、體脂率、腰圍、腰臀比、血壓、脈搏、血氧。
+                  內臟脂肪、基礎代謝率、身體年齡、皮下脂肪率、骨骼肌率沒有標記，
+                  不是代表正常，是還沒有可以照的標準。
+                  <br />
+                  {age === null
+                    ? '這個班年級未確認，沒有套 BMI 門檻。'
+                    : `BMI 用 ${age} 歲男性那一列。`}
+                  {BMI_SOURCE}。
                 </p>
               </div>
             )}

@@ -15,6 +15,7 @@ import { CAT, CAT_KEYS } from '../plate/foods'
 import { H85210_KEYS, H85210_SHORT } from './labels'
 import { marksOf, marksSummary } from './thresholds'
 import type { DetailStudent } from '../api'
+import type { BmiAge } from '../rules'
 import type { HealthMeasurement, MeasurementRound } from '../../lib/types'
 
 /*
@@ -80,7 +81,7 @@ export function header(): string[] {
 }
 
 export function row(
-  className: string, s: DetailStudent, round: MeasurementRound,
+  className: string, s: DetailStudent, round: MeasurementRound, age: BmiAge | null,
 ): unknown[] {
   const m = s.rounds[round]
   const c = computed(m)
@@ -100,7 +101,7 @@ export function row(
     className, s.seat_no, s.student_no, s.name, s.account,
     when(m?.measured_at),
     ...ALL_FIELDS.map((f) => (m ? (m as unknown as Record<string, unknown>)[f.key] ?? '' : '')),
-    c.bmi, c.fatKg, c.whr, marksSummary(marksOf(m)),
+    c.bmi, c.fatKg, c.whr, marksSummary(marksOf(m, age)),
     life?.green.length ?? '', life?.yellow.length ?? '', life?.red.length ?? '',
     life ? life.red.join(' ') : '',
     h?.score ?? '',
@@ -120,9 +121,9 @@ export function row(
 }
 
 export function buildClassCsv(
-  className: string, students: DetailStudent[], round: MeasurementRound,
+  className: string, students: DetailStudent[], round: MeasurementRound, age: BmiAge | null,
 ): string {
-  return toCsv([header(), ...students.map((s) => row(className, s, round))])
+  return toCsv([header(), ...students.map((s) => row(className, s, round, age))])
 }
 
 /**
