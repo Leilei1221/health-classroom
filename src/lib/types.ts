@@ -240,6 +240,8 @@ export interface HealthSelfcheck {
 
   /** 0-3，送出時算好寫入。判定規則見 src/health/riskLevel.ts */
   risk_level: number
+  /** 情緒自我檢視表第 20 題答「是」的次數；≥2 教師端標「重複觸發」 */
+  risk_l3_count: number
   risk_flagged_at: string | null
   risk_reviewed: boolean
   risk_reviewed_at: string | null

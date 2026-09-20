@@ -9,6 +9,12 @@ import { friendlyError } from '../lib/errors'
 import type { ClassRow } from '../lib/types'
 
 const ImportPanel = lazy(() => import('../components/ImportPanel'))
+/*
+  L3 提示放在首頁最上方是規格書第五節教師端明文要求的位置。
+  lazy 載入：沒有紅旗的老師（多數情況）不必為了一個不會顯示的東西多下載一份程式，
+  而它要查資料庫，也不該擋住班級清單先出現。
+*/
+const L3Alert = lazy(() => import('../health/teacher/L3Alert'))
 
 /** 民國學年度：8 月起算新學年 */
 function currentAcademicYear(): number {
@@ -124,6 +130,9 @@ export default function Dashboard() {
 
   return (
     <Layout title="我的班級">
+      {/* 最上方，不是藏在某個分頁裡——規格書第五節教師端 */}
+      <Suspense fallback={null}><L3Alert classes={classes} /></Suspense>
+
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-slate-500">共 {classes.length} 個班級</p>
         <div className="flex gap-2">

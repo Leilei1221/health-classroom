@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase'
 import { listClasses } from '../lib/api'
-import { riskLevel } from './riskLevel'
+import { isRiskOutcome, riskLevel, riskReasons } from './riskLevel'
+import type { RiskLevel, RiskOutcome, RiskReason } from './riskLevel'
 import type {
   ClassRow, HealthMeasurement, HealthSelfcheck, MeasurementRound, StudentProfile,
 } from '../lib/types'
@@ -166,6 +167,17 @@ export async function saveSelfcheck(
   if (level > 0 && (!prev?.risk_flagged_at || level > (prev?.risk_level ?? 0))) {
     row.risk_flagged_at = new Date().toISOString()
   }
+
+  /*
+    L3 觸發次數（規格書：第二次以上要在教師端標「重複觸發」）。
+
+    加一的條件是**這一次送出的第 20 題答「是」**，不是看 depression_critical
+    的現值——那個旗標是黏的，看它的話學生重做任何一份量表都會被算成又觸發一次。
+    patch.depression_critical 來自這次作答的 gradeAnswers，正好就是「這次答是」。
+  */
+  if (patch.depression_critical === true) {
+    row.risk_l3_count = (prev?.risk_l3_count ?? 0) + 1
+  }
   // 學生作答的時間，與教師標記已聯繫造成的 updated_at 分開
   row.answered_at = new Date().toISOString()
 
@@ -176,18 +188,6 @@ export async function saveSelfcheck(
       .select()
       .single(),
   )
-}
-
-/**
- * 授課教師的姓名，給關懷文案用（規格書第五節：不要寫死）。
- *
- * 只回姓名一個字串，沒有 email、沒有 id——這支 RPC 是開給全校學生呼叫的，
- * 多回傳一個欄位就是多一個外洩面。拿不到時回 null，文案會退成「老師」。
- */
-export async function myTeacherName(): Promise<string | null> {
-  const { data, error } = await supabase.rpc('hc_my_teacher_name')
-  if (error) throw error
-  return typeof data === 'string' && data.trim() !== '' ? data : null
 }
 
 /** 班級統計可以接受的量表；與資料庫函式的白名單一致 */
@@ -209,67 +209,71 @@ export async function tallySubmit(
   } catch { /* 統計失敗不影響作答 */ }
 }
 
-/* ------------------------------------------------------- 教師端紅旗查詢（唯讀） */
+/* --------------------------------------------------------- 教師端紅旗名單 */
 
-/** 觸發紅旗的單一項目 */
-export interface FlagReason {
-  /** 量表名稱，例：心情溫度計 */
-  scale: string
-  /** 說明，例：12 分（中度以上） */
-  detail: string
-}
+/**
+ * 這一段是規格書第五節「教師端」的資料層。
+ *
+ * 讀的是送出當下寫進去的 risk_level，不是查詢時現算——規格書第五節：
+ * 「這是要留紀錄的判定，不是可變的呈現」。門檻日後調整時，舊資料維持
+ * 當時的判定，不會整批跳級。
+ *
+ * 寫入只有一條路：hc_health_risk_review()。那支 SECURITY DEFINER 函式
+ * 只碰 risk_reviewed / risk_reviewed_at / risk_outcome / risk_note 四欄，
+ * 老師改不到學生的作答內容（RLS 只能限制哪幾列、不能限制哪幾欄，所以
+ * 不能改用 UPDATE policy）。班級進度表那一頁仍然是純唯讀，沒有變。
+ */
 
-export interface FlaggedStudent {
+export type { RiskOutcome } from './riskLevel'
+export { RISK_OUTCOMES, RISK_OUTCOME_LABEL } from './riskLevel'
+
+export interface RiskStudent {
   student_email: string
   semester: string
   /** 對不到名單時為 null，畫面退回顯示 email */
   name: string | null
   class_name: string | null
   seat_no: number | null
-  /** critical 為第 20 題勾選，優先於分數高 */
-  level: 'critical' | 'score'
-  reasons: FlagReason[]
-  updated_at: string
+  /** 送出當下寫入的等級（1-3；0 不會出現在這個名單裡） */
+  level: RiskLevel
+  /** 觸發了哪幾條。這是現算的說明文字，等級以 level 為準 */
+  reasons: RiskReason[]
+  /** 情緒自我檢視表第 20 題答「是」的次數；>= 2 畫面標「重複觸發」 */
+  l3Count: number
+  /** 觸發時間（規格書要顯示的那一個），沒有就退回最後作答時間 */
+  flaggedAt: string | null
+  answeredAt: string | null
+  reviewed: boolean
+  reviewedAt: string | null
+  outcome: RiskOutcome | null
+  note: string | null
 }
 
-/** 紅旗規則的文字說明，與 computeFollowup 的門檻一致 */
-function reasonsOf(row: HealthSelfcheck): FlagReason[] {
-  const out: FlagReason[] = []
-  if (row.depression_critical) {
-    out.push({ scale: '情緒自我檢視表', detail: '第 20 題「我想要消失不見」勾選' })
-  }
-  if ((row.mood_scale ?? -1) >= 10) {
-    out.push({ scale: '心情溫度計', detail: `${row.mood_scale} 分（中度以上）` })
-  }
-  if ((row.stress_level ?? -1) >= 6) {
-    out.push({ scale: '壓力偵測站', detail: `${row.stress_level} 項` })
-  }
-  if ((row.depression ?? -1) >= 12) {
-    out.push({ scale: '情緒自我檢視表', detail: `${row.depression} 分` })
-  }
-  return out
-}
+const asOutcome = (v: string | null): RiskOutcome | null => (isRiskOutcome(v) ? v : null)
 
 /**
- * 這學期需要關心的學生。
+ * 這學期需要關心的學生（risk_level > 0）。
  *
- * 只讀，不寫。RLS 已經把範圍限制在「自己教的班」（hc_teaches_student_email），
- * 這裡不再自己做一次權限判斷，避免兩套規則各說各話。
+ * 只把資料撈回來，排序與分區交給畫面——教師端首頁的提示只要 L3，
+ * 紅旗頁三區都要，兩邊用同一份資料不會各說各話。
  *
  * 姓名班級座號另外查 hc_students 再於前端比對，不是為了省事：
  * hc_health_selfcheck 只存 student_email，兩張表之間沒有外鍵可以讓
- * PostgREST 直接 embed，而這一頁刻意不新增 migration。
- * 比對的鍵是 coalesce(login_email, email)，與 hc_my_student_profile
- * 和 RLS 判斷用的值同一個，換過登入信箱的學生才不會對不上。
+ * PostgREST 直接 embed。比對的鍵是 coalesce(login_email, email)，
+ * 與 hc_my_student_profile 和 RLS 判斷用的值同一個，
+ * 換過登入信箱的學生才不會對不上。
+ *
+ * 範圍由 RLS 決定（hc_teaches_student_email），這裡不再自己做一次
+ * 權限判斷，避免兩套規則各說各話。
  */
-export async function listFlagged(semesters: string[]): Promise<FlaggedStudent[]> {
+export async function listRisk(semesters: string[]): Promise<RiskStudent[]> {
   if (semesters.length === 0) return []
 
   const rows = unwrap<HealthSelfcheck[]>(
     await supabase
       .from('hc_health_selfcheck')
       .select('*')
-      .eq('needs_followup', true)
+      .gt('risk_level', 0)
       .in('semester', semesters)
       .order('updated_at', { ascending: false }),
   )
@@ -294,25 +298,53 @@ export async function listFlagged(semesters: string[]): Promise<FlaggedStudent[]
 
   const byEmail = new Map(roster.map((s) => [s.login_email ?? s.email, s]))
 
-  return rows
-    .map((r): FlaggedStudent => {
-      const s = byEmail.get(r.student_email)
-      return {
-        student_email: r.student_email,
-        semester: r.semester,
-        name: s?.name ?? null,
-        class_name: s ? classNameOf.get(s.class_id) ?? null : null,
-        seat_no: s?.seat_no ?? null,
-        level: r.depression_critical ? 'critical' : 'score',
-        reasons: reasonsOf(r),
-        updated_at: r.updated_at,
-      }
-    })
-    // depression_critical 排最前面，其餘照更新時間新到舊
-    .sort((a, b) => {
-      if (a.level !== b.level) return a.level === 'critical' ? -1 : 1
-      return b.updated_at.localeCompare(a.updated_at)
-    })
+  return rows.map((r): RiskStudent => {
+    const s = byEmail.get(r.student_email)
+    return {
+      student_email: r.student_email,
+      semester: r.semester,
+      name: s?.name ?? null,
+      class_name: s ? classNameOf.get(s.class_id) ?? null : null,
+      seat_no: s?.seat_no ?? null,
+      level: Math.min(3, Math.max(1, r.risk_level)) as RiskLevel,
+      reasons: riskReasons({
+        mood: r.mood_scale,
+        stress: r.stress_level,
+        depression: r.depression,
+        depressionCritical: r.depression_critical,
+      }),
+      l3Count: r.risk_l3_count ?? 0,
+      flaggedAt: r.risk_flagged_at ?? r.answered_at ?? r.updated_at,
+      answeredAt: r.answered_at ?? r.updated_at,
+      reviewed: r.risk_reviewed === true,
+      reviewedAt: r.risk_reviewed_at,
+      outcome: asOutcome(r.risk_outcome),
+      note: r.risk_note,
+    }
+  })
+}
+
+/**
+ * 教師標記「已聯繫」。reviewed=false 是取消標記（按錯了）。
+ *
+ * 備註是老師寫給自己看的一行字，規格書第六節：「只有授課教師看得到」。
+ * 不進 CSV、不進學生端、不進任何投影頁。
+ */
+export async function reviewRisk(
+  studentEmail: string,
+  semester: string,
+  reviewed: boolean,
+  outcome: RiskOutcome | null,
+  note: string | null,
+): Promise<void> {
+  const { error } = await supabase.rpc('hc_health_risk_review', {
+    p_student_email: studentEmail,
+    p_semester: semester,
+    p_reviewed: reviewed,
+    p_outcome: reviewed ? outcome : null,
+    p_note: reviewed ? (note?.trim() || null) : null,
+  })
+  if (error) throw error
 }
 
 /* ------------------------------------------------- 教師端班級進度表（唯讀） */

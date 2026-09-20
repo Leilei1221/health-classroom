@@ -5,7 +5,7 @@ import { friendlyError } from '../../lib/errors'
 import HealthHeader, { PreviewBanner } from '../Header'
 import Handover from '../Handover'
 import {
-  getSelfcheck, myTeacherName, saveSelfcheck, semesterKey, tallySubmit,
+  getSelfcheck, saveSelfcheck, semesterKey, tallySubmit,
   type SelfcheckPatch, type TallyScale,
 } from '../api'
 import { riskLevel } from '../riskLevel'
@@ -33,8 +33,6 @@ export default function SelfCheck({ preview }: { preview?: StudentProfile }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [loadWarning, setLoadWarning] = useState('')
-  // 關懷文案裡要叫出授課教師的名字（規格書第五節：不要寫死）
-  const [teacherName, setTeacherName] = useState<string | null>(null)
 
   useEffect(() => {
     if (!student) return
@@ -43,8 +41,6 @@ export default function SelfCheck({ preview }: { preview?: StudentProfile }) {
       .then(setRow)
       .catch(() => setLoadWarning('沒有讀到你先前做過的紀錄，直接作答即可。'))
       .finally(() => setLoading(false))
-    // 拿不到就退成「老師」，不要因此擋住作答
-    myTeacherName().then(setTeacherName).catch(() => setTeacherName(null))
   }, [student, semester, isPreview])
 
   /** 會累加班級統計的量表；飲食金字塔是決策樹，逐題沒有意義 */
@@ -161,7 +157,6 @@ export default function SelfCheck({ preview }: { preview?: StudentProfile }) {
               depression: row?.depression ?? null,
               depressionCritical: row?.depression_critical === true,
             })}
-            teacherName={teacherName}
             onBack={() => { setView({ at: 'home' }); window.scrollTo({ top: 0 }) }}
             onRetake={view.retakable
               ? () => { setView({ at: 'quiz', key: view.key }); window.scrollTo({ top: 0 }) }
