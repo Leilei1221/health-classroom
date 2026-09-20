@@ -1,6 +1,7 @@
 import { supabase } from '../lib/supabase'
+import { listClasses } from '../lib/api'
 import type {
-  HealthMeasurement, HealthSelfcheck, MeasurementRound, StudentProfile,
+  ClassRow, HealthMeasurement, HealthSelfcheck, MeasurementRound, StudentProfile,
 } from '../lib/types'
 
 function unwrap<T>({ data, error }: { data: T | null; error: unknown }): T {
@@ -372,6 +373,51 @@ export async function listProgress(semesters: string[]): Promise<ProgressStudent
       missing,
     }
   })
+}
+
+/* ----------------------------------------------------- 教師端的班級清單 */
+
+export interface HealthClass {
+  row: ClassRow
+  /** 白名單有沒有開。false＝停用中，但因為有舊資料所以還是列出來 */
+  enabled: boolean
+}
+
+/**
+ * 教師端三頁（紅旗、進度、明細）共用的班級清單。
+ *
+ * 列出的條件是「白名單有開 **或** 這個班有健康資料」，不是只看白名單。
+ * 只看白名單的話，期末把某個班關掉，那個班的資料就從畫面上消失——
+ * 老師會以為資料不見了。資料還在，只是被濾掉，這種誤會的代價太高。
+ *
+ * 判斷「有沒有資料」只查 student_email，沒有把分數撈出來：
+ * 班級進度表會投影給全班看，那一頁的鐵則是分數不進瀏覽器，
+ * 這個共用函式也得守同一條線。
+ */
+export async function listHealthClasses(): Promise<HealthClass[]> {
+  const classes = (await listClasses()).filter((c) => c.is_active)
+  if (classes.length === 0) return []
+
+  const semesters = [...new Set(classes.map((c) => `${c.academic_year}-${c.semester}`))]
+
+  const [ms, scs, roster] = await Promise.all([
+    supabase.from('hc_health_measurement').select('student_email').in('semester', semesters),
+    supabase.from('hc_health_selfcheck').select('student_email').in('semester', semesters),
+    supabase.from('hc_students').select('class_id, email, login_email').eq('is_active', true),
+  ])
+
+  const has = new Set<string>([
+    ...unwrap<{ student_email: string }[]>(ms).map((r) => r.student_email),
+    ...unwrap<{ student_email: string }[]>(scs).map((r) => r.student_email),
+  ])
+  const withData = new Set<string>()
+  for (const s of unwrap<{ class_id: string; email: string; login_email: string | null }[]>(roster)) {
+    if (has.has(s.login_email ?? s.email)) withData.add(s.class_id)
+  }
+
+  return classes
+    .filter((c) => c.health_enabled || withData.has(c.id))
+    .map((c) => ({ row: c, enabled: c.health_enabled }))
 }
 
 /* --------------------------------------------- 教師端明細檢視（唯讀，不投影） */

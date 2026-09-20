@@ -1,10 +1,8 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth'
-import { listClasses } from '../../lib/api'
 import { friendlyError } from '../../lib/errors'
-import { listFlagged, type FlaggedStudent } from '../api'
-import type { ClassRow } from '../../lib/types'
+import { listFlagged, listHealthClasses, type FlaggedStudent, type HealthClass } from '../api'
 
 /**
  * 教師端紅旗查詢頁（最小版）。
@@ -14,21 +12,21 @@ import type { ClassRow } from '../../lib/types'
  */
 export default function FlagList() {
   const { student, teacher } = useAuth()
-  const [classes, setClasses] = useState<ClassRow[] | null>(null)
+  const [classes, setClasses] = useState<HealthClass[] | null>(null)
   const [rows, setRows] = useState<FlaggedStudent[] | null>(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
     let cancelled = false
-    listClasses()
+    listHealthClasses()
       .then(async (cs) => {
         if (cancelled) return
         setClasses(cs)
-        // 只看白名單內的班，與另外兩頁同一個條件
-        const active = cs.filter((c) => c.is_active && c.health_enabled)
-        if (active.length === 0) { setRows([]); return }
+        if (cs.length === 0) { setRows([]); return }
         // 學期字串與登記頁的 semesterKey() 同一個組法
-        const semesters = [...new Set(active.map((c) => `${c.academic_year}-${c.semester}`))]
+        const semesters = [
+          ...new Set(cs.map((c) => `${c.row.academic_year}-${c.row.semester}`)),
+        ]
         const flagged = await listFlagged(semesters)
         if (!cancelled) setRows(flagged)
       })
@@ -45,7 +43,7 @@ export default function FlagList() {
     只看 role 會把他們當成老師放進來；而「帶班級」正好也是 RLS
     判斷讀得到誰的同一個條件，兩邊不會各說各話。
   */
-  if (classes.filter((c) => c.is_active && c.health_enabled).length === 0) {
+  if (classes.length === 0) {
     return (
       <Shell>
         <Box tone="error">
@@ -68,7 +66,7 @@ export default function FlagList() {
   }
 
   return (
-    <Shell subtitle={`${teacher?.display_name ?? ''}　${classes.filter((c) => c.is_active && c.health_enabled).length} 個班級`}>
+    <Shell subtitle={`${teacher?.display_name ?? ''}　${classes.length} 個班級`}>
       {rows === null ? (
         <Box>載入中…</Box>
       ) : rows.length === 0 ? (

@@ -1,18 +1,18 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../auth'
-import { listClasses } from '../../lib/api'
 import { friendlyError } from '../../lib/errors'
-import { ROUNDS, listClassDetail, type DetailStudent } from '../api'
+import { ROUNDS, listClassDetail, listHealthClasses, type DetailStudent, type HealthClass } from '../api'
 import { SECTIONS, type Field } from '../fields'
 import { SCALES } from '../selfcheck/scales'
 import { outcomeFromRow } from '../selfcheck/state'
 import { CAT, CAT_KEYS } from '../plate/foods'
 import { BMI_SOURCE, bmiAge, type BmiAge } from '../rules'
+import ClassButton from './ClassButton'
 import { H85210_KEYS, H85210_SHORT } from './labels'
 import { buildClassCsv, computed, downloadCsv } from './csv'
 import { hasRed, markList, marksOf, type Mark, type MarkKey, type Marks } from './thresholds'
-import type { ClassRow, HealthMeasurement, MeasurementRound } from '../../lib/types'
+import type { HealthMeasurement, MeasurementRound } from '../../lib/types'
 
 /**
  * 教師端明細檢視（唯讀）。
@@ -32,7 +32,7 @@ export default function Detail() {
   // 從班級進度按過來時會帶 ?class=，直接停在同一個班，不用再選一次
   const [params] = useSearchParams()
   const wantClass = params.get('class')
-  const [classes, setClasses] = useState<ClassRow[] | null>(null)
+  const [classes, setClasses] = useState<HealthClass[] | null>(null)
   const [classId, setClassId] = useState<string | null>(wantClass)
   const [q, setQ] = useState('')
   const [round, setRound] = useState<MeasurementRound>('initial')
@@ -42,7 +42,7 @@ export default function Detail() {
 
   useEffect(() => {
     let cancelled = false
-    listClasses()
+    listHealthClasses()
       .then((cs) => { if (!cancelled) setClasses(cs) })
       .catch((e) => { if (!cancelled) setError(friendlyError(e)) })
     return () => { cancelled = true }
@@ -55,16 +55,16 @@ export default function Detail() {
     網址沒帶、或帶了一個對不到的班，就退回目前選的班或第一個班。
   */
   useEffect(() => {
-    const active = (classes ?? []).filter((c) => c.is_active)
-    if (active.length === 0) return
-    const ok = (id: string | null) => !!id && active.some((c) => c.id === id)
-    setClassId((prev) => (ok(wantClass) ? wantClass : ok(prev) ? prev : active[0].id))
+    const list = classes ?? []
+    if (list.length === 0) return
+    const ok = (id: string | null) => !!id && list.some((c) => c.row.id === id)
+    setClassId((prev) => (ok(wantClass) ? wantClass : ok(prev) ? prev : list[0].row.id))
   }, [classes, wantClass])
 
-  // 只列白名單內的班：健康模組沒開的班沒有資料可看，列出來只會誤導
-  const active = useMemo(
-    () => (classes ?? []).filter((c) => c.is_active && c.health_enabled), [classes])
-  const cls = active.find((c) => c.id === classId) ?? null
+  // 白名單有開、或有舊資料的班都列出來，條件在 listHealthClasses()
+  const active = useMemo(() => classes ?? [], [classes])
+  const picked = active.find((c) => c.row.id === classId) ?? null
+  const cls = picked?.row ?? null
 
   useEffect(() => {
     if (!cls) return
@@ -138,17 +138,9 @@ export default function Detail() {
 
       <div className="mb-3 flex flex-wrap gap-1.5">
         {active.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => setClassId(c.id)}
-            className={`rounded-lg px-3 py-1.5 text-sm ${
-              c.id === classId
-                ? 'bg-slate-900 font-bold text-white'
-                : 'border border-slate-300 bg-white text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            {c.name}
-          </button>
+          <ClassButton
+            key={c.row.id} cls={c} current={classId} onPick={setClassId}
+          />
         ))}
       </div>
 

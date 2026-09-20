@@ -1,12 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth'
-import { listClasses } from '../../lib/api'
 import { friendlyError } from '../../lib/errors'
 import {
-  PROGRESS_TASKS, SCALE_TASK_KEYS, listProgress, type ProgressStudent,
+  PROGRESS_TASKS, SCALE_TASK_KEYS, listHealthClasses, listProgress,
+  type HealthClass, type ProgressStudent,
 } from '../api'
-import type { ClassRow } from '../../lib/types'
+import ClassButton from './ClassButton'
 
 /**
  * 班級進度表（唯讀）。
@@ -22,21 +22,22 @@ import type { ClassRow } from '../../lib/types'
  */
 export default function Progress() {
   const { student, teacher } = useAuth()
-  const [classes, setClasses] = useState<ClassRow[] | null>(null)
+  const [classes, setClasses] = useState<HealthClass[] | null>(null)
   const [rows, setRows] = useState<ProgressStudent[] | null>(null)
   const [classId, setClassId] = useState<string | null>(null)
   const [error, setError] = useState('')
 
   useEffect(() => {
     let cancelled = false
-    listClasses()
+    listHealthClasses()
       .then(async (cs) => {
         if (cancelled) return
         setClasses(cs)
-        const active = cs.filter((c) => c.is_active && c.health_enabled)
-        if (active.length === 0) { setRows([]); return }
-        setClassId((prev) => prev ?? active[0].id)
-        const semesters = [...new Set(active.map((c) => `${c.academic_year}-${c.semester}`))]
+        if (cs.length === 0) { setRows([]); return }
+        setClassId((prev) => prev ?? cs[0].row.id)
+        const semesters = [
+          ...new Set(cs.map((c) => `${c.row.academic_year}-${c.row.semester}`)),
+        ]
         const all = await listProgress(semesters)
         if (!cancelled) setRows(all)
       })
@@ -44,9 +45,8 @@ export default function Progress() {
     return () => { cancelled = true }
   }, [])
 
-  // 只列白名單內的班，與明細頁同一個條件
-  const active = useMemo(
-    () => (classes ?? []).filter((c) => c.is_active && c.health_enabled), [classes])
+  // 白名單有開、或有舊資料的班都列出來，條件在 listHealthClasses()
+  const active = useMemo(() => classes ?? [], [classes])
   const mine = useMemo(
     () => (rows ?? []).filter((r) => r.class_id === classId),
     [rows, classId],
@@ -85,17 +85,7 @@ export default function Progress() {
       {/* 班級切換 */}
       <div className="mb-3 flex flex-wrap items-center gap-1.5">
         {active.map((c) => (
-          <button
-            key={c.id}
-            onClick={() => setClassId(c.id)}
-            className={`rounded-lg px-3 py-1.5 text-sm ${
-              c.id === classId
-                ? 'bg-slate-900 font-bold text-white'
-                : 'border border-slate-300 bg-white text-slate-600 hover:bg-slate-50'
-            }`}
-          >
-            {c.name}
-          </button>
+          <ClassButton key={c.row.id} cls={c} current={classId} onPick={setClassId} />
         ))}
         {/*
           去明細頁的入口。放在這裡而不是埋在頁尾，是因為上課中要查一個人
