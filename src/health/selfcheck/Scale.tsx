@@ -1,5 +1,4 @@
 import { useState } from 'react'
-import Care from './care'
 import {
   SCALES, choiceLabel, choiceSub, questionCount, questionSub, questionText,
   type Choice, type Question, type ScaleKey,
@@ -7,6 +6,9 @@ import {
 import type { ScaleOutcome } from './state'
 import { gradeAnswers } from './state'
 import type { SelfcheckPatch } from '../api'
+import type { RiskLevel } from '../riskLevel'
+import RiskCare from './RiskCare'
+import { byDomain } from './suggestions'
 
 const LEVEL_DOT: Record<string, string> = {
   g: 'bg-[#2E8B62]', y: 'bg-[#D19A2E]', o: 'bg-[#B26A12]', r: 'bg-[#A8403C]',
@@ -15,7 +17,8 @@ const LEVEL_DOT: Record<string, string> = {
 /** 作答畫面；送出後由上層決定要不要顯示結果 */
 export default function Scale({ scaleKey, onSubmit, onBack, saving }: {
   scaleKey: ScaleKey
-  onSubmit: (patch: SelfcheckPatch, outcome: ScaleOutcome) => void
+  /** answers 是原始作答，只用來累加班級統計（匿名，不存個人） */
+  onSubmit: (patch: SelfcheckPatch, outcome: ScaleOutcome, answers: number[]) => void
   onBack: () => void
   saving: boolean
 }) {
@@ -31,8 +34,9 @@ export default function Scale({ scaleKey, onSubmit, onBack, saving }: {
     setAns((prev) => prev.map((a, k) => (k === i ? v : a)))
 
   const send = () => {
-    const { outcome, patch } = gradeAnswers(scaleKey, ans.map((a) => a ?? 0))
-    onSubmit(patch, outcome)
+    const answers = ans.map((a) => a ?? 0)
+    const { outcome, patch } = gradeAnswers(scaleKey, answers)
+    onSubmit(patch, outcome, answers)
   }
 
   return (
@@ -175,13 +179,35 @@ export function BackLink({ onClick }: { onClick: () => void }) {
  * 結果畫面。剛做完與回頭看上次結果共用同一段，
  * 差別只在下方多不多一顆「重新作答」。
  */
-export function ScaleResult({ scaleKey, outcome, onBack, onRetake }: {
+/** 三份心理檢測。L2／L3 時這三份只顯示關懷文案，不顯示分數與分級 */
+const PSYCH: ScaleKey[] = ['mood', 'stress', 'depression']
+
+export function ScaleResult({ scaleKey, outcome, risk, teacherName, onBack, onRetake }: {
   scaleKey: ScaleKey
   outcome: ScaleOutcome
+  /** 三份心理檢測合起來的等級，見 src/health/riskLevel.ts */
+  risk: RiskLevel
+  teacherName: string | null
   onBack: () => void
   onRetake?: () => void
 }) {
   const s = SCALES[scaleKey]
+
+  /*
+    規格書第五節與「絕對不可以做的事」：
+      3. 不在學生端顯示分數或等第 —— 「看到『你 16 分，重度』對一個 17 歲的人
+         沒有幫助，只有傷害」
+      4. L2、L3 不顯示任何生活習慣建議
+
+    落實成兩條：
+      hideScore —— L2／L3 時，三份心理檢測的分數卡整張不顯示，只給關懷文案。
+                   生活型態、85210、飲食金字塔、睡眠不在此列，那些不是心理篩檢
+                   分數，蓋掉只會讓學生以為系統壞了。
+      showTips  —— 只有 L1 才在文案下面接壓力領域的建議（規格書 L1 那一列
+                   寫「**可以**同時顯示壓力領域的建議」）。L2／L3 一則都不給。
+  */
+  const hideScore = risk >= 2 && PSYCH.includes(scaleKey)
+  const showTips = risk === 1 && PSYCH.includes(scaleKey)
   const zoneArrays = outcome.zones
     ? [outcome.zones.green, outcome.zones.yellow, outcome.zones.red]
     : []
@@ -189,6 +215,16 @@ export function ScaleResult({ scaleKey, outcome, onBack, onRetake }: {
 
   return (
     <>
+      {hideScore ? (
+        <section className="mx-3 my-3.5 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
+          <div className="px-4 py-4">
+            <h3 className="text-base font-bold">{s.nm}・已送出</h3>
+            <p className="mt-1 text-[14px] leading-relaxed text-[#4A6461]">
+              你的回答已經記下來了。
+            </p>
+          </div>
+        </section>
+      ) : (
       <section className="mx-3 my-3.5 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
         <div className="border-b border-[#C7E2DC] bg-[#F7FCFB] px-4 pb-3 pt-3.5">
           <h3 className="text-base font-bold">{s.nm}・你的結果</h3>
@@ -257,6 +293,7 @@ export function ScaleResult({ scaleKey, outcome, onBack, onRetake }: {
           )}
         </div>
       </section>
+      )}
 
       {/*
         關懷文案與上面的分級文案中間留一道分隔線和空白。
@@ -264,12 +301,15 @@ export function ScaleResult({ scaleKey, outcome, onBack, onRetake }: {
         卻又要出現關懷文案時（第 20 題勾過就會這樣），
         擠在一起讀起來會互相打架，分開成兩張卡片就不會。
       */}
-      {outcome.flag && (
+      {risk !== 0 && (
         <>
-          <div className="mx-6 mb-5 mt-7 border-t border-[#C7E2DC]" />
-          <Care critical={outcome.critical} />
+          {!hideScore && <div className="mx-6 mb-5 mt-7 border-t border-[#C7E2DC]" />}
+          <RiskCare level={risk} teacherName={teacherName} />
         </>
       )}
+
+      {/* L1 才接建議，且只接壓力領域。規格書：L2、L3 不顯示任何生活習慣建議 */}
+      {showTips && <StressTips />}
 
       <div className="mx-3 rounded-xl border border-dashed border-[#C7E2DC] bg-[#F7FCFB] px-4 py-3.5 text-[13px] leading-relaxed text-[#4A6461]">
         這份結果只有你和健護老師看得到，不會給其他老師或同學，也不會算進任何成績。
@@ -287,5 +327,35 @@ export function ScaleResult({ scaleKey, outcome, onBack, onRetake }: {
         <BackLink onClick={onBack} />
       </div>
     </>
+  )
+}
+
+/**
+ * L1 的壓力領域建議。
+ *
+ * 條目全部來自 suggestions.ts（由規格書產生），這裡不挑、不改寫、不加字：
+ * 規格書「不要做的事」第 4 點——不自行新增或改寫建議內容。
+ * 第 5 點：一次最多 3 則，所以取前三則。
+ */
+function StressTips() {
+  const tips = byDomain('stress').slice(0, 3)
+  return (
+    <section className="mx-3 mb-3.5 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
+      <div className="border-b border-[#C7E2DC] bg-[#F7FCFB] px-4 pb-3 pt-3.5">
+        <h3 className="text-base font-bold">可以試試看的方法</h3>
+      </div>
+      <div className="divide-y divide-[#C7E2DC]">
+        {tips.map((t) => (
+          <div key={t.id} className="px-4 py-3.5">
+            <h4 className="text-[15px] font-bold">{t.title}</h4>
+            <p className="mt-1 text-[13.5px] leading-relaxed text-[#4A6461]">{t.why}</p>
+            <p className="mt-1.5 text-[14px] leading-relaxed">{t.how}</p>
+            <p className="mt-1.5 text-[13.5px] leading-relaxed text-[#0E2E2B]">
+              <b>今天可以做的：</b>{t.firstStep}
+            </p>
+          </div>
+        ))}
+      </div>
+    </section>
   )
 }

@@ -4,7 +4,11 @@ import { useAuth } from '../../auth'
 import { friendlyError } from '../../lib/errors'
 import HealthHeader, { PreviewBanner } from '../Header'
 import Handover from '../Handover'
-import { getSelfcheck, saveSelfcheck, semesterKey, type SelfcheckPatch } from '../api'
+import {
+  getSelfcheck, myTeacherName, saveSelfcheck, semesterKey, tallySubmit,
+  type SelfcheckPatch, type TallyScale,
+} from '../api'
+import { riskLevel } from '../riskLevel'
 import DietTree from './DietTree'
 import Scale, { ScaleResult } from './Scale'
 import { SCALES, SCALE_KEYS, SOURCE_LINE, subLine, type DietType, type ScaleKey } from './scales'
@@ -29,6 +33,8 @@ export default function SelfCheck({ preview }: { preview?: StudentProfile }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [loadWarning, setLoadWarning] = useState('')
+  // 關懷文案裡要叫出授課教師的名字（規格書第五節：不要寫死）
+  const [teacherName, setTeacherName] = useState<string | null>(null)
 
   useEffect(() => {
     if (!student) return
@@ -37,9 +43,19 @@ export default function SelfCheck({ preview }: { preview?: StudentProfile }) {
       .then(setRow)
       .catch(() => setLoadWarning('沒有讀到你先前做過的紀錄，直接作答即可。'))
       .finally(() => setLoading(false))
+    // 拿不到就退成「老師」，不要因此擋住作答
+    myTeacherName().then(setTeacherName).catch(() => setTeacherName(null))
   }, [student, semester, isPreview])
 
-  const submit = async (key: ScaleKey, patch: SelfcheckPatch, outcome: ScaleOutcome) => {
+  /** 會累加班級統計的量表；飲食金字塔是決策樹，逐題沒有意義 */
+  const TALLY: Partial<Record<ScaleKey, TallyScale>> = {
+    lifestyle: 'lifestyle', h85210: 'h85210',
+    stress: 'stress', depression: 'depression', mood: 'mood',
+  }
+
+  const submit = async (
+    key: ScaleKey, patch: SelfcheckPatch, outcome: ScaleOutcome, answers?: number[],
+  ) => {
     if (!student) return
     if (isPreview) {
       setView({ at: 'result', key, outcome, retakable: true })
@@ -50,6 +66,9 @@ export default function SelfCheck({ preview }: { preview?: StudentProfile }) {
     try {
       const saved = await saveSelfcheck(student.email, semester, patch)
       setRow(saved)
+      // 匿名累加班級統計。失敗不影響作答，tallySubmit 內部已吞掉錯誤
+      const scale = TALLY[key]
+      if (scale && answers) void tallySubmit(semester, scale, answers)
       // 第 20 題的旗子是黏的，可能與這次作答不同，一律以資料庫回來的為準
       setView({
         at: 'result', key, retakable: true,
@@ -128,13 +147,21 @@ export default function SelfCheck({ preview }: { preview?: StudentProfile }) {
               scaleKey={view.key}
               saving={saving}
               onBack={() => setView({ at: 'home' })}
-              onSubmit={(patch, outcome) => void submit(view.key, patch, outcome)}
+              onSubmit={(patch, outcome, answers) =>
+                void submit(view.key, patch, outcome, answers)}
             />
           )
         ) : (
           <ScaleResult
             scaleKey={view.key}
             outcome={view.outcome}
+            risk={riskLevel({
+              mood: row?.mood_scale ?? null,
+              stress: row?.stress_level ?? null,
+              depression: row?.depression ?? null,
+              depressionCritical: row?.depression_critical === true,
+            })}
+            teacherName={teacherName}
             onBack={() => { setView({ at: 'home' }); window.scrollTo({ top: 0 }) }}
             onRetake={view.retakable
               ? () => { setView({ at: 'quiz', key: view.key }); window.scrollTo({ top: 0 }) }

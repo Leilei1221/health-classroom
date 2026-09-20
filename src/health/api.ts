@@ -1,5 +1,6 @@
 import { supabase } from '../lib/supabase'
 import { listClasses } from '../lib/api'
+import { riskLevel } from './riskLevel'
 import type {
   ClassRow, HealthMeasurement, HealthSelfcheck, MeasurementRound, StudentProfile,
 } from '../lib/types'
@@ -138,13 +139,35 @@ export async function saveSelfcheck(
     row.depression_critical = prev?.depression_critical === true || patch.depression_critical === true
   }
 
-  row.needs_followup = computeFollowup({
+  const merged = {
     mood_scale: 'mood_scale' in patch ? patch.mood_scale : prev?.mood_scale,
     stress_level: 'stress_level' in patch ? patch.stress_level : prev?.stress_level,
     depression: 'depression' in patch ? patch.depression : prev?.depression,
     depression_critical:
       (row.depression_critical as boolean | undefined) ?? prev?.depression_critical,
+  }
+  row.needs_followup = computeFollowup(merged)
+
+  /*
+    紅旗等級：規格書第五節明定「由送出時即時計算後寫入，不是查詢時現算——
+    這是要留紀錄的判定，不是可變的呈現」。所以算好一起 upsert。
+
+    risk_flagged_at 記「第一次被標記」與「升級」的時間：
+    升級代表情況變了，那個時間點對教師端有意義；同級重測則不覆蓋，
+    否則學生每重做一次，教師端看到的觸發時間就往後跳一次。
+  */
+  const level = riskLevel({
+    mood: merged.mood_scale ?? null,
+    stress: merged.stress_level ?? null,
+    depression: merged.depression ?? null,
+    depressionCritical: merged.depression_critical === true,
   })
+  row.risk_level = level
+  if (level > 0 && (!prev?.risk_flagged_at || level > (prev?.risk_level ?? 0))) {
+    row.risk_flagged_at = new Date().toISOString()
+  }
+  // 學生作答的時間，與教師標記已聯繫造成的 updated_at 分開
+  row.answered_at = new Date().toISOString()
 
   return unwrap(
     await supabase
@@ -153,6 +176,37 @@ export async function saveSelfcheck(
       .select()
       .single(),
   )
+}
+
+/**
+ * 授課教師的姓名，給關懷文案用（規格書第五節：不要寫死）。
+ *
+ * 只回姓名一個字串，沒有 email、沒有 id——這支 RPC 是開給全校學生呼叫的，
+ * 多回傳一個欄位就是多一個外洩面。拿不到時回 null，文案會退成「老師」。
+ */
+export async function myTeacherName(): Promise<string | null> {
+  const { data, error } = await supabase.rpc('hc_my_teacher_name')
+  if (error) throw error
+  return typeof data === 'string' && data.trim() !== '' ? data : null
+}
+
+/** 班級統計可以接受的量表；與資料庫函式的白名單一致 */
+export type TallyScale = 'lifestyle' | 'h85210' | 'stress' | 'depression' | 'mood'
+
+/**
+ * 把這一份作答累加進班級統計（匿名，不綁個人）。
+ *
+ * 失敗不要讓學生的送出跟著失敗——統計是課堂討論用的，
+ * 掉一筆不影響任何人的權益，但擋住送出會。
+ */
+export async function tallySubmit(
+  semester: string, scale: TallyScale, answers: number[],
+): Promise<void> {
+  try {
+    await supabase.rpc('hc_health_tally_submit', {
+      p_semester: semester, p_scale: scale, p_answers: answers,
+    })
+  } catch { /* 統計失敗不影響作答 */ }
 }
 
 /* ------------------------------------------------------- 教師端紅旗查詢（唯讀） */

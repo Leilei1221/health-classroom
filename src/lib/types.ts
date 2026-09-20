@@ -238,6 +238,16 @@ export interface HealthSelfcheck {
   plate: PlateResult | null
   needs_followup: boolean
 
+  /** 0-3，送出時算好寫入。判定規則見 src/health/riskLevel.ts */
+  risk_level: number
+  risk_flagged_at: string | null
+  risk_reviewed: boolean
+  risk_reviewed_at: string | null
+  risk_outcome: string | null
+  risk_note: string | null
+
+  /** 學生最後一次送出作答的時間；教師標記已聯繫不會動它 */
+  answered_at: string | null
   created_at: string
   updated_at: string
 }
