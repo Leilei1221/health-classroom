@@ -15,7 +15,7 @@ Migration：`supabase/migrations/20260829000000_health_classroom_init.sql`
 | 5 | `hc_lessons` | 每一堂課（班級＋日期＋節次） |
 | 6 | `hc_attendance_statuses` | 點名狀態字典（5 種，扣分值可調） |
 | 7 | `hc_attendance` | 點名紀錄，每堂課每生一筆 |
-| 8 | `hc_performance_items` | 表現項目字典，含 8 筆系統預設 |
+| 8 | `hc_performance_items` | 表現項目字典，含 9 筆系統預設（`teacher_id is null`）|
 | 9 | `hc_performance_records` | 上課表現，累計制、同堂課同生可多筆 |
 | 10 | `hc_groups` | 分組 |
 | 11 | `hc_group_members` | 組員 |
