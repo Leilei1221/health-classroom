@@ -16,6 +16,21 @@ export async function myStudentProfile(): Promise<StudentProfile[]> {
   return unwrap(await supabase.rpc('hc_my_student_profile'))
 }
 
+/**
+ * 我的班有沒有開健康模組（白名單）。
+ *
+ * 學生讀不到 hc_classes，所以這件事只能問資料庫。回來的是一個布林值，
+ * 不是班級資料——這支函式的用途只有「要不要顯示健康模組」。
+ *
+ * 前端擋是為了不讓學生看到一個填不了的表單；真正擋住寫入的是
+ * hc_is_known_student_email()，兩張健康表的 WITH CHECK 都走它。
+ */
+export async function healthEnabledForMe(): Promise<boolean> {
+  const { data, error } = await supabase.rpc('hc_health_enabled_for_me')
+  if (error) throw error
+  return data === true
+}
+
 /** 學年度學期組成資料表用的 semester 字串 */
 export const semesterKey = (p: StudentProfile) => `${p.academic_year}-${p.semester}`
 

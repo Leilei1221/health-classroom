@@ -61,7 +61,9 @@ export default function Detail() {
     setClassId((prev) => (ok(wantClass) ? wantClass : ok(prev) ? prev : active[0].id))
   }, [classes, wantClass])
 
-  const active = useMemo(() => (classes ?? []).filter((c) => c.is_active), [classes])
+  // 只列白名單內的班：健康模組沒開的班沒有資料可看，列出來只會誤導
+  const active = useMemo(
+    () => (classes ?? []).filter((c) => c.is_active && c.health_enabled), [classes])
   const cls = active.find((c) => c.id === classId) ?? null
 
   useEffect(() => {
@@ -116,7 +118,11 @@ export default function Detail() {
               要填自己的資料請到 <Link to="/health" className="font-medium underline">健康登記頁</Link>。
             </>
           ) : (
-            <>這個帳號沒有帶任何班級，看不到學生資料。</>
+            <>
+              這個帳號沒有任何開啟健康管理的班級。
+              班級有開但這裡看不到的話，到班級管理編輯那個班，
+              把「使用健康管理模組」勾起來。
+            </>
           )}
         </Box>
       </Shell>

@@ -1,5 +1,7 @@
+import { useEffect, useState } from 'react'
 import { useAuth } from '../auth'
 import { Spinner } from '../components/ui'
+import { healthEnabledForMe } from './api'
 import HealthRegister from './HealthRegister'
 import SelfCheck from './selfcheck/SelfCheck'
 import Plate from './plate/Plate'
@@ -34,6 +36,24 @@ export default function HealthGate({ page = 'register', preview = false }: {
 }) {
   const { session, role, loading, signInWithGoogle, signOut, teacher, student } = useAuth()
 
+  /*
+    白名單：只有指定的班級用得到健康模組（基礎急救概論是多元選修、
+    上的是急救；測試班也不該讓 QR code 對它生效）。
+    學生讀不到 hc_classes，所以要問資料庫。undefined＝還在問。
+
+    只有學生身分需要問。教師端三頁走的是另一條路，用帶哪些班判斷。
+  */
+  const [enabled, setEnabled] = useState<boolean | undefined>(undefined)
+  useEffect(() => {
+    if (!session || !student) { setEnabled(undefined); return }
+    let cancelled = false
+    healthEnabledForMe()
+      // 問不到時不要把學生擋在外面：讓他進去，真正擋寫入的是資料庫那層
+      .then((v) => { if (!cancelled) setEnabled(v) })
+      .catch(() => { if (!cancelled) setEnabled(true) })
+    return () => { cancelled = true }
+  }, [session, student])
+
   if (loading || (session && role === 'resolving')) return <Spinner />
 
   if (!session) return <SignIn onSignIn={signInWithGoogle} />
@@ -50,7 +70,19 @@ export default function HealthGate({ page = 'register', preview = false }: {
 
   // 名單上有這個人就顯示真正的登記表單，不看是學生還是老師 ——
   // 老師把自己掛進測試班級實測時，兩種身分會同時成立
-  if (student) return PAGES[page]()
+  if (student) {
+    if (enabled === undefined) return <Spinner />
+    if (!enabled) {
+      return (
+        <Notice
+          title="這個班沒有使用健康管理"
+          body={`${student.class_name} 這門課沒有開健康管理單元，所以沒有東西要填。如果你覺得這是弄錯了，請跟老師說一聲。`}
+          onSignOut={signOut}
+        />
+      )
+    }
+    return PAGES[page]()
+  }
 
   // 教師預覽：看得到學生的畫面，但填的東西不會寫進資料庫
   if (preview && role === 'teacher') return PAGES[page](PREVIEW_STUDENT)

@@ -82,16 +82,15 @@ export function marksOf(m: HealthMeasurement | null, age: BmiAge | null): Marks 
     }
   }
 
-  // 體脂率：30 歲以下男性正常 14–20%，≥ 25% 為肥胖
+  // 體脂率：只標偏高那一側。低於 14% 不標，理由見 rules.ts 的註解
   if (num(m.body_fat_pct)) {
-    const { low, high, obese } = BODY_FAT_MALE_U30
+    const { high, obese } = BODY_FAT_MALE_U30
     if (m.body_fat_pct >= obese) out.body_fat_pct = { tone: 'amber', note: '偏高' }
     else if (m.body_fat_pct > high) out.body_fat_pct = { tone: 'amber', note: '略高' }
-    else if (m.body_fat_pct < low) out.body_fat_pct = { tone: 'amber', note: '偏低' }
   }
 
-  // 腰圍：男性 > 90 公分為肥胖。課本寫的是「大於」，所以剛好 90.0 不標
-  if (num(m.waist_cm) && m.waist_cm > WAIST_MALE_OBESE) {
+  // 腰圍：男性 ≥ 90 公分（國健署代謝症候群判定用的門檻），剛好 90.0 也要標
+  if (num(m.waist_cm) && m.waist_cm >= WAIST_MALE_OBESE) {
     out.waist_cm = { tone: 'amber', note: '偏高' }
   }
 

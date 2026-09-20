@@ -34,7 +34,10 @@ export default function Dashboard() {
   // 編輯班級
   const [editingId, setEditingId] = useState<string | null>(null)
   const [editForm, setEditForm] = useState(
-    { name: '', group_count: 7, group_capacity: 5, grade: 3, grade_confirmed: true },
+    {
+      name: '', group_count: 7, group_capacity: 5,
+      grade: 3, grade_confirmed: true, health_enabled: false,
+    },
   )
 
   const [form, setForm] = useState({
@@ -88,6 +91,7 @@ export default function Dashboard() {
     setEditForm({
       name: c.name, group_count: c.group_count, group_capacity: c.group_capacity,
       grade: c.grade ?? 3, grade_confirmed: c.grade_confirmed,
+      health_enabled: c.health_enabled,
     })
   }
 
@@ -103,6 +107,7 @@ export default function Dashboard() {
         group_capacity: editForm.group_capacity,
         grade: editForm.grade,
         grade_confirmed: editForm.grade_confirmed,
+        health_enabled: editForm.health_enabled,
       })
       setEditingId(null)
       reload()
@@ -291,6 +296,21 @@ export default function Dashboard() {
                           年級已確認
                           <span className="ml-1.5 text-xs text-slate-500">
                             取消勾選代表這個班混年級或還沒查證，健康模組就不會套 BMI 的年齡別門檻
+                          </span>
+                        </span>
+                      </label>
+                      {/*
+                        健康模組白名單。預設關閉，要用的班自己開——
+                        新增班級時忘記設定，結果是「看不到」而不是「全校都能填」。
+                      */}
+                      <label className="flex items-start gap-2 text-sm text-slate-700">
+                        <input type="checkbox" className="mt-0.5" checked={editForm.health_enabled}
+                          onChange={(e) => setEditForm({ ...editForm, health_enabled: e.target.checked })} />
+                        <span>
+                          使用健康管理模組
+                          <span className="ml-1.5 text-xs text-slate-500">
+                            沒勾的班級，學生掃 QR code 進來也看不到登記表單，
+                            教師端的進度與明細也不會列出這個班
                           </span>
                         </span>
                       </label>

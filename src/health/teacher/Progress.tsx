@@ -33,7 +33,7 @@ export default function Progress() {
       .then(async (cs) => {
         if (cancelled) return
         setClasses(cs)
-        const active = cs.filter((c) => c.is_active)
+        const active = cs.filter((c) => c.is_active && c.health_enabled)
         if (active.length === 0) { setRows([]); return }
         setClassId((prev) => prev ?? active[0].id)
         const semesters = [...new Set(active.map((c) => `${c.academic_year}-${c.semester}`))]
@@ -44,7 +44,9 @@ export default function Progress() {
     return () => { cancelled = true }
   }, [])
 
-  const active = useMemo(() => (classes ?? []).filter((c) => c.is_active), [classes])
+  // 只列白名單內的班，與明細頁同一個條件
+  const active = useMemo(
+    () => (classes ?? []).filter((c) => c.is_active && c.health_enabled), [classes])
   const mine = useMemo(
     () => (rows ?? []).filter((r) => r.class_id === classId),
     [rows, classId],
@@ -67,7 +69,11 @@ export default function Progress() {
               要填自己的資料請到 <Link to="/health" className="font-medium underline">健康登記頁</Link>。
             </>
           ) : (
-            <>這個帳號沒有帶任何班級，看不到學生資料。</>
+            <>
+              這個帳號沒有任何開啟健康管理的班級。
+              班級有開但這裡看不到的話，到班級管理編輯那個班，
+              把「使用健康管理模組」勾起來。
+            </>
           )}
         </Box>
       </Shell>
