@@ -21,6 +21,15 @@ export default function HealthHeader({ student, isPreview, tab }: {
             {student.class_name} 班・座號 {student.seat_no ?? '—'}・
             {student.academic_year} 學年度第 {student.semester} 學期
           </div>
+          {/*
+            上方的 PreviewBanner 捲下去就看不到了，投影示範時很容易忘記
+            自己在預覽模式。這一行跟著頁首走，整頁都在。
+          */}
+          {isPreview && (
+            <div className="mt-1.5 inline-block rounded bg-[#FDF3E3] px-2 py-0.5 text-[12px] font-bold text-[#8A5310]">
+              預覽模式・不會儲存
+            </div>
+          )}
         </div>
         <button
           onClick={() => (isPreview ? navigate('/') : void signOut())}

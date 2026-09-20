@@ -45,14 +45,15 @@ export default function HealthGate({ page = 'register', preview = false }: {
   */
   const [enabled, setEnabled] = useState<boolean | undefined>(undefined)
   useEffect(() => {
-    if (!session || !student) { setEnabled(undefined); return }
+    // 預覽是純畫面示範，不讀資料庫，連白名單都不問
+    if (!session || !student || preview) { setEnabled(undefined); return }
     let cancelled = false
     healthEnabledForMe()
       // 問不到時不要把學生擋在外面：讓他進去，真正擋寫入的是資料庫那層
       .then((v) => { if (!cancelled) setEnabled(v) })
       .catch(() => { if (!cancelled) setEnabled(true) })
     return () => { cancelled = true }
-  }, [session, student])
+  }, [session, student, preview])
 
   if (loading || (session && role === 'resolving')) return <Spinner />
 
@@ -67,6 +68,18 @@ export default function HealthGate({ page = 'register', preview = false }: {
   if (page === 'teacher') return <FlagList />
   if (page === 'progress') return <Progress />
   if (page === 'detail') return <Detail />
+
+  /*
+    教師預覽：上課投影示範用的純畫面，**必須排在學生分支前面**。
+
+    老師把自己掛進測試班級實測，所以 student 與 teacher 同時成立；
+    原本這段寫在 student 分支後面，測試班又不在健康模組白名單裡，
+    結果她按「預覽・登記」會被自己的白名單擋成「這個班沒有使用健康管理」。
+
+    預覽不看白名單、不看班級、不讀也不寫資料庫（三個頁面都用 isPreview
+    把讀取與送出擋掉了），所以這裡不需要任何條件，是教師就給看。
+  */
+  if (preview && role === 'teacher') return PAGES[page](PREVIEW_STUDENT)
 
   // 名單上有這個人就顯示真正的登記表單，不看是學生還是老師 ——
   // 老師把自己掛進測試班級實測時，兩種身分會同時成立
@@ -83,9 +96,6 @@ export default function HealthGate({ page = 'register', preview = false }: {
     }
     return PAGES[page]()
   }
-
-  // 教師預覽：看得到學生的畫面，但填的東西不會寫進資料庫
-  if (preview && role === 'teacher') return PAGES[page](PREVIEW_STUDENT)
 
   // 老師登入健康頁：第一版還沒有教師看板，先說清楚而不是丟一個空白畫面
   return (
