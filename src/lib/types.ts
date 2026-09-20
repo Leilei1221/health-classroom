@@ -82,6 +82,8 @@ export interface PerformanceItem {
   category: string
   sort_order: number
   is_active: boolean
+  /** 按下去要先讓老師填一行理由（「其他」就是靠這個） */
+  requires_note: boolean
 }
 
 export interface PerformanceRecord {
