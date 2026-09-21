@@ -222,9 +222,24 @@ function Home({ row, onOpen, isPreview }: {
         <div className="border-b border-[#C7E2DC] bg-[#F7FCFB] px-4 pb-3 pt-3.5">
           <h3 className="text-base font-bold">做完檢測之後</h3>
           <p className="mt-0.5 text-[13px] text-[#4A6461]">
-            這是課堂活動，不是檢測——不算分、不評價，也不會出現在成績裡
+            可以先看這學期的起點，也可以進行我的餐盤課堂活動
           </p>
         </div>
+        <Link
+          to={isPreview ? '/health/analysis/preview' : '/health/analysis'}
+          className="flex items-center gap-3 border-b border-[#F0F6F5] px-4 py-3.5"
+        >
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#12776E] text-[13px] font-bold text-white">
+            ✓
+          </span>
+          <span className="flex-1">
+            <b className="block text-[15px]">健康分析・這學期的起點</b>
+            <span className="block text-[12.5px] text-[#4A6461]">
+              整合身體數值和自我檢測，先挑 1-2 件最值得做的事
+            </span>
+          </span>
+          <span className="shrink-0 text-[12.5px] text-[#12776E]">查看 →</span>
+        </Link>
         <Link
           to={isPreview ? '/health/plate/preview' : '/health/plate'}
           className="flex items-center gap-3 px-4 py-3.5"

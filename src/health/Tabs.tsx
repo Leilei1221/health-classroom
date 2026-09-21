@@ -1,10 +1,11 @@
 import { Link } from 'react-router-dom'
 
-export type HealthTab = 'register' | 'selfcheck' | 'plate'
+export type HealthTab = 'register' | 'selfcheck' | 'analysis' | 'plate'
 
 const TABS: { key: HealthTab; label: string; path: string }[] = [
   { key: 'register', label: '登記', path: '/health' },
   { key: 'selfcheck', label: '自我檢測', path: '/health/selfcheck' },
+  { key: 'analysis', label: '分析', path: '/health/analysis' },
   { key: 'plate', label: '我的餐盤', path: '/health/plate' },
 ]
 

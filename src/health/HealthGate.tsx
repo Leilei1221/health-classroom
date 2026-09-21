@@ -5,24 +5,27 @@ import { healthEnabledForMe } from './api'
 import HealthRegister from './HealthRegister'
 import SelfCheck from './selfcheck/SelfCheck'
 import Plate from './plate/Plate'
+import Analysis from './analysis/Analysis'
 import FlagList from './teacher/FlagList'
 import Progress from './teacher/Progress'
 import Detail from './teacher/Detail'
 import { PREVIEW_STUDENT } from './preview'
 import type { StudentProfile } from '../lib/types'
 
-export type HealthPage = 'register' | 'selfcheck' | 'plate' | 'teacher' | 'progress' | 'detail'
+export type HealthPage = 'register' | 'selfcheck' | 'analysis' | 'plate' | 'teacher' | 'progress' | 'detail'
 
 /** 學生填寫的三個頁面；教師查詢頁走另一條路，不在這裡 */
 const PAGES: Record<Exclude<HealthPage, 'teacher' | 'progress' | 'detail'>, (p?: StudentProfile) => JSX.Element> = {
   register: (p) => <HealthRegister preview={p} />,
   selfcheck: (p) => <SelfCheck preview={p} />,
+  analysis: (p) => <Analysis preview={p} />,
   plate: (p) => <Plate preview={p} />,
 }
 
 const PAGE_NAMES: Record<Exclude<HealthPage, 'teacher' | 'progress' | 'detail'>, string> = {
   register: '身體數值登記',
   selfcheck: '課本自我檢測',
+  analysis: '健康分析',
   plate: '我的餐盤',
 }
 

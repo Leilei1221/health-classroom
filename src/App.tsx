@@ -26,11 +26,13 @@ export default function App() {
       <Route path="/health/detail" element={<HealthGate page="detail" />} />
 
       <Route path="/health/selfcheck" element={<HealthGate page="selfcheck" />} />
+      <Route path="/health/analysis" element={<HealthGate page="analysis" />} />
       <Route path="/health/plate" element={<HealthGate page="plate" />} />
 
       {/* 教師預覽學生畫面；非教師身分時與上面三條相同 */}
       <Route path="/health/preview" element={<HealthGate preview />} />
       <Route path="/health/selfcheck/preview" element={<HealthGate page="selfcheck" preview />} />
+      <Route path="/health/analysis/preview" element={<HealthGate page="analysis" preview />} />
       <Route path="/health/plate/preview" element={<HealthGate page="plate" preview />} />
 
       {loading ? (
