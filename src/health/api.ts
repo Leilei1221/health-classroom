@@ -238,6 +238,15 @@ export interface RiskStudent {
   level: RiskLevel
   /** 觸發了哪幾條。這是現算的說明文字，等級以 level 為準 */
   reasons: RiskReason[]
+  /**
+   * 用「現在這一列的分數」重算的等級。
+   *
+   * 正常情況下與 level 相同。會不一樣是因為 2026-09-21 之後 risk_level
+   * 只能往上不能往下（見 migration 20260921000000）：學生重做之後分數變低時，
+   * 紀錄保留這學期判定過的最高等級，這個欄位則是「最近一次作答算起來是幾級」。
+   * 教師端把兩個都顯示出來，才不會出現「標著需關注、底下的分數卻不到」。
+   */
+  computedLevel: RiskLevel
   /** 情緒自我檢視表第 20 題答「是」的次數；>= 2 畫面標「重複觸發」 */
   l3Count: number
   /** 觸發時間（規格書要顯示的那一個），沒有就退回最後作答時間 */
@@ -300,6 +309,12 @@ export async function listRisk(semesters: string[]): Promise<RiskStudent[]> {
 
   return rows.map((r): RiskStudent => {
     const s = byEmail.get(r.student_email)
+    const input = {
+      mood: r.mood_scale,
+      stress: r.stress_level,
+      depression: r.depression,
+      depressionCritical: r.depression_critical,
+    }
     return {
       student_email: r.student_email,
       semester: r.semester,
@@ -307,12 +322,8 @@ export async function listRisk(semesters: string[]): Promise<RiskStudent[]> {
       class_name: s ? classNameOf.get(s.class_id) ?? null : null,
       seat_no: s?.seat_no ?? null,
       level: Math.min(3, Math.max(1, r.risk_level)) as RiskLevel,
-      reasons: riskReasons({
-        mood: r.mood_scale,
-        stress: r.stress_level,
-        depression: r.depression,
-        depressionCritical: r.depression_critical,
-      }),
+      reasons: riskReasons(input),
+      computedLevel: riskLevel(input),
       l3Count: r.risk_l3_count ?? 0,
       flaggedAt: r.risk_flagged_at ?? r.answered_at ?? r.updated_at,
       answeredAt: r.answered_at ?? r.updated_at,

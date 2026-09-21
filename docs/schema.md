@@ -110,7 +110,7 @@ email 本來就會重複。加了唯一約束，下學期匯入名單會整批�
 | Table | 用途 |
 |---|---|
 | `hc_health_measurement` | 身體量測，`unique (student_email, semester, round)`，round 為 initial/mid/final |
-| `hc_health_selfcheck` | 課本自我檢測，`unique (student_email, semester)`，含 `needs_followup` 與 `risk_level` 0–3（送出時算好寫入，不是查詢時現算）、`risk_reviewed` 等處理紀錄欄位（只能經 `hc_health_risk_review()` 改）、`risk_l3_count`（第 20 題答是的次數，≥2 教師端標「重複觸發」）；`answered_at` 是學生作答時間，`updated_at` 含教師標記 |
+| `hc_health_selfcheck` | 課本自我檢測，`unique (student_email, semester)`，含 `needs_followup` 與 `risk_level` 0–3（送出時算好寫入，不是查詢時現算）、`risk_reviewed` 等處理紀錄欄位（只能經 `hc_health_risk_review()` 改，由 `hc_guard_risk` trigger 強制）、`risk_l3_count`（第 20 題答是的次數，≥2 教師端標「重複觸發」）；`answered_at` 是學生作答時間，`updated_at` 含教師標記 |
 | `hc_health_scale_tally` | 班級層級的逐題勾選人數。匿名、不綁個人；每人每份量表只計第一次送出。不含 BSRS-5 ★題（走紙本）與情緒檢視表第 20 題 |
 | `hc_health_tally_done` | 「這個人這份量表已經計過了」。只記有沒有，不記內容；沒有任何 RLS policy，只有 SECURITY DEFINER 函式碰得到 |
 

@@ -7,7 +7,7 @@ import {
   RISK_OUTCOMES, RISK_OUTCOME_LABEL,
   type HealthClass, type RiskOutcome, type RiskStudent,
 } from '../api'
-import type { RiskLevel } from '../riskLevel'
+import { RISK_LABEL, type RiskLevel } from '../riskLevel'
 
 /**
  * 教師端紅旗名單。規格：docs/課本檢測_等第對應與紅旗處理規格.md 第五節「教師端」。
@@ -236,6 +236,17 @@ function Card({
       </div>
 
       <Reasons rows={r.reasons} />
+
+      {/*
+        risk_level 只能往上不能往下（資料庫的 hc_guard_risk trigger），
+        所以重做之後分數變低時，等級會停在這學期判定過的最高級。
+        不寫一行說明的話，這裡會變成「標著需關注、底下的分數卻不到」。
+      */}
+      {r.computedLevel < r.level && (
+        <p className="mt-1 text-xs text-slate-500">
+          最近一次作答重算是 {RISK_LABEL[r.computedLevel]}（等級保留這學期判定過的最高級）
+        </p>
+      )}
 
       {r.reviewed && (
         <p className="mt-1.5 text-xs text-slate-600">
