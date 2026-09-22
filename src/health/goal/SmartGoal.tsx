@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth'
 import { friendlyError } from '../../lib/errors'
 import type { HealthGoal, HealthMeasurement, HealthSelfcheck, StudentProfile } from '../../lib/types'
@@ -824,9 +825,17 @@ function SavedText({ savedAt }: { savedAt: string }) {
 function SaveNote({ isPreview }: { isPreview: boolean }) {
   return (
     <section className="mx-3 my-3.5 rounded-2xl border border-dashed border-[#C7E2DC] bg-[#F7FCFB] px-4 py-3 text-[13px] leading-relaxed text-[#4A6461]">
-      {isPreview
-        ? '預覽模式只暫存在這台裝置，不會寫入資料庫。'
-        : '按下儲存後，SMART 目標和 WSQ 反思會交到老師的資料庫，之後可放進學期 PDF。'}
+      <p>
+        {isPreview
+          ? '預覽模式只暫存在這台裝置，不會寫入資料庫。'
+          : '按下儲存後，SMART 目標和 WSQ 反思會交到老師的資料庫，之後可放進學期 PDF。'}
+      </p>
+      <Link
+        to={isPreview ? '/health/checkin/preview' : '/health/checkin'}
+        className="mt-3 block rounded-xl bg-[#12776E] py-3 text-center text-[15px] font-bold text-white"
+      >
+        前往第一週打卡
+      </Link>
     </section>
   )
 }

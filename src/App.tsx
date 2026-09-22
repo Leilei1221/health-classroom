@@ -28,6 +28,7 @@ export default function App() {
       <Route path="/health/selfcheck" element={<HealthGate page="selfcheck" />} />
       <Route path="/health/analysis" element={<HealthGate page="analysis" />} />
       <Route path="/health/goal" element={<HealthGate page="goal" />} />
+      <Route path="/health/checkin" element={<HealthGate page="checkin" />} />
       <Route path="/health/plate" element={<HealthGate page="plate" />} />
 
       {/* 教師預覽學生畫面；非教師身分時與上面三條相同 */}
@@ -35,6 +36,7 @@ export default function App() {
       <Route path="/health/selfcheck/preview" element={<HealthGate page="selfcheck" preview />} />
       <Route path="/health/analysis/preview" element={<HealthGate page="analysis" preview />} />
       <Route path="/health/goal/preview" element={<HealthGate page="goal" preview />} />
+      <Route path="/health/checkin/preview" element={<HealthGate page="checkin" preview />} />
       <Route path="/health/plate/preview" element={<HealthGate page="plate" preview />} />
 
       {loading ? (

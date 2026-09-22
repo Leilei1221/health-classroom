@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-export type HealthTab = 'register' | 'selfcheck' | 'analysis' | 'goal' | 'plate'
+export type HealthTab = 'register' | 'selfcheck' | 'analysis' | 'goal' | 'checkin' | 'plate'
 
 const TABS: { key: HealthTab; label: string; path: string }[] = [
   { key: 'register', label: '登記', path: '/health' },
@@ -8,6 +8,7 @@ const TABS: { key: HealthTab; label: string; path: string }[] = [
   { key: 'plate', label: '我的餐盤', path: '/health/plate' },
   { key: 'analysis', label: '分析', path: '/health/analysis' },
   { key: 'goal', label: '目標', path: '/health/goal' },
+  { key: 'checkin', label: '打卡', path: '/health/checkin' },
 ]
 
 /**
@@ -19,7 +20,7 @@ export default function HealthTabs({ current, preview = false }: {
   preview?: boolean
 }) {
   return (
-    <nav className="flex gap-1.5 pt-3">
+    <nav className="flex gap-1.5 overflow-x-auto pt-3">
       {TABS.map((t) => {
         const on = t.key === current
         return (
@@ -27,7 +28,7 @@ export default function HealthTabs({ current, preview = false }: {
             key={t.key}
             to={preview ? `${t.path === '/health' ? '/health' : t.path}/preview` : t.path}
             aria-current={on ? 'page' : undefined}
-            className={`flex-1 rounded-lg py-2 text-center text-[12.5px] transition ${
+            className={`min-w-[72px] flex-1 rounded-lg py-2 text-center text-[12.5px] transition ${
               on
                 ? 'bg-white/95 font-bold text-[#0B4A44]'
                 : 'bg-white/10 text-white/75 hover:bg-white/20'

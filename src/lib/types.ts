@@ -290,3 +290,21 @@ export interface HealthGoal {
   created_at: string
   updated_at: string
 }
+
+export type HealthCheckinStatus = 'done' | 'partial' | 'rest'
+
+export interface HealthCheckin {
+  id: string
+  goal_id: string
+  student_email: string
+  semester: string
+  week_no: number
+  day_no: number
+  check_date: string
+  status: HealthCheckinStatus
+  minutes: number | null
+  note: string | null
+  encouragement: string | null
+  created_at: string
+  updated_at: string
+}
