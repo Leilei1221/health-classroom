@@ -361,14 +361,14 @@ function NextStep() {
     <section className="mx-3 my-3.5 rounded-2xl border border-[#C7E2DC] bg-white px-4 py-4">
       <h3 className="text-base font-bold">下一步</h3>
       <p className="mt-2 text-[14px] leading-relaxed text-[#4A6461]">
-        下個階段會把其中一件事寫成四週 SMART 目標。現在先想一想：哪一件是你覺得最做得到的？
+        把其中一件事寫成四週 SMART 目標。先想一想：哪一件是你覺得最做得到的？
       </p>
-      <button
-        disabled
-        className="mt-3 w-full rounded-xl bg-[#B8CFCC] py-3 text-[15px] font-bold text-white"
+      <Link
+        to="/health/goal"
+        className="mt-3 block w-full rounded-xl bg-[#12776E] py-3 text-center text-[15px] font-bold text-white"
       >
-        目標設定・下一階段開放
-      </button>
+        前往 SMART 目標設定
+      </Link>
     </section>
   )
 }

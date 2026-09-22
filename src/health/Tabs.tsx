@@ -1,12 +1,13 @@
 import { Link } from 'react-router-dom'
 
-export type HealthTab = 'register' | 'selfcheck' | 'analysis' | 'plate'
+export type HealthTab = 'register' | 'selfcheck' | 'analysis' | 'goal' | 'plate'
 
 const TABS: { key: HealthTab; label: string; path: string }[] = [
   { key: 'register', label: '登記', path: '/health' },
   { key: 'selfcheck', label: '自我檢測', path: '/health/selfcheck' },
-  { key: 'analysis', label: '分析', path: '/health/analysis' },
   { key: 'plate', label: '我的餐盤', path: '/health/plate' },
+  { key: 'analysis', label: '分析', path: '/health/analysis' },
+  { key: 'goal', label: '目標', path: '/health/goal' },
 ]
 
 /**
@@ -26,7 +27,7 @@ export default function HealthTabs({ current, preview = false }: {
             key={t.key}
             to={preview ? `${t.path === '/health' ? '/health' : t.path}/preview` : t.path}
             aria-current={on ? 'page' : undefined}
-            className={`flex-1 rounded-lg py-2 text-center text-[13.5px] transition ${
+            className={`flex-1 rounded-lg py-2 text-center text-[12.5px] transition ${
               on
                 ? 'bg-white/95 font-bold text-[#0B4A44]'
                 : 'bg-white/10 text-white/75 hover:bg-white/20'
