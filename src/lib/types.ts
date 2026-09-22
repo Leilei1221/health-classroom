@@ -302,9 +302,22 @@ export interface HealthCheckin {
   day_no: number
   check_date: string
   status: HealthCheckinStatus
+  action_done: string | null
   minutes: number | null
   note: string | null
+  evidence_note: string | null
   encouragement: string | null
+  created_at: string
+  updated_at: string
+}
+
+export interface HealthCheckinWeek {
+  id: string
+  goal_id: string
+  student_email: string
+  semester: string
+  week_no: number
+  week_start_date: string | null
   created_at: string
   updated_at: string
 }

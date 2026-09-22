@@ -2,7 +2,7 @@ import { supabase } from '../lib/supabase'
 import { listClasses } from '../lib/api'
 import { riskLevel } from './riskLevel'
 import type {
-  ClassRow, HealthCheckin, HealthGoal, HealthMeasurement, HealthSelfcheck, MeasurementRound, StudentProfile,
+  ClassRow, HealthCheckin, HealthCheckinWeek, HealthGoal, HealthMeasurement, HealthSelfcheck, MeasurementRound, StudentProfile,
 } from '../lib/types'
 
 function unwrap<T>({ data, error }: { data: T | null; error: unknown }): T {
@@ -258,6 +258,39 @@ export async function listHealthCheckins(
     .order('day_no', { ascending: true })
   if (error) throw error
   return (data ?? []) as HealthCheckin[]
+}
+
+export async function listHealthCheckinWeeks(
+  email: string, semester: string,
+): Promise<HealthCheckinWeek[]> {
+  const { data, error } = await supabase
+    .from('hc_health_checkin_week')
+    .select('*')
+    .eq('student_email', email)
+    .eq('semester', semester)
+    .order('week_no', { ascending: true })
+  if (error) throw error
+  return (data ?? []) as HealthCheckinWeek[]
+}
+
+export type HealthCheckinWeekPatch = Partial<Omit<
+  HealthCheckinWeek,
+  'id' | 'created_at' | 'updated_at'
+>> & {
+  goal_id: string
+  student_email: string
+  semester: string
+  week_no: number
+}
+
+export async function saveHealthCheckinWeek(row: HealthCheckinWeekPatch): Promise<HealthCheckinWeek> {
+  return unwrap(
+    await supabase
+      .from('hc_health_checkin_week')
+      .upsert(row, { onConflict: 'goal_id,week_no' })
+      .select()
+      .single(),
+  )
 }
 
 export type HealthCheckinPatch = Partial<Omit<
