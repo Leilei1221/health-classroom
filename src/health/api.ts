@@ -2,7 +2,7 @@ import { supabase } from '../lib/supabase'
 import { listClasses } from '../lib/api'
 import { riskLevel } from './riskLevel'
 import type {
-  ClassRow, HealthMeasurement, HealthSelfcheck, MeasurementRound, StudentProfile,
+  ClassRow, HealthGoal, HealthMeasurement, HealthSelfcheck, MeasurementRound, StudentProfile,
 } from '../lib/types'
 
 function unwrap<T>({ data, error }: { data: T | null; error: unknown }): T {
@@ -207,6 +207,41 @@ export async function tallySubmit(
       p_semester: semester, p_scale: scale, p_answers: answers,
     })
   } catch { /* 統計失敗不影響作答 */ }
+}
+
+/* ------------------------------------------------------------ SMART 目標 */
+
+export async function getHealthGoal(
+  email: string, semester: string, goalNo = 1,
+): Promise<HealthGoal | null> {
+  const { data, error } = await supabase
+    .from('hc_health_goal')
+    .select('*')
+    .eq('student_email', email)
+    .eq('semester', semester)
+    .eq('goal_no', goalNo)
+    .maybeSingle()
+  if (error) throw error
+  return data as HealthGoal | null
+}
+
+export type HealthGoalPatch = Partial<Omit<
+  HealthGoal,
+  'id' | 'created_at' | 'updated_at'
+>> & {
+  student_email: string
+  semester: string
+  goal_no: number
+}
+
+export async function saveHealthGoal(row: HealthGoalPatch): Promise<HealthGoal> {
+  return unwrap(
+    await supabase
+      .from('hc_health_goal')
+      .upsert(row, { onConflict: 'student_email,semester,goal_no' })
+      .select()
+      .single(),
+  )
 }
 
 /* ------------------------------------------------------- 教師端紅旗查詢（唯讀） */

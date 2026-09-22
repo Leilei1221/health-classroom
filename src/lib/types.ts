@@ -251,3 +251,42 @@ export interface HealthSelfcheck {
   created_at: string
   updated_at: string
 }
+
+export interface HealthGoal {
+  id: string
+  student_email: string
+  semester: string
+  goal_no: number
+
+  selected_options: { id: string; label: string; domain: string }[]
+  direction: string
+  s_action: string
+  m_method: string
+  frequency: string
+  target_per_week: number
+  confidence: number
+
+  why: string | null
+  people: string | null
+  place: string | null
+  resources: string | null
+  reward: string | null
+  week1: string | null
+  week2: string | null
+  week3: string | null
+  week4: string | null
+
+  ai_prompt: string | null
+  ai_ask: string | null
+  ai_useful: string | null
+  ai_changed: string | null
+  wsq_watch: string | null
+  wsq_summary: string | null
+  wsq_question: string | null
+
+  confirmed: boolean
+  status: 'draft' | 'active' | 'done' | 'dropped'
+  submitted_at: string | null
+  created_at: string
+  updated_at: string
+}

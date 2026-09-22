@@ -1,10 +1,12 @@
 import { useEffect, useMemo, useState } from 'react'
 import { useAuth } from '../../auth'
 import { friendlyError } from '../../lib/errors'
-import type { HealthMeasurement, HealthSelfcheck, StudentProfile } from '../../lib/types'
+import type { HealthGoal, HealthMeasurement, HealthSelfcheck, StudentProfile } from '../../lib/types'
 import HealthHeader, { PreviewBanner } from '../Header'
 import Handover from '../Handover'
-import { ROUND, getMeasurement, getSelfcheck, myTeacherName, semesterKey } from '../api'
+import {
+  ROUND, getHealthGoal, getMeasurement, getSelfcheck, myTeacherName, saveHealthGoal, semesterKey,
+} from '../api'
 import { riskLevel, type RiskLevel } from '../riskLevel'
 import RiskCare from '../selfcheck/RiskCare'
 import { analyzeStudent, type FocusItem } from '../analysis/engine'
@@ -212,8 +214,10 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [copied, setCopied] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [savedAt, setSavedAt] = useState<string | null>(null)
 
-  const storageKey = student ? `hc-smart-goal:${student.email}:${semester}:${isPreview ? 'preview' : 'draft'}` : ''
+  const storageKey = student && isPreview ? `hc-smart-goal:${student.email}:${semester}:preview` : ''
 
   useEffect(() => {
     if (!student) return
@@ -228,12 +232,17 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
     Promise.all([
       getMeasurement(student.email, semester, ROUND),
       getSelfcheck(student.email, semester),
+      getHealthGoal(student.email, semester, 1).catch(() => null),
       myTeacherName().catch(() => null),
     ])
-      .then(([m, sc, name]) => {
+      .then(([m, sc, goal, name]) => {
         if (cancelled) return
         setMeasurement(m)
         setSelfcheck(sc)
+        if (goal) {
+          setDraft(goalToDraft(goal))
+          setSavedAt(goal.submitted_at ?? goal.updated_at)
+        }
         setTeacherName(name)
       })
       .catch((e) => { if (!cancelled) setError(friendlyError(e)) })
@@ -317,6 +326,56 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
     window.setTimeout(() => setCopied(false), 1500)
   }
 
+  const saveDraft = async (confirmed: boolean) => {
+    if (isPreview) {
+      update('goalConfirmed', confirmed || draft.goalConfirmed)
+      setSavedAt(new Date().toISOString())
+      return
+    }
+    if (!student) return
+    setSaving(true); setError('')
+    const nextDraft = { ...draft, goalConfirmed: confirmed || draft.goalConfirmed }
+    try {
+      const saved = await saveHealthGoal({
+        student_email: student.email,
+        semester,
+        goal_no: 1,
+        selected_options: selectedOptionsForDraft(nextDraft, options),
+        direction: nextDraft.direction.trim(),
+        s_action: nextDraft.action.trim(),
+        m_method: nextDraft.measure.trim(),
+        frequency: nextDraft.frequency.trim(),
+        target_per_week: targetPerWeek(nextDraft.frequency),
+        confidence: nextDraft.confidence,
+        why: nullable(nextDraft.why),
+        people: nullable(nextDraft.people),
+        place: nullable(nextDraft.place),
+        resources: nullable(nextDraft.resources),
+        reward: nullable(nextDraft.reward),
+        week1: nullable(nextDraft.week1),
+        week2: nullable(nextDraft.week2),
+        week3: nullable(nextDraft.week3),
+        week4: nullable(nextDraft.week4),
+        ai_prompt: prompt,
+        ai_ask: nullable(nextDraft.aiAsk),
+        ai_useful: nullable(nextDraft.aiUseful),
+        ai_changed: nullable(nextDraft.aiChanged),
+        wsq_watch: nullable(nextDraft.wsqWatch),
+        wsq_summary: nullable(nextDraft.wsqSummary),
+        wsq_question: nullable(nextDraft.wsqQuestion),
+        confirmed: nextDraft.goalConfirmed,
+        status: nextDraft.goalConfirmed ? 'active' : 'draft',
+        submitted_at: new Date().toISOString(),
+      })
+      setDraft(goalToDraft(saved))
+      setSavedAt(saved.submitted_at ?? saved.updated_at)
+    } catch (e) {
+      setError(friendlyError(e))
+    } finally {
+      setSaving(false)
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#E9F5F2] text-[#0E2E2B]">
       <div className="mx-auto max-w-[520px] pb-12">
@@ -348,10 +407,20 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
             <ConfirmGoal
               confirmed={draft.goalConfirmed}
               disabled={warnings.some((w) => w.includes('至少'))}
-              onConfirm={() => update('goalConfirmed', true)}
+              saving={saving}
+              savedAt={savedAt}
+              onConfirm={() => void saveDraft(true)}
             />
-            {draft.goalConfirmed && <WsqReflection draft={draft} onChange={update} />}
-            <LocalSaveNote />
+            {draft.goalConfirmed && (
+              <WsqReflection
+                draft={draft}
+                onChange={update}
+                saving={saving}
+                savedAt={savedAt}
+                onSave={() => void saveDraft(true)}
+              />
+            )}
+            <SaveNote isPreview={isPreview} />
           </>
         )}
 
@@ -406,6 +475,53 @@ function validateDraft(draft: GoalDraft): string[] {
     warnings.push('SMART 至少要寫出行動、測量方式和時間頻率。')
   }
   return warnings
+}
+
+function nullable(value: string): string | null {
+  const trimmed = value.trim()
+  return trimmed ? trimmed : null
+}
+
+function targetPerWeek(frequency: string): number {
+  const match = frequency.match(/[1-7]/)
+  const value = match ? Number(match[0]) : 3
+  return Math.min(7, Math.max(3, value))
+}
+
+function selectedOptionsForDraft(
+  draft: GoalDraft,
+  options: GoalOption[],
+): { id: string; label: string; domain: string }[] {
+  return options
+    .filter((option) => draft.selectedOptionIds.includes(option.id))
+    .map((option) => ({ id: option.id, label: option.label, domain: option.domain }))
+}
+
+function goalToDraft(goal: HealthGoal): GoalDraft {
+  return {
+    direction: goal.direction ?? '',
+    selectedOptionIds: (goal.selected_options ?? []).map((option) => option.id),
+    action: goal.s_action ?? '',
+    measure: goal.m_method ?? '',
+    frequency: goal.frequency ?? '每週 3 天',
+    why: goal.why ?? '',
+    people: goal.people ?? '',
+    place: goal.place ?? '',
+    resources: goal.resources ?? '',
+    confidence: goal.confidence ?? 7,
+    reward: goal.reward ?? '',
+    week1: goal.week1 ?? '',
+    week2: goal.week2 ?? '',
+    week3: goal.week3 ?? '',
+    week4: goal.week4 ?? '',
+    goalConfirmed: goal.confirmed === true,
+    wsqWatch: goal.wsq_watch ?? '',
+    wsqSummary: goal.wsq_summary ?? '',
+    wsqQuestion: goal.wsq_question ?? '',
+    aiAsk: goal.ai_ask ?? '',
+    aiUseful: goal.ai_useful ?? '',
+    aiChanged: goal.ai_changed ?? '',
+  }
 }
 
 function buildPrompt(draft: GoalDraft): string {
@@ -623,9 +739,11 @@ function AiPromptPanel({ prompt, copied, onCopy }: {
   )
 }
 
-function ConfirmGoal({ confirmed, disabled, onConfirm }: {
+function ConfirmGoal({ confirmed, disabled, saving, savedAt, onConfirm }: {
   confirmed: boolean
   disabled: boolean
+  saving: boolean
+  savedAt: string | null
   onConfirm: () => void
 }) {
   return (
@@ -635,25 +753,29 @@ function ConfirmGoal({ confirmed, disabled, onConfirm }: {
         複製提問稿去問 AI，調整完 SMART 目標後，再回來按確認，下面才會出現 WSQ 反思。
       </p>
       <button
-        disabled={disabled}
+        disabled={disabled || saving}
         onClick={onConfirm}
         className={`mt-3 w-full rounded-xl py-3 text-[15px] font-bold ${
-          disabled
+          disabled || saving
             ? 'bg-[#B8CFCC] text-white'
             : confirmed
               ? 'bg-[#E9F5F2] text-[#12776E]'
               : 'bg-[#12776E] text-white'
         }`}
       >
-        {confirmed ? '已確認，開始寫 WSQ' : '我已完成目標草稿'}
+        {saving ? '儲存中…' : confirmed ? '已確認，開始寫 WSQ' : '我已完成目標草稿'}
       </button>
+      {savedAt && <SavedText savedAt={savedAt} />}
     </section>
   )
 }
 
-function WsqReflection({ draft, onChange }: {
+function WsqReflection({ draft, onChange, saving, savedAt, onSave }: {
   draft: GoalDraft
   onChange: <K extends keyof GoalDraft>(key: K, value: GoalDraft[K]) => void
+  saving: boolean
+  savedAt: string | null
+  onSave: () => void
 }) {
   return (
     <section className="mx-3 my-3.5 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
@@ -678,15 +800,33 @@ function WsqReflection({ draft, onChange }: {
             <TextArea value={draft.aiChanged} onChange={(v) => onChange('aiChanged', v)} placeholder="我最後保留、刪掉或修改了什麼？為什麼？" />
           </div>
         </div>
+        <button
+          disabled={saving}
+          onClick={onSave}
+          className="w-full rounded-xl bg-[#12776E] py-3 text-[15px] font-bold text-white disabled:bg-[#B8CFCC]"
+        >
+          {saving ? '儲存中…' : '儲存 SMART 作業'}
+        </button>
+        {savedAt && <SavedText savedAt={savedAt} />}
       </div>
     </section>
   )
 }
 
-function LocalSaveNote() {
+function SavedText({ savedAt }: { savedAt: string }) {
+  return (
+    <p className="mt-2 text-center text-[12.5px] text-[#4A6461]">
+      已儲存：{new Date(savedAt).toLocaleString('zh-TW', { hour12: false })}
+    </p>
+  )
+}
+
+function SaveNote({ isPreview }: { isPreview: boolean }) {
   return (
     <section className="mx-3 my-3.5 rounded-2xl border border-dashed border-[#C7E2DC] bg-[#F7FCFB] px-4 py-3 text-[13px] leading-relaxed text-[#4A6461]">
-      這一版先提供課堂設計與本機草稿暫存，讓你可以預覽流程。正式收作業時，再決定是否接到資料庫與教師端查閱。
+      {isPreview
+        ? '預覽模式只暫存在這台裝置，不會寫入資料庫。'
+        : '按下儲存後，SMART 目標和 WSQ 反思會交到老師的資料庫，之後可放進學期 PDF。'}
     </section>
   )
 }
