@@ -182,12 +182,11 @@ export function BackLink({ onClick }: { onClick: () => void }) {
 /** 三份心理檢測。L2／L3 時這三份只顯示關懷文案，不顯示分數與分級 */
 const PSYCH: ScaleKey[] = ['mood', 'stress', 'depression']
 
-export function ScaleResult({ scaleKey, outcome, risk, teacherName, onBack, onRetake }: {
+export function ScaleResult({ scaleKey, outcome, risk, onBack, onRetake }: {
   scaleKey: ScaleKey
   outcome: ScaleOutcome
   /** 三份心理檢測合起來的等級，見 src/health/riskLevel.ts */
   risk: RiskLevel
-  teacherName: string | null
   onBack: () => void
   onRetake?: () => void
 }) {
@@ -304,7 +303,7 @@ export function ScaleResult({ scaleKey, outcome, risk, teacherName, onBack, onRe
       {risk !== 0 && (
         <>
           {!hideScore && <div className="mx-6 mb-5 mt-7 border-t border-[#C7E2DC]" />}
-          <RiskCare level={risk} teacherName={teacherName} />
+          <RiskCare level={risk} />
         </>
       )}
 

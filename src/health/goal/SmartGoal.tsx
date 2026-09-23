@@ -8,7 +8,7 @@ import type {
 import HealthHeader, { PreviewBanner } from '../Header'
 import Handover from '../Handover'
 import {
-  ROUND, getHealthGoal, getHealthGoalReview, getMeasurement, getSelfcheck, myTeacherName,
+  ROUND, getHealthGoal, getHealthGoalReview, getMeasurement, getSelfcheck,
   saveHealthGoal, semesterKey,
 } from '../api'
 import { riskLevel, type RiskLevel } from '../riskLevel'
@@ -67,6 +67,7 @@ const SAMPLE_SELFCHECK: HealthSelfcheck = {
   plate: null,
   needs_followup: false,
   risk_level: 0,
+  risk_l3_count: 0,
   risk_flagged_at: null,
   risk_reviewed: false,
   risk_reviewed_at: null,
@@ -213,7 +214,6 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
 
   const [measurement, setMeasurement] = useState<HealthMeasurement | null>(null)
   const [selfcheck, setSelfcheck] = useState<HealthSelfcheck | null>(null)
-  const [teacherName, setTeacherName] = useState<string | null>(null)
   const [draft, setDraft] = useState<GoalDraft>(DEFAULT_DRAFT)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -239,9 +239,8 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
       getMeasurement(student.email, semester, ROUND),
       getSelfcheck(student.email, semester),
       getHealthGoal(student.email, semester, 1).catch(() => null),
-      myTeacherName().catch(() => null),
     ])
-      .then(async ([m, sc, goal, name]) => {
+      .then(async ([m, sc, goal]) => {
         if (cancelled) return
         const review = goal ? await getHealthGoalReview(goal.id) : null
         if (cancelled) return
@@ -253,7 +252,6 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
           setEditingGoal(goal.confirmed !== true)
         }
         setTeacherReview(review)
-        setTeacherName(name)
       })
       .catch((e) => { if (!cancelled) setError(friendlyError(e)) })
       .finally(() => { if (!cancelled) setLoading(false) })
@@ -408,7 +406,7 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
         )}
 
         {risk >= 2 && (
-          <HighRiskGoal teacherName={teacherName} risk={risk as 2 | 3} />
+          <HighRiskGoal risk={risk as 2 | 3} />
         )}
         {draft.goalConfirmed && !editingGoal ? (
           <GoalSummary
@@ -935,7 +933,7 @@ function SaveNote({ isPreview }: { isPreview: boolean }) {
   )
 }
 
-function HighRiskGoal({ teacherName, risk }: { teacherName: string | null; risk: 2 | 3 }) {
+function HighRiskGoal({ risk }: { risk: 2 | 3 }) {
   return (
     <>
       <section className="mx-3 my-3.5 rounded-2xl border border-[#C7E2DC] bg-white px-4 py-4">
@@ -944,7 +942,7 @@ function HighRiskGoal({ teacherName, risk }: { teacherName: string | null; risk:
           請先看完下面的關懷訊息。關懷與課堂作業會分開進行，你仍可在下方完成 SMART 目標。
         </p>
       </section>
-      <RiskCare level={risk} teacherName={teacherName} />
+      <RiskCare level={risk} />
     </>
   )
 }

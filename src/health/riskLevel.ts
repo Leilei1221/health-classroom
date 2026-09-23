@@ -103,3 +103,30 @@ export const RISK_LABEL: Record<RiskLevel, string> = {
   2: '需關注',
   3: '立即',
 }
+
+/* ------------------------------------------------------------ 教師端處理結果 */
+
+/**
+ * 老師按下「已聯繫」時要選的處理結果，照規格書第五節教師端的三個選項。
+ * other 是資料庫的 check constraint 允許、但畫面上不給選的退路。
+ *
+ * 放在這裡而不是 api.ts：匯出 CSV 也要印這些字，而 csv.ts 刻意不相依
+ * supabase client（那份測試是用 tsx 直接跑檔案的，不進瀏覽器環境）。
+ */
+export type RiskOutcome = 'needs_support' | 'observed_ok' | 'joking' | 'other'
+
+export const RISK_OUTCOMES: { key: RiskOutcome; label: string }[] = [
+  { key: 'needs_support', label: '需要持續關心' },
+  { key: 'observed_ok', label: '課堂觀察後無虞' },
+  { key: 'joking', label: '疑似玩笑' },
+]
+
+export const RISK_OUTCOME_LABEL: Record<RiskOutcome, string> = {
+  needs_support: '需要持續關心',
+  observed_ok: '課堂觀察後無虞',
+  joking: '疑似玩笑',
+  other: '其他',
+}
+
+export const isRiskOutcome = (v: string | null): v is RiskOutcome =>
+  v === 'needs_support' || v === 'observed_ok' || v === 'joking' || v === 'other'

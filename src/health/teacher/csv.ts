@@ -2,7 +2,15 @@
  * 整班匯出 CSV。
  *
  * 給老師自己留底和做課程分析用，所以欄位開好開滿：登記的 20 欄、三個自動計算、
- * 七份量表的分數與分級、餐盤的份數。這份檔案含分數，跟這一頁一樣不能投影。
+ * 量表的分數與分級、餐盤的份數。這份檔案含分數，跟這一頁一樣不能投影。
+ *
+ * ── 心理檢測只出等級與處理狀態 ─────────────────────────────────────
+ * 心情溫度計、壓力偵測站、情緒自我檢視表的分數與第 20 題**不進這份檔案**
+ * （蕾蕾 2026-09-20 決定；規格書第六節：「匯出 CSV 不包含心理檢測的逐題作答」）。
+ * CSV 會被複製、被寄出、被留在隨身碟裡，而那三份是篩檢工具不是診斷——
+ * 留一個 L0-L3 足夠做輔導追蹤，留分數只是多一份會外流的東西。
+ * 老師的處理備註同理不出，那是寫給自己看的。
+ * 要看分數就到明細頁看，那一頁不能投影也不能下載。
  *
  * 欄位定義直接從 fields.ts 的 ALL_FIELDS 生出來，不另外抄一份：
  * 登記頁加欄位時匯出會自己跟上，不會出現「畫面上有、匯出沒有」。
@@ -10,11 +18,13 @@
 import { ALL_FIELDS } from '../fields'
 import { calcBmi, calcFatKg, calcWhr } from '../rules'
 import { SCALES } from '../selfcheck/scales'
+import { RISK_LABEL, RISK_OUTCOME_LABEL, isRiskOutcome } from '../riskLevel'
 import { outcomeFromRow } from '../selfcheck/state'
 import { CAT, CAT_KEYS } from '../plate/foods'
 import { H85210_KEYS, H85210_SHORT } from './labels'
 import { marksOf, marksSummary } from './thresholds'
 import type { DetailStudent } from '../api'
+import type { HealthSelfcheck } from '../../lib/types'
 import type { BmiAge } from '../rules'
 import type { HealthMeasurement, MeasurementRound } from '../../lib/types'
 
@@ -55,6 +65,21 @@ export function computed(m: HealthMeasurement | null) {
   return { bmi, fatKg, whr }
 }
 
+/** 心理檢測的等級。沒作答過（沒有那一列）留空，不要輸出 L0 */
+function riskCell(sc: HealthSelfcheck | null): string {
+  if (!sc) return ''
+  const lv = sc.risk_level ?? 0
+  return `L${lv} ${RISK_LABEL[(lv as 0 | 1 | 2 | 3)] ?? ''}`.trim()
+}
+
+/** 處理狀態。只有被標記過的才有東西，L0 一律留空 */
+function reviewCell(sc: HealthSelfcheck | null): string {
+  if (!sc || (sc.risk_level ?? 0) === 0) return ''
+  if (!sc.risk_reviewed) return '未處理'
+  const o = isRiskOutcome(sc.risk_outcome) ? RISK_OUTCOME_LABEL[sc.risk_outcome] : ''
+  return o ? `已聯繫・${o}` : '已聯繫'
+}
+
 const when = (iso: string | null | undefined) =>
   iso ? new Date(iso).toLocaleString('zh-TW', { hour12: false }) : ''
 
@@ -69,10 +94,7 @@ export function header(): string[] {
     ...H85210_KEYS.map((k) => `85210・${H85210_SHORT[k] ?? k}`),
     '飲食金字塔・類型', '飲食金字塔・說明',
     '睡眠檢測・分數', '睡眠檢測・分級',
-    '心情溫度計・分數', '心情溫度計・分級',
-    '壓力偵測站・項數', '壓力偵測站・分級',
-    '情緒自我檢視表・分數', '情緒自我檢視表・分級', '情緒自我檢視表・第20題',
-    '需要關懷',
+    '心理檢測・等級', '心理檢測・處理狀態',
     '餐盤・通過條數', '餐盤・總條數', '餐盤・熱量', '餐盤・熱量建議',
     ...CAT_KEYS.map((k) => `餐盤・${CAT[k].nm}(${CAT[k].unit})`),
     '餐盤・喝水(c.c.)', '餐盤・含糖飲料(c.c.)', '餐盤・吃了什麼',
@@ -92,9 +114,6 @@ export function row(
   const h = o('h85210')
   const pyr = o('pyramid')
   const sleep = o('sleep')
-  const mood = o('mood')
-  const stress = o('stress')
-  const dep = o('depression')
   const plate = sc?.plate ?? null
 
   return [
@@ -108,10 +127,7 @@ export function row(
     ...H85210_KEYS.map((k) => (h ? (sc?.h85210?.[k] === true ? '是' : '否') : '')),
     pyr?.dietType ?? '', pyr?.dietType ? SCALES.pyramid.results![pyr.dietType].nm : '',
     sleep?.score ?? '', sleep?.band?.label ?? '',
-    mood?.score ?? '', mood?.band?.label ?? '',
-    stress?.score ?? '', stress?.band?.label ?? '',
-    dep?.score ?? '', dep?.band?.label ?? '', dep ? (dep.critical ? '是' : '否') : '',
-    sc ? (sc.needs_followup ? '是' : '否') : '',
+    riskCell(sc), reviewCell(sc),
     plate?.matched ?? '', plate?.total ?? '', plate?.kcal ?? '', plate?.kcalTarget ?? '',
     ...CAT_KEYS.map((k) => plate?.[k] ?? ''),
     plate?.water ?? '', plate?.sugar ?? '',

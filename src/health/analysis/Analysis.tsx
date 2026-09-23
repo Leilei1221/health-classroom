@@ -5,7 +5,7 @@ import { friendlyError } from '../../lib/errors'
 import type { HealthMeasurement, HealthSelfcheck, StudentProfile } from '../../lib/types'
 import HealthHeader, { PreviewBanner } from '../Header'
 import Handover from '../Handover'
-import { ROUND, getMeasurement, getSelfcheck, myTeacherName, semesterKey } from '../api'
+import { ROUND, getMeasurement, getSelfcheck, semesterKey } from '../api'
 import { riskLevel, type RiskLevel } from '../riskLevel'
 import RiskCare from '../selfcheck/RiskCare'
 import { analyzeStudent, type FocusItem, type Signal } from './engine'
@@ -65,6 +65,7 @@ const SAMPLE_SELFCHECK: HealthSelfcheck = {
   plate: null,
   needs_followup: false,
   risk_level: 0,
+  risk_l3_count: 0,
   risk_flagged_at: null,
   risk_reviewed: false,
   risk_reviewed_at: null,
@@ -89,7 +90,6 @@ export default function Analysis({ preview }: { preview?: StudentProfile }) {
 
   const [measurement, setMeasurement] = useState<HealthMeasurement | null>(null)
   const [selfcheck, setSelfcheck] = useState<HealthSelfcheck | null>(null)
-  const [teacherName, setTeacherName] = useState<string | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
@@ -106,13 +106,11 @@ export default function Analysis({ preview }: { preview?: StudentProfile }) {
     Promise.all([
       getMeasurement(student.email, semester, ROUND),
       getSelfcheck(student.email, semester),
-      myTeacherName().catch(() => null),
     ])
-      .then(([m, sc, name]) => {
+      .then(([m, sc]) => {
         if (cancelled) return
         setMeasurement(m)
         setSelfcheck(sc)
-        setTeacherName(name)
       })
       .catch((e) => { if (!cancelled) setError(friendlyError(e)) })
       .finally(() => { if (!cancelled) setLoading(false) })
@@ -160,7 +158,7 @@ export default function Analysis({ preview }: { preview?: StudentProfile }) {
         )}
 
         {risk >= 2 ? (
-          <HighRisk teacherName={teacherName} risk={risk as 2 | 3} />
+          <HighRisk risk={risk as 2 | 3} />
         ) : !analysis.ready ? (
           <MissingData hasMeasurement={analysis.hasMeasurement} hasSelfcheck={analysis.hasSelfcheck} />
         ) : (
@@ -399,7 +397,7 @@ function MissingData({ hasMeasurement, hasSelfcheck }: {
   )
 }
 
-function HighRisk({ teacherName, risk }: { teacherName: string | null; risk: 2 | 3 }) {
+function HighRisk({ risk }: { risk: 2 | 3 }) {
   return (
     <>
       <section className="mx-3 my-3.5 rounded-2xl border border-[#C7E2DC] bg-white px-4 py-4">
@@ -408,7 +406,7 @@ function HighRisk({ teacherName, risk }: { teacherName: string | null; risk: 2 |
           這一頁先不顯示生活習慣建議。下面這段文字比較重要，請先看完。
         </p>
       </section>
-      <RiskCare level={risk} teacherName={teacherName} />
+      <RiskCare level={risk} />
       <div className="mx-3 rounded-xl border border-dashed border-[#C7E2DC] bg-[#F7FCFB] px-4 py-3.5 text-[13px] leading-relaxed text-[#4A6461]">
         生活型態、85210 和餐盤活動仍然可以照常做；這裡只是暫時不把它們包成改善建議。
       </div>
