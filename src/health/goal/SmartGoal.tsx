@@ -217,6 +217,7 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
   const [copied, setCopied] = useState(false)
   const [saving, setSaving] = useState(false)
   const [savedAt, setSavedAt] = useState<string | null>(null)
+  const [editingGoal, setEditingGoal] = useState(true)
 
   const storageKey = student && isPreview ? `hc-smart-goal:${student.email}:${semester}:preview` : ''
 
@@ -243,6 +244,7 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
         if (goal) {
           setDraft(goalToDraft(goal))
           setSavedAt(goal.submitted_at ?? goal.updated_at)
+          setEditingGoal(goal.confirmed !== true)
         }
         setTeacherName(name)
       })
@@ -334,6 +336,7 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
     if (isPreview) {
       update('goalConfirmed', confirmed || draft.goalConfirmed)
       setSavedAt(new Date().toISOString())
+      if (confirmed) setEditingGoal(false)
       return
     }
     if (!student) return
@@ -373,6 +376,7 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
       })
       setDraft(goalToDraft(saved))
       setSavedAt(saved.submitted_at ?? saved.updated_at)
+      if (saved.confirmed) setEditingGoal(false)
     } catch (e) {
       setError(friendlyError(e))
     } finally {
@@ -399,21 +403,34 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
         {risk >= 2 && (
           <HighRiskGoal teacherName={teacherName} risk={risk as 2 | 3} />
         )}
-        <Intro ready={analysis.ready} />
-        <DirectionPicker
-          options={options}
-          selectedIds={draft.selectedOptionIds ?? []}
-          onChoose={chooseOption}
-        />
-        <SmartEditor draft={draft} warnings={warnings} onChange={update} />
-        <AiPromptPanel prompt={prompt} copied={copied} onCopy={copyPrompt} />
-        <ConfirmGoal
-          confirmed={draft.goalConfirmed}
-          disabled={warnings.some((w) => w.includes('至少'))}
-          saving={saving}
-          savedAt={savedAt}
-          onConfirm={() => void saveDraft(true)}
-        />
+        {draft.goalConfirmed && !editingGoal ? (
+          <GoalSummary
+            draft={draft}
+            savedAt={savedAt}
+            onEdit={() => {
+              setDraft((current) => ({ ...current, goalConfirmed: false }))
+              setEditingGoal(true)
+            }}
+          />
+        ) : (
+          <>
+            <Intro ready={analysis.ready} />
+            <DirectionPicker
+              options={options}
+              selectedIds={draft.selectedOptionIds ?? []}
+              onChoose={chooseOption}
+            />
+            <SmartEditor draft={draft} warnings={warnings} onChange={update} />
+            <AiPromptPanel prompt={prompt} copied={copied} onCopy={copyPrompt} />
+            <ConfirmGoal
+              confirmed={draft.goalConfirmed}
+              disabled={warnings.some((w) => w.includes('至少'))}
+              saving={saving}
+              savedAt={savedAt}
+              onConfirm={() => void saveDraft(true)}
+            />
+          </>
+        )}
         {draft.goalConfirmed && (
           <WsqReflection
             draft={draft}
@@ -767,6 +784,54 @@ function ConfirmGoal({ confirmed, disabled, saving, savedAt, onConfirm }: {
         {saving ? '儲存中…' : confirmed ? '已確認，開始寫 WSQ' : '我已完成目標草稿'}
       </button>
       {savedAt && <SavedText savedAt={savedAt} />}
+    </section>
+  )
+}
+
+function GoalSummary({ draft, savedAt, onEdit }: {
+  draft: GoalDraft
+  savedAt: string | null
+  onEdit: () => void
+}) {
+  const weeks = [draft.week1, draft.week2, draft.week3, draft.week4]
+  return (
+    <section className="mx-3 my-3.5 overflow-hidden rounded-2xl border border-[#BBDDD6] bg-white">
+      <div className="border-b border-[#C7E2DC] bg-[#E9F5F2] px-4 pb-3 pt-3.5">
+        <p className="text-[12px] font-bold tracking-widest text-[#12776E]">我的 SMART 目標</p>
+        <h2 className="mt-1 text-lg font-bold">{draft.direction || '我的健康行動'}</h2>
+      </div>
+      <div className="space-y-4 p-4">
+        <div>
+          <p className="text-[12.5px] font-bold text-[#12776E]">四週行動摘要</p>
+          <p className="mt-1.5 text-[15px] leading-relaxed">
+            我會{draft.action}，{draft.frequency}，並以「{draft.measure}」確認自己有做到。
+          </p>
+        </div>
+        {draft.why && (
+          <div>
+            <p className="text-[12.5px] font-bold text-[#12776E]">我為什麼要做</p>
+            <p className="mt-1 text-[14px] leading-relaxed text-[#4A6461]">{draft.why}</p>
+          </div>
+        )}
+        <div>
+          <p className="text-[12.5px] font-bold text-[#12776E]">每週行動指引</p>
+          <div className="mt-2 divide-y divide-[#E2EFEC] border-y border-[#E2EFEC]">
+            {weeks.map((week, index) => (
+              <div key={index} className="grid grid-cols-[56px_1fr] gap-2 py-2.5 text-[13.5px] leading-relaxed">
+                <b className="text-[#12776E]">第 {index + 1} 週</b>
+                <span className="text-[#4A6461]">{week || '依照主要行動持續練習與記錄。'}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <button
+          onClick={onEdit}
+          className="w-full rounded-xl border border-[#12776E] bg-white py-3 text-[15px] font-bold text-[#12776E]"
+        >
+          修改目標
+        </button>
+        {savedAt && <SavedText savedAt={savedAt} />}
+      </div>
     </section>
   )
 }

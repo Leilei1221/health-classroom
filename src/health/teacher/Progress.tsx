@@ -53,6 +53,7 @@ export default function Progress() {
   )
   const allDone = mine.filter((r) => r.scalesDone === SCALE_TASK_KEYS.length).length
   const unfinished = mine.filter((r) => r.missing.length > 0)
+  const goalsDone = mine.filter((r) => r.done.goal).length
 
   if (error) return <Shell><Box tone="error">{error}</Box></Shell>
   if (classes === null) return <Shell><Box>載入中…</Box></Shell>
@@ -118,10 +119,28 @@ export default function Progress() {
             <p className="mt-0.5 text-xs text-slate-500">
               「七份」指七份量表，不含身體數值登記與我的餐盤
             </p>
+            <p className="mt-2 border-t border-slate-100 pt-2 text-[14px]">
+              SMART 目標完成 <strong className="text-lg tabular-nums text-[#12776E]">{goalsDone}</strong>
+              ／{mine.length} 人
+            </p>
           </div>
 
           {/* 手機：摘要＋還沒做完的人。上課時看的是這一份 */}
           <div className="sm:hidden">
+            <section className="mb-4">
+              <h2 className="mb-2 text-sm font-bold">SMART 目標作業</h2>
+              <div className="divide-y divide-slate-100 rounded-xl border border-slate-200 bg-white">
+                {mine.map((r) => (
+                  <div key={r.student_id} className="flex items-center gap-2 px-3.5 py-2.5">
+                    <span className="w-10 text-sm tabular-nums text-slate-500">{r.seat_no ?? '—'} 號</span>
+                    <span className="flex-1 text-[14px] font-medium">{r.name}</span>
+                    <span className={`text-[13px] font-bold ${r.done.goal ? 'text-[#12776E]' : 'text-slate-400'}`}>
+                      {r.done.goal ? '✓ 已完成' : '□ 尚未完成'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </section>
             {unfinished.length === 0 ? (
               <Box>全班七份都做完了。</Box>
             ) : (

@@ -422,7 +422,7 @@ export async function listFlagged(semesters: string[]): Promise<FlaggedStudent[]
 
 /* ------------------------------------------------- 教師端班級進度表（唯讀） */
 
-/** 進度表的九個欄位，順序即畫面上的欄位順序 */
+/** 進度表的欄位，順序即畫面上的欄位順序 */
 export const PROGRESS_TASKS = [
   { key: 'measurement', label: '身體數值登記', short: '登記' },
   { key: 'lifestyle', label: '生活型態', short: '生活' },
@@ -433,6 +433,7 @@ export const PROGRESS_TASKS = [
   { key: 'stress', label: '壓力偵測站', short: '壓力' },
   { key: 'depression', label: '情緒自我檢視表', short: '情緒' },
   { key: 'plate', label: '我的餐盤', short: '餐盤' },
+  { key: 'goal', label: 'SMART 目標', short: '目標' },
 ] as const
 
 export type TaskKey = (typeof PROGRESS_TASKS)[number]['key']
@@ -485,8 +486,8 @@ export async function listProgress(semesters: string[]): Promise<ProgressStudent
   const emails = (rows: { student_email: string }[]) =>
     new Set(rows.map((r) => r.student_email))
 
-  // 九條查詢平行送，每一條都只要 email 清單
-  const [measurement, lifestyle, h85210, pyramid, sleep, mood, stress, depression, plate] =
+  // 每條查詢都只要 email 清單，投影頁不載入作業內容
+  const [measurement, lifestyle, h85210, pyramid, sleep, mood, stress, depression, plate, goal] =
     await Promise.all([
       supabase.from('hc_health_measurement').select('student_email')
         .in('semester', semesters).eq('round', ROUND),
@@ -500,6 +501,8 @@ export async function listProgress(semesters: string[]): Promise<ProgressStudent
       sc().not('stress_level', 'is', null),
       sc().not('depression', 'is', null),
       sc().not('plate', 'is', null),
+      supabase.from('hc_health_goal').select('student_email')
+        .in('semester', semesters).eq('confirmed', true),
     ])
 
   const sets: Record<TaskKey, Set<string>> = {
@@ -512,6 +515,7 @@ export async function listProgress(semesters: string[]): Promise<ProgressStudent
     stress: emails(unwrap(stress)),
     depression: emails(unwrap(depression)),
     plate: emails(unwrap(plate)),
+    goal: emails(unwrap(goal)),
   }
 
   return roster.map((s) => {
