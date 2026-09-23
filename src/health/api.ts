@@ -2,7 +2,8 @@ import { supabase } from '../lib/supabase'
 import { listClasses } from '../lib/api'
 import { riskLevel } from './riskLevel'
 import type {
-  ClassRow, HealthCheckin, HealthCheckinWeek, HealthGoal, HealthMeasurement, HealthSelfcheck, MeasurementRound, StudentProfile,
+  ClassRow, HealthCheckin, HealthCheckinWeek, HealthGoal, HealthGoalReview,
+  HealthGoalReviewStatus, HealthMeasurement, HealthSelfcheck, MeasurementRound, StudentProfile,
 } from '../lib/types'
 
 function unwrap<T>({ data, error }: { data: T | null; error: unknown }): T {
@@ -239,6 +240,40 @@ export async function saveHealthGoal(row: HealthGoalPatch): Promise<HealthGoal> 
     await supabase
       .from('hc_health_goal')
       .upsert(row, { onConflict: 'student_email,semester,goal_no' })
+      .select()
+      .single(),
+  )
+}
+
+export async function getHealthGoalReview(goalId: string): Promise<HealthGoalReview | null> {
+  const { data, error } = await supabase
+    .from('hc_health_goal_review')
+    .select('*')
+    .eq('goal_id', goalId)
+    .maybeSingle()
+  if (error) throw error
+  return data as HealthGoalReview | null
+}
+
+export async function saveHealthGoalReview(row: {
+  goal_id: string
+  student_email: string
+  semester: string
+  status: HealthGoalReviewStatus
+  feedback: string | null
+}): Promise<HealthGoalReview> {
+  const { data: authData, error: authError } = await supabase.auth.getUser()
+  if (authError) throw authError
+  const reviewerEmail = authData.user?.email
+  if (!reviewerEmail) throw new Error('找不到目前登入的教師帳號')
+  return unwrap(
+    await supabase
+      .from('hc_health_goal_review')
+      .upsert({
+        ...row,
+        reviewer_email: reviewerEmail,
+        reviewed_at: new Date().toISOString(),
+      }, { onConflict: 'goal_id' })
       .select()
       .single(),
   )
@@ -581,6 +616,81 @@ export async function listHealthClasses(): Promise<HealthClass[]> {
   return classes
     .filter((c) => c.health_enabled || withData.has(c.id))
     .map((c) => ({ row: c, enabled: c.health_enabled }))
+}
+
+/* --------------------------------------------- 教師端 SMART 與行動批改 */
+
+export interface GoalReviewStudent {
+  student_id: string
+  class_id: string
+  seat_no: number | null
+  name: string
+  account: string
+  goal: HealthGoal | null
+  checkins: HealthCheckin[]
+  weeks: HealthCheckinWeek[]
+  review: HealthGoalReview | null
+}
+
+export async function listGoalReviewStudents(classes: HealthClass[]): Promise<GoalReviewStudent[]> {
+  if (classes.length === 0) return []
+  const semesterByClass = new Map(
+    classes.map((item) => [item.row.id, `${item.row.academic_year}-${item.row.semester}`]),
+  )
+  const semesters = [...new Set(semesterByClass.values())]
+
+  const [rosterResult, goalsResult, checkinsResult, weeksResult, reviewsResult] = await Promise.all([
+    supabase.from('hc_students')
+      .select('id, class_id, seat_no, name, email, login_email')
+      .eq('is_active', true)
+      .in('class_id', classes.map((item) => item.row.id))
+      .order('seat_no', { ascending: true, nullsFirst: false }),
+    supabase.from('hc_health_goal').select('*')
+      .in('semester', semesters).eq('goal_no', 1),
+    supabase.from('hc_health_checkin').select('*')
+      .in('semester', semesters).order('week_no').order('day_no'),
+    supabase.from('hc_health_checkin_week').select('*')
+      .in('semester', semesters).order('week_no'),
+    supabase.from('hc_health_goal_review').select('*')
+      .in('semester', semesters),
+  ])
+
+  const roster = unwrap<{
+    id: string
+    class_id: string
+    seat_no: number | null
+    name: string
+    email: string
+    login_email: string | null
+  }[]>(rosterResult)
+  const goals = unwrap<HealthGoal[]>(goalsResult)
+  const checkins = unwrap<HealthCheckin[]>(checkinsResult)
+  const weeks = unwrap<HealthCheckinWeek[]>(weeksResult)
+  const reviews = unwrap<HealthGoalReview[]>(reviewsResult)
+
+  const goalByStudent = new Map(goals.map((goal) => [`${goal.student_email}|${goal.semester}`, goal]))
+  const checkinsByGoal = new Map<string, HealthCheckin[]>()
+  checkins.forEach((row) => checkinsByGoal.set(row.goal_id, [...(checkinsByGoal.get(row.goal_id) ?? []), row]))
+  const weeksByGoal = new Map<string, HealthCheckinWeek[]>()
+  weeks.forEach((row) => weeksByGoal.set(row.goal_id, [...(weeksByGoal.get(row.goal_id) ?? []), row]))
+  const reviewByGoal = new Map(reviews.map((review) => [review.goal_id, review]))
+
+  return roster.map((student) => {
+    const account = student.login_email ?? student.email
+    const semester = semesterByClass.get(student.class_id) ?? ''
+    const goal = goalByStudent.get(`${account}|${semester}`) ?? null
+    return {
+      student_id: student.id,
+      class_id: student.class_id,
+      seat_no: student.seat_no,
+      name: student.name,
+      account,
+      goal,
+      checkins: goal ? checkinsByGoal.get(goal.id) ?? [] : [],
+      weeks: goal ? weeksByGoal.get(goal.id) ?? [] : [],
+      review: goal ? reviewByGoal.get(goal.id) ?? null : null,
+    }
+  })
 }
 
 /* --------------------------------------------- 教師端明細檢視（唯讀，不投影） */

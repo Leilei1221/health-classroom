@@ -291,6 +291,21 @@ export interface HealthGoal {
   updated_at: string
 }
 
+export type HealthGoalReviewStatus = 'reviewed' | 'revise' | 'approved'
+
+export interface HealthGoalReview {
+  id: string
+  goal_id: string
+  student_email: string
+  semester: string
+  status: HealthGoalReviewStatus
+  feedback: string | null
+  reviewer_email: string
+  reviewed_at: string
+  created_at: string
+  updated_at: string
+}
+
 export type HealthCheckinStatus = 'done' | 'partial' | 'rest'
 
 export interface HealthCheckin {

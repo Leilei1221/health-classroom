@@ -2,11 +2,14 @@ import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth'
 import { friendlyError } from '../../lib/errors'
-import type { HealthGoal, HealthMeasurement, HealthSelfcheck, StudentProfile } from '../../lib/types'
+import type {
+  HealthGoal, HealthGoalReview, HealthMeasurement, HealthSelfcheck, StudentProfile,
+} from '../../lib/types'
 import HealthHeader, { PreviewBanner } from '../Header'
 import Handover from '../Handover'
 import {
-  ROUND, getHealthGoal, getMeasurement, getSelfcheck, myTeacherName, saveHealthGoal, semesterKey,
+  ROUND, getHealthGoal, getHealthGoalReview, getMeasurement, getSelfcheck, myTeacherName,
+  saveHealthGoal, semesterKey,
 } from '../api'
 import { riskLevel, type RiskLevel } from '../riskLevel'
 import RiskCare from '../selfcheck/RiskCare'
@@ -218,6 +221,7 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
   const [saving, setSaving] = useState(false)
   const [savedAt, setSavedAt] = useState<string | null>(null)
   const [editingGoal, setEditingGoal] = useState(true)
+  const [teacherReview, setTeacherReview] = useState<HealthGoalReview | null>(null)
 
   const storageKey = student && isPreview ? `hc-smart-goal:${student.email}:${semester}:preview` : ''
 
@@ -237,7 +241,9 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
       getHealthGoal(student.email, semester, 1).catch(() => null),
       myTeacherName().catch(() => null),
     ])
-      .then(([m, sc, goal, name]) => {
+      .then(async ([m, sc, goal, name]) => {
+        if (cancelled) return
+        const review = goal ? await getHealthGoalReview(goal.id) : null
         if (cancelled) return
         setMeasurement(m)
         setSelfcheck(sc)
@@ -246,6 +252,7 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
           setSavedAt(goal.submitted_at ?? goal.updated_at)
           setEditingGoal(goal.confirmed !== true)
         }
+        setTeacherReview(review)
         setTeacherName(name)
       })
       .catch((e) => { if (!cancelled) setError(friendlyError(e)) })
@@ -431,6 +438,7 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
             />
           </>
         )}
+        {teacherReview && <TeacherReview review={teacherReview} />}
         {draft.goalConfirmed && (
           <WsqReflection
             draft={draft}
@@ -832,6 +840,28 @@ function GoalSummary({ draft, savedAt, onEdit }: {
         </button>
         {savedAt && <SavedText savedAt={savedAt} />}
       </div>
+    </section>
+  )
+}
+
+function TeacherReview({ review }: { review: HealthGoalReview }) {
+  const labels = {
+    reviewed: '老師已看過',
+    revise: '請調整後再儲存',
+    approved: '老師確認完成',
+  } as const
+  return (
+    <section className="mx-3 my-3.5 rounded-2xl border border-[#D8C8A8] bg-[#FFF9ED] px-4 py-4">
+      <p className="text-[12px] font-bold tracking-widest text-[#8A5310]">教師回饋</p>
+      <h3 className="mt-1 text-base font-bold">{labels[review.status]}</h3>
+      {review.feedback && (
+        <p className="mt-2 whitespace-pre-wrap text-[14px] leading-relaxed text-[#5F5140]">
+          {review.feedback}
+        </p>
+      )}
+      <p className="mt-2 text-[12px] text-[#7A6B59]">
+        {new Date(review.reviewed_at).toLocaleString('zh-TW', { hour12: false })}
+      </p>
     </section>
   )
 }

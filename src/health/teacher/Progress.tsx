@@ -225,6 +225,7 @@ function Shell({ subtitle, children }: { subtitle?: string; children: React.Reac
             <h1 className="text-base font-semibold">班級進度</h1>
             {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
           </div>
+          <Link to="/health/review" className="text-sm text-slate-500 hover:text-slate-900">SMART 批改</Link>
           <Link to="/" className="text-sm text-slate-500 hover:text-slate-900">班級管理</Link>
           <button onClick={() => void signOut()} className="text-sm text-slate-500 hover:text-slate-900">
             登出

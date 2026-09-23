@@ -24,6 +24,8 @@ export default function App() {
       <Route path="/health/progress" element={<HealthGate page="progress" />} />
       {/* 學生明細：有分數與填答內容，唯讀，不能投影 */}
       <Route path="/health/detail" element={<HealthGate page="detail" />} />
+      {/* SMART 與行動紀錄批改：教師私用，不投影 */}
+      <Route path="/health/review" element={<HealthGate page="review" />} />
 
       <Route path="/health/selfcheck" element={<HealthGate page="selfcheck" />} />
       <Route path="/health/analysis" element={<HealthGate page="analysis" />} />
