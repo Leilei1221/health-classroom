@@ -282,7 +282,10 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
     () => analyzeStudent(measurement, selfcheck),
     [measurement, selfcheck],
   )
-  const options = useMemo(() => buildOptions(analysis.focuses), [analysis.focuses])
+  const options = useMemo(
+    () => buildOptions(risk >= 2 ? [] : analysis.focuses),
+    [analysis.focuses, risk],
+  )
   const prompt = useMemo(() => buildPrompt(draft), [draft])
   const warnings = useMemo(() => validateDraft(draft), [draft])
 
@@ -393,37 +396,34 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
           </div>
         )}
 
-        {risk >= 2 ? (
+        {risk >= 2 && (
           <HighRiskGoal teacherName={teacherName} risk={risk as 2 | 3} />
-        ) : (
-          <>
-            <Intro ready={analysis.ready} />
-            <DirectionPicker
-              options={options}
-              selectedIds={draft.selectedOptionIds ?? []}
-              onChoose={chooseOption}
-            />
-            <SmartEditor draft={draft} warnings={warnings} onChange={update} />
-            <AiPromptPanel prompt={prompt} copied={copied} onCopy={copyPrompt} />
-            <ConfirmGoal
-              confirmed={draft.goalConfirmed}
-              disabled={warnings.some((w) => w.includes('至少'))}
-              saving={saving}
-              savedAt={savedAt}
-              onConfirm={() => void saveDraft(true)}
-            />
-            {draft.goalConfirmed && (
-              <WsqReflection
-                draft={draft}
-                onChange={update}
-                saving={saving}
-                savedAt={savedAt}
-                onSave={() => void saveDraft(true)}
-              />
-            )}
-            <SaveNote isPreview={isPreview} />
-          </>
         )}
+        <Intro ready={analysis.ready} />
+        <DirectionPicker
+          options={options}
+          selectedIds={draft.selectedOptionIds ?? []}
+          onChoose={chooseOption}
+        />
+        <SmartEditor draft={draft} warnings={warnings} onChange={update} />
+        <AiPromptPanel prompt={prompt} copied={copied} onCopy={copyPrompt} />
+        <ConfirmGoal
+          confirmed={draft.goalConfirmed}
+          disabled={warnings.some((w) => w.includes('至少'))}
+          saving={saving}
+          savedAt={savedAt}
+          onConfirm={() => void saveDraft(true)}
+        />
+        {draft.goalConfirmed && (
+          <WsqReflection
+            draft={draft}
+            onChange={update}
+            saving={saving}
+            savedAt={savedAt}
+            onSave={() => void saveDraft(true)}
+          />
+        )}
+        <SaveNote isPreview={isPreview} />
 
         {!isPreview && <Handover />}
       </div>
@@ -846,7 +846,7 @@ function HighRiskGoal({ teacherName, risk }: { teacherName: string | null; risk:
       <section className="mx-3 my-3.5 rounded-2xl border border-[#C7E2DC] bg-white px-4 py-4">
         <h2 className="text-lg font-bold">先照顧現在的自己</h2>
         <p className="mt-2 text-[14px] leading-relaxed text-[#4A6461]">
-          這一頁先不安排 SMART 生活目標。請先看完下面的關懷訊息，並讓老師知道你需要一起討論。
+          請先看完下面的關懷訊息。關懷與課堂作業會分開進行，你仍可在下方完成 SMART 目標。
         </p>
       </section>
       <RiskCare level={risk} teacherName={teacherName} />
