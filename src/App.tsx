@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import ClassDetail from './pages/ClassDetail'
 import SeatPicking from './pages/SeatPicking'
+import NoAccess from './pages/NoAccess'
 import HealthGate from './health/HealthGate'
 
 export default function App() {
@@ -44,15 +45,25 @@ export default function App() {
       {loading ? (
         <Route path="*" element={<Spinner />} />
       ) : session ? (
-        role === 'student' ? (
+        role === 'resolving' ? (
+          // 身分還沒查完。這一條以前落在下面的 else，會先閃一下教師後台
+          <Route path="*" element={<Spinner />} />
+        ) : role === 'student' ? (
           // 學生登入後只有健康頁可用，不要落到教師端
           <Route path="*" element={<Navigate to="/health" replace />} />
-        ) : (
+        ) : role === 'teacher' ? (
           <>
             <Route path="/" element={<Dashboard />} />
             <Route path="/class/:id" element={<ClassDetail />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </>
+        ) : (
+          /*
+            登入了，但既不在學生名單上、也不在教師白名單上
+            （hc_ensure_teacher() 會回 P0011 not_a_teacher）。
+            以前這一條會落到教師後台，顯示一個讀不到任何資料的空殼。
+          */
+          <Route path="*" element={<NoAccess />} />
         )
       ) : (
         <>
