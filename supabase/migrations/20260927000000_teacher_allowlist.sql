@@ -38,6 +38,12 @@ comment on table public.hc_teacher_allowlist is
 alter table public.hc_teacher_allowlist enable row level security;
 -- 刻意不建任何 policy：authenticated 讀不到這張表，也就看不到有哪些帳號
 
+-- Supabase 對 public schema 的新表有預設授權，anon 與 authenticated 會自動
+-- 拿到整套 SELECT/INSERT/UPDATE/DELETE。RLS 沒有 policy 所以實際上進不去，
+-- 但這種授權留著，等於下一個人只要不小心加一條 policy，名單就出去了。
+-- 這張表只需要被 SECURITY DEFINER 函式（以擁有者身分執行）讀到。
+revoke all on public.hc_teacher_allowlist from anon, authenticated;
+
 insert into public.hc_teacher_allowlist (email, note) values
   ('phyllis@hlhs.hlc.edu.tw',   '黃雅蕾・學校帳號'),
   ('phyllis1982.tw@gmail.com',  '黃雅蕾・救援帳號'),

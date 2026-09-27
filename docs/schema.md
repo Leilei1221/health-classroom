@@ -77,6 +77,19 @@ Migration：`supabase/migrations/20260829000000_health_classroom_init.sql`
 - `hc_claim_seat(code, student_id, group_no, seat_slot, student_no?)` — 選位／改位
 - `hc_release_seat(code, student_id)` — 放棄座位
 
+> **【2026-09-27】這句話一度不成立，已修回。**
+> 七張表（`hc_students`、`hc_classes`、`hc_attendance`、`hc_attendance_statuses`、
+> `hc_lessons`、`hc_performance_records`、`hc_seat_assignments`）上有名為
+> `gas_anon_read`、條件寫死 `true` 的 anon SELECT policy，加上對應的 SELECT 權限，
+> 未登入者實測讀得到 201 筆學生名單與 1207 筆出缺席。
+> 那幾條是早期版本的殘留——GAS 同步用的是 service_role key，選位走
+> SECURITY DEFINER 函式，兩邊都不需要它。
+> 已於 `20260927010000_close_anon_reads.sql` 全部移除。
+>
+> ⚠️ **在 public schema 建新表時記得 `revoke all ... from anon, authenticated`**：
+> Supabase 有預設授權，新表一建好這兩個角色就有整套權限。只靠「RLS 沒有 policy」
+> 是擋得住，但下一個人加一條 policy 就破了。
+
 `join_code` 為 `gen_random_bytes(9)` 的 base64（約 72 bits），無法暴力猜測。
 未開放選位（`seat_picking_open = false`）時 RPC 一律拒絕，等於老師手上的開關。
 `seat_picking_require_student_no` 開啟後需再輸入學號後三碼，預設關閉。
