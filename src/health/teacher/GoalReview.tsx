@@ -102,7 +102,7 @@ export default function GoalReview() {
             <p className="text-xs text-slate-500">{teacher?.display_name}・教師私用，請勿投影</p>
           </div>
           <Link to="/health/progress" className="text-sm text-slate-500 hover:text-slate-900">班級進度</Link>
-          <Link to="/" className="text-sm text-slate-500 hover:text-slate-900">班級管理</Link>
+          <Link to="/" className="text-sm text-slate-500 hover:text-slate-900">教師後台</Link>
           <button onClick={() => void signOut()} className="text-sm text-slate-500 hover:text-slate-900">登出</button>
         </div>
       </header>

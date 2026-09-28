@@ -8,6 +8,7 @@ import Plate from './plate/Plate'
 import Analysis from './analysis/Analysis'
 import SmartGoal from './goal/SmartGoal'
 import WeekOneCheckin from './checkin/WeekOneCheckin'
+import StudentHome from './StudentHome'
 import FlagList from './teacher/FlagList'
 import Progress from './teacher/Progress'
 import Detail from './teacher/Detail'
@@ -15,10 +16,16 @@ import GoalReview from './teacher/GoalReview'
 import { PREVIEW_STUDENT } from './preview'
 import type { StudentProfile } from '../lib/types'
 
-export type HealthPage = 'register' | 'selfcheck' | 'analysis' | 'goal' | 'checkin' | 'plate' | 'teacher' | 'progress' | 'detail' | 'review'
+export type HealthPage = 'home' | 'register' | 'selfcheck' | 'analysis' | 'goal' | 'checkin' | 'plate' | 'teacher' | 'progress' | 'detail' | 'review'
 
-/** 學生填寫的三個頁面；教師查詢頁走另一條路，不在這裡 */
-const PAGES: Record<Exclude<HealthPage, 'teacher' | 'progress' | 'detail' | 'review'>, (p?: StudentProfile) => JSX.Element> = {
+/** 只有教師看得到的頁面，分流方式與學生頁相反（見下面的註解） */
+type TeacherPage = 'teacher' | 'progress' | 'detail' | 'review'
+
+/**
+ * 學生填寫的六個頁面；教師查詢頁走另一條路，不在這裡。
+ * 入口頁（home）也不在這裡——它要知道這個班有沒有開健康模組，簽名不一樣。
+ */
+const PAGES: Record<Exclude<HealthPage, TeacherPage | 'home'>, (p?: StudentProfile) => JSX.Element> = {
   register: (p) => <HealthRegister preview={p} />,
   selfcheck: (p) => <SelfCheck preview={p} />,
   analysis: (p) => <Analysis preview={p} />,
@@ -27,7 +34,7 @@ const PAGES: Record<Exclude<HealthPage, 'teacher' | 'progress' | 'detail' | 'rev
   plate: (p) => <Plate preview={p} />,
 }
 
-const PAGE_NAMES: Record<Exclude<HealthPage, 'teacher' | 'progress' | 'detail' | 'review'>, string> = {
+const PAGE_NAMES: Record<Exclude<HealthPage, TeacherPage | 'home'>, string> = {
   register: '身體數值登記',
   selfcheck: '課本自我檢測',
   analysis: '健康分析',
@@ -40,7 +47,7 @@ const PAGE_NAMES: Record<Exclude<HealthPage, 'teacher' | 'progress' | 'detail' |
  * 健康管理頁的入口：未登入顯示登入畫面，登入後依身分分流。
  * 只有這條路由需要登入；座位登記與點名維持免登入。
  */
-export default function HealthGate({ page = 'register', preview = false }: {
+export default function HealthGate({ page = 'home', preview = false }: {
   page?: HealthPage
   preview?: boolean
 }) {
@@ -90,12 +97,24 @@ export default function HealthGate({ page = 'register', preview = false }: {
     預覽不看白名單、不看班級、不讀也不寫資料庫（三個頁面都用 isPreview
     把讀取與送出擋掉了），所以這裡不需要任何條件，是教師就給看。
   */
-  if (preview && role === 'teacher') return PAGES[page](PREVIEW_STUDENT)
+  if (preview && role === 'teacher')  {
+    return page === 'home'
+      ? <StudentHome student={PREVIEW_STUDENT} isPreview healthEnabled />
+      : PAGES[page](PREVIEW_STUDENT)
+  }
 
   // 名單上有這個人就顯示真正的登記表單，不看是學生還是老師 ——
   // 老師把自己掛進測試班級實測時，兩種身分會同時成立
   if (student) {
     if (enabled === undefined) return <Spinner />
+    /*
+      入口頁兩種班都看得到，沒開健康模組的班只是不列作業。
+      課程活動（hc_my_links()）與健康模組白名單無關——基礎急救概論那種
+      多元選修沒有開 health_enabled，但那班的學生要看得到情境解謎。
+    */
+    if (page === 'home') {
+      return <StudentHome student={student} isPreview={false} healthEnabled={enabled} />
+    }
     if (!enabled) {
       return (
         <Notice
@@ -114,7 +133,7 @@ export default function HealthGate({ page = 'register', preview = false }: {
       title={role === 'teacher' ? '這是學生填寫的頁面' : '這個帳號不在名單上'}
       body={
         role === 'teacher'
-          ? `你目前以教師身分登入${teacher?.display_name ? `（${teacher.display_name}）` : ''}。${PAGE_NAMES[page]}由學生自己填寫，教師端的進度看板還在製作中。想看學生填寫的畫面，可以從班級列表按「以學生身分預覽」。`
+          ? `你目前以教師身分登入${teacher?.display_name ? `（${teacher.display_name}）` : ''}。${page === 'home' ? '這一頁' : PAGE_NAMES[page]}由學生自己填寫。想看學生的畫面，請從教師後台進「示範區」；要看誰填了什麼，走「班級進度」與「學生明細」。`
           : '請確認你是用學校的 Google 帳號登入。如果確定沒錯，可能是名單還沒更新，請跟老師說一聲。'
       }
       onSignOut={signOut}

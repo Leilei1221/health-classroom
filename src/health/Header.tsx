@@ -31,12 +31,21 @@ export default function HealthHeader({ student, isPreview, tab }: {
             </div>
           )}
         </div>
-        <button
-          onClick={() => (isPreview ? navigate('/') : void signOut())}
-          className="-m-2 shrink-0 p-2 text-[13px] opacity-70 hover:opacity-100"
-        >
-          {isPreview ? '離開預覽' : '登出'}
-        </button>
+        <div className="flex shrink-0 items-center gap-1">
+          {/* 課程活動與其他作業都在入口頁，分頁列裡沒有它 */}
+          <button
+            onClick={() => navigate(isPreview ? '/health/preview' : '/health')}
+            className="-m-2 p-2 text-[13px] opacity-70 hover:opacity-100"
+          >
+            首頁
+          </button>
+          <button
+            onClick={() => (isPreview ? navigate('/demo') : void signOut())}
+            className="-m-2 p-2 text-[13px] opacity-70 hover:opacity-100"
+          >
+            {isPreview ? '離開預覽' : '登出'}
+          </button>
+        </div>
       </div>
       <HealthTabs current={tab} preview={isPreview} />
     </header>

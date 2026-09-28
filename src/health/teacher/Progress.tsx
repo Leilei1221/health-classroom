@@ -67,7 +67,7 @@ export default function Progress() {
           {student ? (
             <>
               你的帳號在學生名單上（{student.class_name} 班・座號 {student.seat_no ?? '—'}）。
-              要填自己的資料請到 <Link to="/health" className="font-medium underline">健康登記頁</Link>。
+              要填自己的資料請到 <Link to="/health" className="font-medium underline">學生入口</Link>。
             </>
           ) : (
             <>
@@ -226,7 +226,7 @@ function Shell({ subtitle, children }: { subtitle?: string; children: React.Reac
             {subtitle && <p className="text-xs text-slate-500">{subtitle}</p>}
           </div>
           <Link to="/health/review" className="text-sm text-slate-500 hover:text-slate-900">SMART 批改</Link>
-          <Link to="/" className="text-sm text-slate-500 hover:text-slate-900">班級管理</Link>
+          <Link to="/" className="text-sm text-slate-500 hover:text-slate-900">教師後台</Link>
           <button onClick={() => void signOut()} className="text-sm text-slate-500 hover:text-slate-900">
             登出
           </button>

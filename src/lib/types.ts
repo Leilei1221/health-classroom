@@ -338,3 +338,32 @@ export interface HealthCheckinWeek {
   created_at: string
   updated_at: string
 }
+
+/* ---------------------------------------------------------------- 課程活動連結 */
+
+/**
+ * 教師放給學生的外部連結（CPR 節奏、情境解謎等）。
+ * 教師端看得到全部欄位；學生端走 hc_my_links()，只拿得到 StudentLink。
+ */
+export interface LinkRow {
+  id: string
+  teacher_id: string
+  title: string
+  url: string
+  description: string | null
+  visible: boolean
+  sort_order: number
+  /** true＝這位老師的所有班級都看得到；false＝看 hc_link_classes */
+  all_classes: boolean
+  created_at: string
+  updated_at: string
+}
+
+/** hc_my_links() 回傳的欄位。刻意不含 teacher_id／visible／all_classes */
+export interface StudentLink {
+  id: string
+  title: string
+  url: string
+  description: string | null
+  sort_order: number
+}

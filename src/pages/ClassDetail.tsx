@@ -70,11 +70,11 @@ export default function ClassDetail() {
     }
   }
 
-  if (error && !cls) return <Layout title="班級" back="/"><ErrorBox message={error} /></Layout>
-  if (!cls || !teacher) return <Layout title="班級" back="/"><Spinner /></Layout>
+  if (error && !cls) return <Layout title="班級" back="/classes"><ErrorBox message={error} /></Layout>
+  if (!cls || !teacher) return <Layout title="班級" back="/classes"><Spinner /></Layout>
 
   return (
-    <Layout title={`${cls.name}（${cls.academic_year} 學年 第 ${cls.semester} 學期）`} back="/">
+    <Layout title={`${cls.name}（${cls.academic_year} 學年 第 ${cls.semester} 學期）`} back="/classes">
       {/* 班級操作列 */}
       <div className="mb-4 flex items-center justify-end gap-2">
         <button

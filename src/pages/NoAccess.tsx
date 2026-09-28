@@ -32,7 +32,7 @@ export default function NoAccess() {
         <p className="text-sm leading-relaxed text-slate-600">
           教師端只開放給指定的帳號。如果你是學生，要填的東西在
           <Link to="/health" className="mx-1 font-medium text-slate-900 underline">
-            健康登記頁
+            學生入口
           </Link>
           ，用同一個 Google 帳號就可以進去。
         </p>
