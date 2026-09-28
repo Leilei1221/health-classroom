@@ -383,7 +383,7 @@ function MissingData({ hasMeasurement, hasSelfcheck }: {
       </p>
       <div className="mt-4 space-y-2">
         {!hasMeasurement && (
-          <Link to="/health" className="block rounded-xl bg-[#12776E] py-3 text-center text-[15px] font-bold text-white">
+          <Link to="/health/register" className="block rounded-xl bg-[#12776E] py-3 text-center text-[15px] font-bold text-white">
             去完成身體數值登記
           </Link>
         )}

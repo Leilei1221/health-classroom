@@ -2,7 +2,10 @@ import { Navigate, Route, Routes } from 'react-router-dom'
 import { useAuth } from './auth'
 import { Spinner } from './components/ui'
 import Login from './pages/Login'
+import TeacherHome from './pages/TeacherHome'
 import Dashboard from './pages/Dashboard'
+import Demo from './pages/Demo'
+import Links from './pages/Links'
 import ClassDetail from './pages/ClassDetail'
 import SeatPicking from './pages/SeatPicking'
 import NoAccess from './pages/NoAccess'
@@ -16,8 +19,15 @@ export default function App() {
       {/* 學生選位頁：免登入，永遠可存取 */}
       <Route path="/seat/:code" element={<SeatPicking />} />
 
+      {/*
+        學生入口頁：掃 QR code 進來的第一頁，也是印在講義上的網址。
+        以前這條直接是登記表單，登記現在搬到 /health/register——
+        舊網址沒有失效，只是變成先看到入口。
+      */}
+      <Route path="/health" element={<HealthGate page="home" />} />
+
       {/* 健康管理：自行處理登入與身分，不受下方教師路由影響 */}
-      <Route path="/health" element={<HealthGate />} />
+      <Route path="/health/register" element={<HealthGate page="register" />} />
 
       {/* 教師紅旗查詢：唯讀，擋人條件在 FlagList 裡（要有帶班級）*/}
       <Route path="/health/teacher" element={<HealthGate page="teacher" />} />
@@ -35,7 +45,8 @@ export default function App() {
       <Route path="/health/plate" element={<HealthGate page="plate" />} />
 
       {/* 教師預覽學生畫面；非教師身分時與上面三條相同 */}
-      <Route path="/health/preview" element={<HealthGate preview />} />
+      <Route path="/health/preview" element={<HealthGate page="home" preview />} />
+      <Route path="/health/register/preview" element={<HealthGate page="register" preview />} />
       <Route path="/health/selfcheck/preview" element={<HealthGate page="selfcheck" preview />} />
       <Route path="/health/analysis/preview" element={<HealthGate page="analysis" preview />} />
       <Route path="/health/goal/preview" element={<HealthGate page="goal" preview />} />
@@ -53,8 +64,11 @@ export default function App() {
           <Route path="*" element={<Navigate to="/health" replace />} />
         ) : role === 'teacher' ? (
           <>
-            <Route path="/" element={<Dashboard />} />
+            <Route path="/" element={<TeacherHome />} />
+            <Route path="/classes" element={<Dashboard />} />
             <Route path="/class/:id" element={<ClassDetail />} />
+            <Route path="/demo" element={<Demo />} />
+            <Route path="/links" element={<Links />} />
             <Route path="*" element={<Navigate to="/" replace />} />
           </>
         ) : (

@@ -1,20 +1,13 @@
 import { Suspense, lazy, useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../auth'
 import Layout from '../components/Layout'
-import QrCode from '../components/QrCode'
 import { Button, Empty, ErrorBox, Field, Spinner, inputClass } from '../components/ui'
 import { createClass, deleteClass, listClasses, updateClass } from '../lib/api'
 import { friendlyError } from '../lib/errors'
 import type { ClassRow } from '../lib/types'
 
 const ImportPanel = lazy(() => import('../components/ImportPanel'))
-/*
-  L3 提示放在首頁最上方是規格書第五節教師端明文要求的位置。
-  lazy 載入：沒有紅旗的老師（多數情況）不必為了一個不會顯示的東西多下載一份程式，
-  而它要查資料庫，也不該擋住班級清單先出現。
-*/
-const L3Alert = lazy(() => import('../health/teacher/L3Alert'))
 
 /** 民國學年度：8 月起算新學年 */
 function currentAcademicYear(): number {
@@ -25,17 +18,11 @@ function currentAcademicYear(): number {
 
 export default function Dashboard() {
   const { teacher } = useAuth()
-  const nav = useNavigate()
   const [classes, setClasses] = useState<ClassRow[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [showForm, setShowForm] = useState(false)
   const [showImport, setShowImport] = useState(false)
-  const [showHealthQr, setShowHealthQr] = useState(false)
-  const [copied, setCopied] = useState(false)
-
-  // 健康登記頁對全校學生都是同一個網址，身分由 Google 登入決定，不像選位有班級碼
-  const healthUrl = `${window.location.origin}${window.location.pathname}#/health`
 
   // 編輯班級
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -129,38 +116,14 @@ export default function Dashboard() {
   }, {})
 
   return (
-    <Layout title="我的班級">
-      {/* 最上方，不是藏在某個分頁裡——規格書第五節教師端 */}
-      <Suspense fallback={null}><L3Alert classes={classes} /></Suspense>
-
+    <Layout title="我的班級" back="/">
       <div className="mb-4 flex items-center justify-between">
         <p className="text-sm text-slate-500">共 {classes.length} 個班級</p>
+        {/*
+          健康管理、示範區與內容管理的入口都搬到教師入口頁（/）了。
+          這裡以前有十顆按鈕，點名、健康、預覽混在一排，蕾蕾 9/27：「有點混亂」。
+        */}
         <div className="flex gap-2">
-          <Button variant="secondary" onClick={() => nav('/health/progress')}>
-            班級進度
-          </Button>
-          <Button variant="secondary" onClick={() => nav('/health/detail')}>
-            學生明細
-          </Button>
-          <Button variant="secondary" onClick={() => nav('/health/review')}>
-            SMART 與行動批改
-          </Button>
-          <Button variant="secondary" onClick={() => nav('/health/teacher')}>
-            需要關心的學生
-          </Button>
-          <Button variant="secondary" onClick={() => setShowHealthQr(true)}>
-            健康登記 QR code
-          </Button>
-          {/* 三個學生頁各有入口；學生端彼此有分頁列，預覽也照走 */}
-          <Button variant="secondary" onClick={() => nav('/health/preview')}>
-            預覽・登記
-          </Button>
-          <Button variant="secondary" onClick={() => nav('/health/selfcheck/preview')}>
-            預覽・自我檢測
-          </Button>
-          <Button variant="secondary" onClick={() => nav('/health/plate/preview')}>
-            預覽・我的餐盤
-          </Button>
           <Button variant="secondary" onClick={() => { setShowImport((v) => !v); setShowForm(false) }}>
             {showImport ? '取消匯入' : '匯入 Excel 名單'}
           </Button>
@@ -169,43 +132,6 @@ export default function Dashboard() {
           </Button>
         </div>
       </div>
-
-      {showHealthQr && (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="健康登記 QR code"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 p-6"
-          onClick={() => setShowHealthQr(false)}
-        >
-          <div
-            className="max-w-lg space-y-4 rounded-2xl bg-white p-8 text-center"
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h3 className="text-lg font-semibold">健康管理・身體數值登記</h3>
-            <p className="text-sm text-slate-600">
-              請同學用手機掃描，並以學校的 Google 帳號登入
-            </p>
-            <div className="flex justify-center">
-              <QrCode value={healthUrl} size={280} />
-            </div>
-            <p className="break-all font-mono text-xs text-slate-500">{healthUrl}</p>
-            <div className="flex justify-center gap-2">
-              <Button
-                variant="secondary"
-                onClick={() => {
-                  void navigator.clipboard?.writeText(healthUrl)
-                  setCopied(true)
-                  setTimeout(() => setCopied(false), 2000)
-                }}
-              >
-                {copied ? '已複製 ✓' : '複製連結'}
-              </Button>
-              <Button variant="secondary" onClick={() => setShowHealthQr(false)}>關閉</Button>
-            </div>
-          </div>
-        </div>
-      )}
 
       {error && <div className="mb-4"><ErrorBox message={error} /></div>}
 
