@@ -23,6 +23,8 @@ Migration：`supabase/migrations/20260829000000_health_classroom_init.sql`
 | 12 | `hc_import_batches` | Excel 匯入批次紀錄 |
 | 13 | `hc_sync_log` | Google Sheets 匯出紀錄 |
 | 14 | `hc_settings` | 設定，可掛教師層級或班級層級 |
+| 15 | `hc_links` | 教師放給學生的外部連結（CPR 節奏、情境解謎等）。只存連結，學生端另開新分頁；`visible` 控制顯示、`sort_order` 排序、`all_classes` 為 true 代表這位老師的所有班級 |
+| 16 | `hc_link_classes` | 連結與班級的對照（`all_classes = false` 時才看這張）。班級刪除時 cascade |
 | view | `hc_student_scores` | 學生總分＝出缺席分＋表現分 |
 
 ## 分組座位
