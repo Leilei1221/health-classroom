@@ -90,6 +90,13 @@ export default function TeacherHome() {
           to="/links"
           cta="管理課程活動連結"
         />
+
+        <Card
+          title="急救王國・遊戲後台"
+          desc="急救王國遊戲的學生進度、班級開關（開放章節）與發布天災。會另開新分頁，要在那一頁再登入一次。"
+          href="https://leilei1221.github.io/first-aid-kingdom/teacher.html"
+          cta="開啟遊戲後台 ↗"
+        />
       </div>
 
       {qr && <HealthQrDialog onClose={() => setQr(false)} />}
@@ -97,10 +104,11 @@ export default function TeacherHome() {
   )
 }
 
-function Card({ title, desc, to, cta, more, foot }: {
+function Card({ title, desc, to, href, cta, more, foot }: {
   title: string
   desc: string
-  to: string
+  to?: string
+  href?: string  // 外部網址：另開新分頁（急救王國後台是另一個網站）
   cta: string
   more?: { to: string; label: string }[]
   foot?: React.ReactNode
@@ -112,12 +120,23 @@ function Card({ title, desc, to, cta, more, foot }: {
         <p className="mt-1 text-sm leading-relaxed text-slate-500">{desc}</p>
       </div>
       <div className="mt-auto flex flex-wrap items-center gap-2">
-        <Link
-          to={to}
-          className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
-        >
-          {cta}
-        </Link>
+        {href ? (
+          <a
+            href={href}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+          >
+            {cta}
+          </a>
+        ) : (
+          <Link
+            to={to ?? '/'}
+            className="rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-slate-700"
+          >
+            {cta}
+          </Link>
+        )}
         {more?.map((m) => (
           <Link
             key={m.to}
