@@ -97,6 +97,13 @@ export default function TeacherHome() {
           href="https://leilei1221.github.io/first-aid-kingdom/teacher.html"
           cta="開啟遊戲後台 ↗"
         />
+
+        <Card
+          title="會議簽到與紀錄"
+          desc="建立會議、iPad 手寫簽名或掃 QR code 簽到、簡易會議紀錄與匯出。會另開新分頁，要在那一頁用 Google 再登入一次。"
+          href="https://leilei1221.github.io/meeting-checkin/"
+          cta="開啟會議簽到 ↗"
+        />
       </div>
 
       {qr && <HealthQrDialog onClose={() => setQr(false)} />}
