@@ -27,6 +27,11 @@ interface Props {
   onSelect?: (groupNo: number, seatSlot: number) => void
   /** 顯示每組人數統計 */
   showCounts?: boolean
+  /**
+   * default：原本的樣式（教師端點名、調位用）。
+   * glass：學生手機選位用，每排放兩組、座位縮小、莫蘭迪霧藍玻璃風格。
+   */
+  variant?: 'default' | 'glass'
 }
 
 const SEAT_BASE =
@@ -171,12 +176,127 @@ function GroupDesk({
   )
 }
 
+const GLASS_SEAT_STYLE: Record<SeatState, string> = {
+  empty: 'border-[1.5px] border-dashed border-mist-main/60 bg-white/40 text-mist-mute',
+  taken: 'border border-[#32465f]/20 bg-white/90 text-mist-ink shadow-[0_3px_8px_rgb(50_70_100/0.1)]',
+  mine: 'border border-white/70 bg-gradient-to-br from-mist-light to-mist-main text-white shadow-[0_0_0_3px_rgb(127_157_187/0.38),0_6px_14px_rgb(79_111_146/0.4)]',
+  // 選位頁沒有用到 selected；萬一用到，維持和「我的位子」一樣醒目
+  selected: 'border border-white/70 bg-gradient-to-br from-mist-light to-mist-main text-white shadow-[0_0_0_3px_rgb(127_157_187/0.38)]',
+}
+
+function GlassSeat({
+  occupant, groupNo, slot, onSelect,
+}: {
+  occupant?: SeatOccupant
+  groupNo: number
+  slot: number
+  onSelect?: (g: number, s: number) => void
+}) {
+  const state: SeatState = occupant?.state ?? 'empty'
+  return (
+    <button
+      type="button"
+      disabled={!onSelect}
+      onClick={() => onSelect?.(groupNo, slot)}
+      aria-label={`第 ${groupNo} 組 第 ${slot} 位${occupant ? `：${occupant.label}` : '：空位'}${state === 'mine' ? '（我的位子）' : ''}`}
+      className={`flex h-11 w-[50px] items-center justify-center overflow-hidden rounded-[14px] px-0.5 text-center text-xs font-medium transition ${GLASS_SEAT_STYLE[state]} ${onSelect ? 'cursor-pointer active:scale-95' : 'cursor-default'}`}
+    >
+      <span className="line-clamp-2 w-full break-all leading-tight">{occupant ? occupant.label : '空位'}</span>
+    </button>
+  )
+}
+
+function GlassGroup({
+  groupNo, capacity, occupants, onSelect, showCounts, className = '',
+}: {
+  groupNo: number
+  capacity: number
+  occupants: SeatOccupant[]
+  onSelect?: (g: number, s: number) => void
+  showCounts?: boolean
+  className?: string
+}) {
+  const { left, right, end } = groupLayout(capacity)
+  const at = (slot: number) => occupants.find((o) => o.group_no === groupNo && o.seat_slot === slot)
+  const seated = occupants.filter((o) => o.group_no === groupNo).length
+  const seat = (slot: number) => (
+    <GlassSeat key={slot} occupant={at(slot)} groupNo={groupNo} slot={slot} onSelect={onSelect} />
+  )
+
+  return (
+    <div className={`flex flex-col items-center gap-2 rounded-[20px] border border-white/75 bg-white/40 p-2.5 shadow-[inset_0_1px_0_rgb(255_255_255/0.9)] ${className}`}>
+      <div className="flex w-full items-center justify-between">
+        <span className="rounded-full bg-mist-main/15 px-2.5 py-0.5 text-xs font-bold text-mist-deep">
+          第 {groupNo} 組
+        </span>
+        {showCounts && <span className="text-xs text-mist-mute">{seated}/{capacity}</span>}
+      </div>
+      <div className="flex items-stretch gap-1.5">
+        <div className="flex flex-col gap-1.5">{left.map(seat)}</div>
+        <div
+          aria-hidden="true"
+          className="flex w-7 items-center justify-center rounded-[14px] border border-mist-main/20 bg-mist-main/10 text-[11px] text-mist-mute"
+        >
+          桌
+        </div>
+        <div className="flex flex-col gap-1.5">{right.map(seat)}</div>
+      </div>
+      {end !== null && seat(end)}
+    </div>
+  )
+}
+
+function GlassLegend() {
+  const chip = 'inline-block h-3.5 w-3.5 rounded-[5px]'
+  return (
+    <div className="flex items-center justify-center gap-3.5 text-xs text-mist-mute">
+      <span className="flex items-center gap-1.5">
+        <span className={`${chip} border-[1.5px] border-dashed border-mist-main/60 bg-white/40`} />空位
+      </span>
+      <span className="flex items-center gap-1.5">
+        <span className={`${chip} border border-[#32465f]/20 bg-white/90`} />已被選
+      </span>
+      <span className="flex items-center gap-1.5">
+        <span className={`${chip} bg-gradient-to-br from-mist-light to-mist-main`} />我的位子
+      </span>
+    </div>
+  )
+}
+
 /**
  * 分組座位圖：上下兩排討論桌，每組 U 字型就座，講台在最上方。
  */
 export default function GroupSeatMap({
   groupCount, groupCapacity, capacityOverrides, occupants, onSelect, showCounts = true,
+  variant = 'default',
 }: Props) {
+  if (variant === 'glass') {
+    // 手機寬度每排放兩組；組數是奇數時，最後一組置中
+    const groups = Array.from({ length: Math.max(1, Math.floor(groupCount)) }, (_, i) => i + 1)
+    const oddLast = groups.length % 2 === 1 ? groups[groups.length - 1] : null
+    return (
+      <div className="flex flex-col gap-3">
+        <div className="mx-auto w-[70%] rounded-b-3xl rounded-t-2xl bg-mist-deep/90 py-2 text-center text-[13px] font-medium tracking-[0.4em] text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.3)]">
+          講　台
+        </div>
+        <GlassLegend />
+        <div className="grid grid-cols-2 gap-2.5">
+          {groups.map((g) => (
+            <GlassGroup
+              key={g}
+              groupNo={g}
+              capacity={capacityFor(groupCapacity, capacityOverrides, g)}
+              occupants={occupants}
+              onSelect={onSelect}
+              showCounts={showCounts}
+              className={g === oddLast ? 'col-span-2 w-[calc(50%-5px)] justify-self-center' : ''}
+            />
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   const { top, bottom } = splitRows(groupCount)
 
   const row = (groups: number[]) => (
