@@ -37,7 +37,7 @@ export default function Handover() {
         <button
           onClick={() => void handOver()}
           disabled={busy}
-          className="w-full rounded-xl bg-[#B26A12] py-4 text-[17px] font-bold text-white disabled:cursor-not-allowed disabled:bg-[#D3B48A]"
+          className="w-full rounded-xl bg-[#965609] py-4 text-[17px] font-bold text-white disabled:cursor-not-allowed disabled:opacity-70"
         >
           {busy ? '登出中…' : '我填好了，換下一位同學'}
         </button>
