@@ -1,3 +1,4 @@
+import { Fragment } from 'react'
 import { capacityFor, groupLayout, splitRows, toneFor, type CapacityOverrides } from '../lib/seating'
 
 export type SeatState = 'empty' | 'taken' | 'mine' | 'selected'
@@ -313,25 +314,52 @@ export default function GroupSeatMap({
     // 手機寬度每排放兩組；組數是奇數時，最後一組置中
     const groups = Array.from({ length: Math.max(1, Math.floor(groupCount)) }, (_, i) => i + 1)
     const oddLast = groups.length % 2 === 1 ? groups[groups.length - 1] : null
+    const topCount = splitRows(groupCount).top.length
     return (
       <div className="flex flex-col gap-3">
         <div className="mx-auto w-[70%] rounded-b-3xl rounded-t-2xl bg-mist-deep/90 py-2 text-center text-[13px] font-medium tracking-[0.4em] text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.3)]">
           講　台
         </div>
         {showLegend && <GlassLegend />}
-        <div className={`mx-auto grid grid-cols-2 gap-2.5 ${wide ? 'max-w-3xl md:grid-cols-4' : ''}`}>
-          {groups.map((g) => (
-            <GlassGroup
-              key={g}
-              groupNo={g}
-              capacity={capacityFor(groupCapacity, capacityOverrides, g)}
-              occupants={occupants}
-              onSelect={onSelect}
-              showCounts={showCounts}
-              className={g === oddLast ? `col-span-2 w-[calc(50%-5px)] justify-self-center ${wide ? 'md:col-span-1 md:w-auto md:justify-self-stretch' : ''}` : ''}
-            />
-          ))}
-        </div>
+        {wide ? (
+          /*
+            教師端寬螢幕：照教室實際佈置分兩排，上排較少、下排較多
+            （7 組＝上 3 下 4；8 組＝上 4 下 4），和 splitRows 一致。
+            手機寬度仍是每排兩組。用 flex 加換行標記，不用固定欄數的 grid，
+            這樣上排 3 組可以置中，不會靠左留一格空位。
+          */
+          <div className="mx-auto flex max-w-3xl flex-wrap justify-center gap-2.5">
+            {groups.map((g) => (
+              <Fragment key={g}>
+                <GlassGroup
+                  groupNo={g}
+                  capacity={capacityFor(groupCapacity, capacityOverrides, g)}
+                  occupants={occupants}
+                  onSelect={onSelect}
+                  showCounts={showCounts}
+                  className="w-[calc(50%-5px)] md:w-[calc((100%-30px)/4)]"
+                />
+                {g === topCount && (
+                  <div aria-hidden className="hidden basis-full md:-my-[5px] md:block" />
+                )}
+              </Fragment>
+            ))}
+          </div>
+        ) : (
+          <div className="mx-auto grid grid-cols-2 gap-2.5">
+            {groups.map((g) => (
+              <GlassGroup
+                key={g}
+                groupNo={g}
+                capacity={capacityFor(groupCapacity, capacityOverrides, g)}
+                occupants={occupants}
+                onSelect={onSelect}
+                showCounts={showCounts}
+                className={g === oddLast ? 'col-span-2 w-[calc(50%-5px)] justify-self-center' : ''}
+              />
+            ))}
+          </div>
+        )}
       </div>
     )
   }
