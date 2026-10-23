@@ -13,7 +13,7 @@ export default {
         // 莫蘭迪霧藍：學生端（入口頁、選位頁）的玻璃風格用
         mist: {
           ink: '#2B3A4A',
-          mute: '#4E5F74',
+          mute: '#44556A',
           deep: '#3B5878',
           main: '#4F6F92',
           light: '#7F9DBB',

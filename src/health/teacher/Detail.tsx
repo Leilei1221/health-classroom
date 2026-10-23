@@ -131,7 +131,7 @@ export default function Detail() {
 
   return (
     <Shell subtitle={teacher?.display_name}>
-      <div className="mb-3 rounded-xl border border-[#E7C4C2] bg-[#FBEDEC] px-4 py-2.5 text-[13px] leading-relaxed text-[#A8403C]">
+      <div className="mb-3 rounded-xl border border-[#E7C4C2] bg-[#FBEDEC] px-4 py-2.5 text-[13px] leading-relaxed text-[#9A3834]">
         這一頁看得到分數和填答內容，<strong>請不要投影</strong>。
         上課要放的是 <Link to="/health/progress" className="underline">班級進度</Link>，那一頁只有「做了／沒做」。
       </div>
@@ -181,7 +181,7 @@ export default function Detail() {
       {/* 用哪一列門檻要看得見：年級設錯的話，這一行會先露餡 */}
       <p className="mb-3 text-xs text-mist-mute">
         {age === null ? (
-          <span className="rounded bg-[#FDF3E3] px-1.5 py-0.5 font-medium text-[#8A5310]">
+          <span className="rounded bg-[#FDF3E3] px-1.5 py-0.5 font-medium text-[#7A4A08]">
             年級未確認，這個班不套 BMI 門檻
           </span>
         ) : (
@@ -334,7 +334,7 @@ function Notes({ marks, className = '' }: { marks: Marks; className?: string }) 
   return (
     <p className={`font-medium ${className}`}>
       {items.map((m, i) => (
-        <span key={m.key} className={m.mark.tone === 'red' ? 'text-[#A8403C]' : 'text-[#8A5310]'}>
+        <span key={m.key} className={m.mark.tone === 'red' ? 'text-[#9A3834]' : 'text-[#7A4A08]'}>
           {i > 0 && <span className="text-mist-mute">、</span>}
           {m.label} {m.mark.note}
         </span>
@@ -346,7 +346,7 @@ function Notes({ marks, className = '' }: { marks: Marks; className?: string }) 
 function Val({ v, mark }: { v: number | null; mark?: Mark }) {
   if (v === null) return <span className="text-mist-mute">—</span>
   return (
-    <span className={mark ? (mark.tone === 'red' ? 'font-bold text-[#A8403C]' : 'font-bold text-[#8A5310]') : ''}>
+    <span className={mark ? (mark.tone === 'red' ? 'font-bold text-[#9A3834]' : 'font-bold text-[#7A4A08]') : ''}>
       {v.toFixed(1)}
     </span>
   )
@@ -531,14 +531,14 @@ function Row({ label, unit, value, base, mark, calc, digits }: {
           </span>
         )}
         <span className={`font-semibold tabular-nums ${
-          tone === 'red' ? 'text-[#A8403C]' : tone === 'amber' ? 'text-[#8A5310]' : ''
+          tone === 'red' ? 'text-[#9A3834]' : tone === 'amber' ? 'text-[#7A4A08]' : ''
         }`}>
           {shown === null ? <span className="font-normal text-mist-mute">—</span> : shown}
         </span>
         {unit && value !== null && <span className="text-xs text-mist-mute">{unit}</span>}
         {mark && (
           <span className={`ml-1 text-xs font-bold ${
-            mark.tone === 'red' ? 'text-[#A8403C]' : 'text-[#8A5310]'
+            mark.tone === 'red' ? 'text-[#9A3834]' : 'text-[#7A4A08]'
           }`}>
             {mark.note}
           </span>
@@ -569,7 +569,7 @@ function SelfcheckBlock({ student }: { student: DetailStudent }) {
         {life?.zones && (
           <>
             綠燈 {life.zones.green.length} 題・黃燈 {life.zones.yellow.length} 題・
-            <span className="font-semibold text-[#A8403C]">紅燈 {life.zones.red.length} 題</span>
+            <span className="font-semibold text-[#9A3834]">紅燈 {life.zones.red.length} 題</span>
             {life.zones.red.length > 0 && (
               <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[13px] text-mist-mute">
                 {life.zones.red.map((n) => (
@@ -592,7 +592,7 @@ function SelfcheckBlock({ student }: { student: DetailStudent }) {
                   <span
                     key={k}
                     className={`rounded-md px-1.5 py-0.5 text-[12px] ${
-                      ok ? 'bg-[#E3F1ED] text-[#4F6F92]' : 'bg-mist-main/10 text-mist-mute'
+                      ok ? 'bg-[#E3F1ED] text-[#3F5F82]' : 'bg-mist-main/10 text-mist-mute'
                     }`}
                   >
                     {ok ? '✓' : '○'} {H85210_SHORT[k] ?? k}
@@ -625,7 +625,7 @@ function SelfcheckBlock({ student }: { student: DetailStudent }) {
           <>
             {dep.score} 分・{dep.band?.label ?? ''}
             {dep.critical && (
-              <span className="ml-2 rounded-md bg-[#A8403C] px-1.5 py-0.5 text-[12px] font-bold text-white">
+              <span className="ml-2 rounded-md bg-[#9A3834] px-1.5 py-0.5 text-[12px] font-bold text-white">
                 第 20 題勾選
               </span>
             )}
@@ -648,7 +648,7 @@ function SelfcheckBlock({ student }: { student: DetailStudent }) {
       </Item>
 
       {sc.needs_followup && (
-        <p className="rounded-lg border border-[#E7C4C2] bg-[#FBEDEC] px-3 py-2 text-[13px] text-[#A8403C]">
+        <p className="rounded-lg border border-[#E7C4C2] bg-[#FBEDEC] px-3 py-2 text-[13px] text-[#9A3834]">
           這位同學在 <Link to="/health/teacher" className="underline">需要關心的學生</Link> 名單上。
         </p>
       )}
@@ -666,7 +666,7 @@ function Item({ name, done, flag, children }: {
     <div className="border-b border-mist-main/15 pb-2 last:border-0">
       <div className="flex items-baseline gap-2">
         <span className="w-28 shrink-0 text-mist-mute">{name}</span>
-        <span className={`flex-1 ${flag ? 'font-semibold text-[#A8403C]' : ''}`}>
+        <span className={`flex-1 ${flag ? 'font-semibold text-[#9A3834]' : ''}`}>
           {done ? children : <span className="text-mist-mute">還沒做</span>}
         </span>
       </div>
@@ -701,7 +701,7 @@ function Box({ tone, children }: { tone?: 'error'; children: React.ReactNode }) 
   return (
     <div className={`rounded-xl border px-4 py-4 text-sm ${
       tone === 'error'
-        ? 'border-[#E7C4C2] bg-[#FBEDEC] text-[#A8403C]'
+        ? 'border-[#E7C4C2] bg-[#FBEDEC] text-[#9A3834]'
         : 'border-mist-main/20 bg-white text-mist-mute'
     }`}>
       {children}

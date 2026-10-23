@@ -124,7 +124,7 @@ export default function ImportPanel({ onDone }: { onDone: () => void }) {
               偵測到 {parsed.classNames.length} 個班級，共 {parsed.rows.length} 位學生
             </h3>
             {parsed.skipped > 0 && (
-              <p className="mt-1 text-xs text-amber-700">
+              <p className="mt-1 text-xs text-[#7A4A08]">
                 有 {parsed.skipped} 列因缺少班級／學號／姓名而略過。
               </p>
             )}

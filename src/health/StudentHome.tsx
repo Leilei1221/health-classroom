@@ -100,7 +100,7 @@ export default function StudentHome({ student, isPreview, healthEnabled }: {
               {student.academic_year} 學年度第 {student.semester} 學期
             </div>
             {isPreview && (
-              <div className="mt-1.5 inline-block rounded bg-[#FDF3E3] px-2 py-0.5 text-[12px] font-bold text-[#8A5310]">
+              <div className="mt-1.5 inline-block rounded bg-[#FDF3E3] px-2 py-0.5 text-[12px] font-bold text-[#7A4A08]">
                 預覽模式・不會儲存
               </div>
             )}

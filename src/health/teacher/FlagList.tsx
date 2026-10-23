@@ -129,12 +129,12 @@ export default function FlagList() {
 
       <div className="mt-5 space-y-2 rounded-xl border border-dashed border-mist-main/35 bg-white/50 px-4 py-3.5 text-xs leading-relaxed text-mist-mute">
         <p>
-          <strong className="mr-1.5 text-[#A8403C]">● 立即</strong>
+          <strong className="mr-1.5 text-[#9A3834]">● 立即</strong>
           情緒自我檢視表第 20 題「我想要消失不見」答是。不看總分，
           而且答過之後即使重做也不會消失。
         </p>
         <p>
-          <strong className="mr-1.5 text-[#8A5310]">▲ 需關注</strong>
+          <strong className="mr-1.5 text-[#7A4A08]">▲ 需關注</strong>
           心情溫度計 15 分以上、情緒自我檢視表 12 分以上、或壓力偵測站 6 項以上。
         </p>
         <p>
@@ -176,7 +176,7 @@ function Section({
     <section>
       <div className="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <h2 className={`text-base font-semibold ${
-          level === 3 ? 'text-[#A8403C]' : level === 2 ? 'text-[#8A5310]' : 'text-mist-deep'
+          level === 3 ? 'text-[#9A3834]' : level === 2 ? 'text-[#7A4A08]' : 'text-mist-deep'
         }`}>
           {level === 3 ? '● ' : level === 2 ? '▲ ' : ''}{title}
         </h2>
@@ -216,7 +216,7 @@ function Card({
       <div className="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
         <Badge level={r.level} />
         {r.l3Count >= 2 && (
-          <span className="rounded-md border border-[#A8403C] px-1.5 py-0.5 text-xs font-bold text-[#A8403C]">
+          <span className="rounded-md border border-[#9A3834] px-1.5 py-0.5 text-xs font-bold text-[#9A3834]">
             重複觸發 {r.l3Count} 次
           </span>
         )}
@@ -270,7 +270,7 @@ function Card({
               className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
                 r.reviewed
                   ? 'border border-mist-main/35 bg-white text-mist-mute hover:bg-white/70'
-                  : 'bg-[#A8403C] text-white hover:bg-[#8F3532]'
+                  : 'bg-[#9A3834] text-white hover:bg-[#8F3532]'
               }`}
             >
               {r.reviewed ? '修改處理結果' : '已聯繫'}
@@ -342,7 +342,7 @@ function ReviewForm({
           className="w-full rounded-lg border border-mist-main/35 px-2.5 py-1.5 text-sm"
         />
       </label>
-      {err && <p className="mt-1.5 text-sm text-[#A8403C]">{err}</p>}
+      {err && <p className="mt-1.5 text-sm text-[#9A3834]">{err}</p>}
       <div className="mt-2 flex gap-2">
         <button
           onClick={() => void save()}
@@ -386,14 +386,14 @@ function UndoButton({
 function Badge({ level }: { level: RiskLevel }) {
   if (level === 3) {
     return (
-      <span className="inline-flex whitespace-nowrap rounded-md bg-[#A8403C] px-2 py-1 text-xs font-bold text-white">
+      <span className="inline-flex whitespace-nowrap rounded-md bg-[#9A3834] px-2 py-1 text-xs font-bold text-white">
         ● 立即
       </span>
     )
   }
   if (level === 2) {
     return (
-      <span className="inline-flex whitespace-nowrap rounded-md border border-[#D19A2E] px-2 py-1 text-xs font-medium text-[#8A5310]">
+      <span className="inline-flex whitespace-nowrap rounded-md border border-[#D19A2E] px-2 py-1 text-xs font-medium text-[#7A4A08]">
         ▲ 需關注
       </span>
     )
@@ -457,7 +457,7 @@ function Box({ tone, children }: { tone?: 'error'; children: React.ReactNode }) 
   return (
     <div className={`rounded-xl border px-4 py-4 text-sm ${
       tone === 'error'
-        ? 'border-[#E7C4C2] bg-[#FBEDEC] text-[#A8403C]'
+        ? 'border-[#E7C4C2] bg-[#FBEDEC] text-[#9A3834]'
         : 'border-mist-main/20 bg-white text-mist-mute'
     }`}>
       {children}

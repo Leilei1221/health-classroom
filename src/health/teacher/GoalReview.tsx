@@ -136,7 +136,7 @@ export default function GoalReview() {
                       key={row.student_id}
                       onClick={() => setStudentId(row.student_id)}
                       className={`flex w-full items-center gap-2 px-3 py-3 text-left ${
-                        studentId === row.student_id ? 'bg-[#E6EBF0]' : 'bg-white hover:bg-white/70'
+                        studentId === row.student_id ? 'bg-mist-main/15' : 'bg-white/40 hover:bg-white/70'
                       }`}
                     >
                       <span className="w-10 text-sm tabular-nums text-mist-mute">{row.seat_no ?? '—'} 號</span>
@@ -176,8 +176,8 @@ export default function GoalReview() {
 
 function StudentStatus({ row }: { row: GoalReviewStudent }) {
   if (!row.goal?.confirmed) return <span className="text-xs font-bold text-mist-mute">未交</span>
-  if (!row.review) return <span className="text-xs font-bold text-amber-700">待批改</span>
-  return <span className="text-xs font-bold text-[#4F6F92]">{REVIEW_LABEL[row.review.status]}</span>
+  if (!row.review) return <span className="text-xs font-bold text-[#7A4A08]">待批改</span>
+  return <span className="text-xs font-bold text-[#3F5F82]">{REVIEW_LABEL[row.review.status]}</span>
 }
 
 function GoalPanel({ row }: { row: GoalReviewStudent }) {
@@ -186,7 +186,7 @@ function GoalPanel({ row }: { row: GoalReviewStudent }) {
   return (
     <section className="overflow-hidden glass rounded-3xl">
       <div className="border-b border-white/70 bg-white/40 px-4 py-3">
-        <p className="text-xs font-bold text-[#4F6F92]">{row.seat_no ?? '—'} 號・{row.name}</p>
+        <p className="text-xs font-bold text-[#3F5F82]">{row.seat_no ?? '—'} 號・{row.name}</p>
         <h2 className="mt-1 text-lg font-bold">{goal.direction}</h2>
       </div>
       <div className="space-y-4 p-4 text-sm leading-relaxed">
@@ -202,7 +202,7 @@ function GoalPanel({ row }: { row: GoalReviewStudent }) {
           <div className="mt-1 divide-y divide-mist-main/15 border-y border-mist-main/15">
             {weeks.map((week, index) => (
               <div key={index} className="grid grid-cols-[56px_1fr] gap-2 py-2">
-                <b className="text-[#4F6F92]">第 {index + 1} 週</b>
+                <b className="text-[#3F5F82]">第 {index + 1} 週</b>
                 <span>{week || '未填寫'}</span>
               </div>
             ))}
@@ -259,7 +259,7 @@ function CheckinPanel({ row, weekNo, onWeek }: {
                 <div className="flex items-center gap-2">
                   <b>第 {item.day_no} 天</b>
                   <span className="text-xs text-mist-mute">{item.check_date}</span>
-                  <span className="ml-auto rounded-full bg-[#E6EBF0] px-2 py-1 text-xs font-bold text-[#4F6F92]">
+                  <span className="ml-auto rounded-full bg-[#E6EBF0] px-2 py-1 text-xs font-bold text-[#3F5F82]">
                     {CHECKIN_LABEL[item.status]}
                   </span>
                 </div>
@@ -320,7 +320,7 @@ function ReviewEditor({ status, feedback, saving, saved, onStatus, onFeedback, o
       >
         {saving ? '儲存中…' : '儲存批改'}
       </button>
-      {saved && <p className="mt-2 text-center text-xs font-bold text-[#4F6F92]">批改已儲存，學生端會看到這則回饋。</p>}
+      {saved && <p className="mt-2 text-center text-xs font-bold text-[#3F5F82]">批改已儲存，學生端會看到這則回饋。</p>}
     </section>
   )
 }
@@ -347,7 +347,7 @@ function Notice({ tone, children }: { tone?: 'error'; children: React.ReactNode 
   return (
     <div className={`rounded-xl border px-4 py-4 text-sm ${
       tone === 'error'
-        ? 'border-[#E7C4C2] bg-[#FBEDEC] text-[#A8403C]'
+        ? 'border-[#E7C4C2] bg-[#FBEDEC] text-[#9A3834]'
         : 'border-mist-main/20 bg-white text-mist-mute'
     }`}>
       {children}

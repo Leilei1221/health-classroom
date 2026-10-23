@@ -121,7 +121,7 @@ export default function BreathingGuide() {
     <div className="mt-3 rounded-xl border border-mist-main/25 bg-[#F4F7FA] px-4 py-4 text-center">
       <div className="mb-3 rounded-xl bg-white px-3 py-3 text-left">
         <b className="block text-[14px]">語音引導冥想</b>
-        <p className="mt-1 text-[12.5px] leading-relaxed text-[#4E5F74]">
+        <p className="mt-1 text-[12.5px] leading-relaxed text-[#44556A]">
           按下後會用瀏覽器中文語音帶你做三輪 3-3-6，最後接一個感恩覺察。
         </p>
         <button
@@ -137,11 +137,11 @@ export default function BreathingGuide() {
           <span className="text-lg font-bold">{running ? current.label : '準備'}</span>
         </div>
       </div>
-      <p className="mt-3 text-[13.5px] text-[#4E5F74]">
+      <p className="mt-3 text-[13.5px] text-[#44556A]">
         {MODES[mode].label}，一輪 {total} 秒。跟著圓圈放大縮小，先做 3 輪就好。
       </p>
       {scan && (
-        <p className="mt-1 text-[13.5px] font-medium text-[#4F6F92]">
+        <p className="mt-1 text-[13.5px] font-medium text-[#3F5F82]">
           吐氣時放鬆：{scan}
         </p>
       )}
@@ -152,7 +152,7 @@ export default function BreathingGuide() {
         <button
           type="button"
           onClick={() => start('focus', false)}
-          className="rounded-xl border border-[#4F6F92] bg-white py-2.5 text-[14px] font-bold text-[#4F6F92]"
+          className="rounded-xl border border-[#4F6F92] bg-white py-2.5 text-[14px] font-bold text-[#3F5F82]"
         >
           3-3-6
         </button>
@@ -164,14 +164,14 @@ export default function BreathingGuide() {
           3-3-9
         </button>
       </div>
-      <p className="mt-2 text-left text-[12px] leading-relaxed text-[#8A5310]">
+      <p className="mt-2 text-left text-[12px] leading-relaxed text-[#7A4A08]">
         若覺得胸悶、頭暈或不舒服，先停止練習，改成自然呼吸。
       </p>
       {running && (
         <button
           type="button"
           onClick={() => setRunning(false)}
-          className="mt-2 text-[13px] font-medium text-[#4E5F74] underline"
+          className="mt-2 text-[13px] font-medium text-[#44556A] underline"
         >
           暫停
         </button>

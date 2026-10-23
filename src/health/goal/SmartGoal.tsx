@@ -400,7 +400,7 @@ export default function SmartGoal({ preview }: { preview?: StudentProfile }) {
           </PreviewBanner>
         )}
         {error && (
-          <div className="mx-3 mt-3 rounded-lg bg-[#FBEDEC] px-4 py-3 text-sm text-[#A8403C]">
+          <div className="mx-3 mt-3 rounded-lg bg-[#FBEDEC] px-4 py-3 text-sm text-[#9A3834]">
             {error}
           </div>
         )}
@@ -577,13 +577,13 @@ function buildPrompt(draft: GoalDraft): string {
 function Intro({ ready }: { ready: boolean }) {
   return (
     <section className="mx-3 my-3.5 glass rounded-3xl px-4 py-4">
-      <p className="text-[12px] font-bold tracking-widest text-[#4F6F92]">SMART 目標工作台</p>
+      <p className="text-[12px] font-bold tracking-widest text-[#3F5F82]">SMART 目標工作台</p>
       <h2 className="mt-1 text-xl font-bold">把建議變成四週做得到的計畫</h2>
-      <p className="mt-2 text-[14px] leading-relaxed text-[#4E5F74]">
+      <p className="mt-2 text-[14px] leading-relaxed text-[#44556A]">
         先從分析或學習單的小行動挑一項，再用 AI 提問稿幫自己檢查目標是否清楚、可測量、可執行。
       </p>
       {!ready && (
-        <div className="mt-3 rounded-xl border border-[#E2C9A6] bg-[#FDF3E3] px-3 py-2 text-[13px] leading-relaxed text-[#8A5310]">
+        <div className="mt-3 rounded-xl border border-[#E2C9A6] bg-[#FDF3E3] px-3 py-2 text-[13px] leading-relaxed text-[#7A4A08]">
           目前資料還不完整，也可以先用下方通用方向練習寫目標。
         </div>
       )}
@@ -600,9 +600,9 @@ function DirectionPicker({ options, selectedIds, onChoose }: {
     <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
       <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
         <h3 className="text-base font-bold">1. 選 1-3 個健康方向</h3>
-        <p className="mt-0.5 text-[13px] text-[#4E5F74]">一個就很好，最多三個。先求穩定，不求多。</p>
+        <p className="mt-0.5 text-[13px] text-[#44556A]">一個就很好，最多三個。先求穩定，不求多。</p>
       </div>
-      <div className="border-b border-mist-main/25 px-4 py-2 text-[12.5px] font-bold text-[#4F6F92]">
+      <div className="border-b border-mist-main/25 px-4 py-2 text-[12.5px] font-bold text-[#3F5F82]">
         已選 {selectedIds.length}/3
       </div>
       <div className="grid gap-2.5 p-3">
@@ -624,11 +624,11 @@ function DirectionPicker({ options, selectedIds, onChoose }: {
             >
               <div className="flex items-center justify-between gap-3">
                 <b className="text-[15px]">{option.label}</b>
-                <span className="shrink-0 rounded-full bg-white px-2 py-0.5 text-[11.5px] font-bold text-[#4F6F92]">
+                <span className="shrink-0 rounded-full bg-white px-2 py-0.5 text-[11.5px] font-bold text-[#3F5F82]">
                   {option.domain}
                 </span>
               </div>
-              <p className="mt-1.5 text-[13.5px] leading-relaxed text-[#4E5F74]">{option.detail}</p>
+              <p className="mt-1.5 text-[13.5px] leading-relaxed text-[#44556A]">{option.detail}</p>
             </button>
           )
         })}
@@ -672,7 +672,7 @@ function SmartEditor({ draft, warnings, onChange }: {
               onChange={(e) => onChange('confidence', Number(e.target.value))}
               className="mt-3 w-full accent-[#4F6F92]"
             />
-            <div className="text-center text-[13px] font-bold text-[#4F6F92]">{draft.confidence}/10</div>
+            <div className="text-center text-[13px] font-bold text-[#3F5F82]">{draft.confidence}/10</div>
           </Field>
         </div>
         <Field label="R 合理：我為什麼想做？">
@@ -718,7 +718,7 @@ function SmartEditor({ draft, warnings, onChange }: {
           <SmallInput value={draft.reward} onChange={(v) => onChange('reward', v)} placeholder="例：看一集喜歡的影集、買一杯無糖飲料。" />
         </Field>
         {warnings.length > 0 && (
-          <div className="rounded-xl border border-[#E2C9A6] bg-[#FDF3E3] px-3 py-2.5 text-[13px] leading-relaxed text-[#8A5310]">
+          <div className="rounded-xl border border-[#E2C9A6] bg-[#FDF3E3] px-3 py-2.5 text-[13px] leading-relaxed text-[#7A4A08]">
             {warnings.map((w) => <p key={w}>{w}</p>)}
           </div>
         )}
@@ -736,16 +736,16 @@ function AiPromptPanel({ prompt, copied, onCopy }: {
     <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
       <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
         <h3 className="text-base font-bold">3. AI 提問腳手架</h3>
-        <p className="mt-0.5 text-[13px] text-[#4E5F74]">資料不會自動送出，只有你自己複製貼上才會離開這個頁面。</p>
+        <p className="mt-0.5 text-[13px] text-[#44556A]">資料不會自動送出，只有你自己複製貼上才會離開這個頁面。</p>
       </div>
       <div className="space-y-3 p-4">
-        <div className="grid grid-cols-5 gap-1.5 text-center text-[11.5px] font-bold text-[#4F6F92]">
+        <div className="grid grid-cols-5 gap-1.5 text-center text-[11.5px] font-bold text-[#3F5F82]">
           {['看見現象', '產生疑問', '定義問題', '拆解比較', '回到目的'].map((step) => (
             <div key={step} className="rounded-lg bg-[#E6EBF0] px-1.5 py-2">{step}</div>
           ))}
         </div>
         <div className="rounded-xl border border-mist-main/25 bg-[#F4F7FA] px-3 py-3">
-          <p className="text-[13.5px] leading-relaxed text-[#4E5F74]">
+          <p className="text-[13.5px] leading-relaxed text-[#44556A]">
             這份提問稿把你的目標、情境、限制和輸出格式寫清楚，請 AI 幫你整理，而不是讓 AI 替你決定。
           </p>
           <pre className="mt-3 max-h-72 overflow-auto whitespace-pre-wrap rounded-xl bg-white p-3 text-[12.5px] leading-relaxed text-[#2B3A4A]">
@@ -773,7 +773,7 @@ function ConfirmGoal({ confirmed, disabled, saving, savedAt, onConfirm }: {
   return (
     <section className="mx-3 my-3.5 glass rounded-3xl px-4 py-4">
       <h3 className="text-base font-bold">4. 確認目標草稿</h3>
-      <p className="mt-2 text-[14px] leading-relaxed text-[#4E5F74]">
+      <p className="mt-2 text-[14px] leading-relaxed text-[#44556A]">
         複製提問稿去問 AI，調整完 SMART 目標後，再回來按確認，下面才會出現 WSQ 反思。
       </p>
       <button
@@ -783,7 +783,7 @@ function ConfirmGoal({ confirmed, disabled, saving, savedAt, onConfirm }: {
           disabled || saving
             ? 'bg-[#B9C6D4] text-white'
             : confirmed
-              ? 'bg-[#E6EBF0] text-[#4F6F92]'
+              ? 'bg-[#E6EBF0] text-[#3F5F82]'
               : 'bg-[#4F6F92] text-white'
         }`}
       >
@@ -803,36 +803,36 @@ function GoalSummary({ draft, savedAt, onEdit }: {
   return (
     <section className="mx-3 my-3.5 overflow-hidden rounded-2xl border border-[#BBDDD6] bg-white">
       <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
-        <p className="text-[12px] font-bold tracking-widest text-[#4F6F92]">我的 SMART 目標</p>
+        <p className="text-[12px] font-bold tracking-widest text-[#3F5F82]">我的 SMART 目標</p>
         <h2 className="mt-1 text-lg font-bold">{draft.direction || '我的健康行動'}</h2>
       </div>
       <div className="space-y-4 p-4">
         <div>
-          <p className="text-[12.5px] font-bold text-[#4F6F92]">四週行動摘要</p>
+          <p className="text-[12.5px] font-bold text-[#3F5F82]">四週行動摘要</p>
           <p className="mt-1.5 text-[15px] leading-relaxed">
             我會{draft.action}，{draft.frequency}，並以「{draft.measure}」確認自己有做到。
           </p>
         </div>
         {draft.why && (
           <div>
-            <p className="text-[12.5px] font-bold text-[#4F6F92]">我為什麼要做</p>
-            <p className="mt-1 text-[14px] leading-relaxed text-[#4E5F74]">{draft.why}</p>
+            <p className="text-[12.5px] font-bold text-[#3F5F82]">我為什麼要做</p>
+            <p className="mt-1 text-[14px] leading-relaxed text-[#44556A]">{draft.why}</p>
           </div>
         )}
         <div>
-          <p className="text-[12.5px] font-bold text-[#4F6F92]">每週行動指引</p>
+          <p className="text-[12.5px] font-bold text-[#3F5F82]">每週行動指引</p>
           <div className="mt-2 divide-y divide-[#E3EAF1] border-y border-[#E3EAF1]">
             {weeks.map((week, index) => (
               <div key={index} className="grid grid-cols-[56px_1fr] gap-2 py-2.5 text-[13.5px] leading-relaxed">
-                <b className="text-[#4F6F92]">第 {index + 1} 週</b>
-                <span className="text-[#4E5F74]">{week || '依照主要行動持續練習與記錄。'}</span>
+                <b className="text-[#3F5F82]">第 {index + 1} 週</b>
+                <span className="text-[#44556A]">{week || '依照主要行動持續練習與記錄。'}</span>
               </div>
             ))}
           </div>
         </div>
         <button
           onClick={onEdit}
-          className="w-full rounded-xl border border-[#4F6F92] bg-white py-3 text-[15px] font-bold text-[#4F6F92]"
+          className="w-full rounded-xl border border-[#4F6F92] bg-white py-3 text-[15px] font-bold text-[#3F5F82]"
         >
           修改目標
         </button>
@@ -850,7 +850,7 @@ function TeacherReview({ review }: { review: HealthGoalReview }) {
   } as const
   return (
     <section className="mx-3 my-3.5 rounded-2xl border border-[#D8C8A8] bg-[#FFF9ED] px-4 py-4">
-      <p className="text-[12px] font-bold tracking-widest text-[#8A5310]">教師回饋</p>
+      <p className="text-[12px] font-bold tracking-widest text-[#7A4A08]">教師回饋</p>
       <h3 className="mt-1 text-base font-bold">{labels[review.status]}</h3>
       {review.feedback && (
         <p className="mt-2 whitespace-pre-wrap text-[14px] leading-relaxed text-[#5F5140]">
@@ -909,7 +909,7 @@ function WsqReflection({ draft, onChange, saving, savedAt, onSave }: {
 
 function SavedText({ savedAt }: { savedAt: string }) {
   return (
-    <p className="mt-2 text-center text-[12.5px] text-[#4E5F74]">
+    <p className="mt-2 text-center text-[12.5px] text-[#44556A]">
       已儲存：{new Date(savedAt).toLocaleString('zh-TW', { hour12: false })}
     </p>
   )
@@ -917,7 +917,7 @@ function SavedText({ savedAt }: { savedAt: string }) {
 
 function SaveNote({ isPreview }: { isPreview: boolean }) {
   return (
-    <section className="mx-3 my-3.5 rounded-3xl border border-dashed border-mist-main/40 bg-white/50 px-4 py-3 text-[13px] leading-relaxed text-[#4E5F74]">
+    <section className="mx-3 my-3.5 rounded-3xl border border-dashed border-mist-main/40 bg-white/50 px-4 py-3 text-[13px] leading-relaxed text-[#44556A]">
       <p>
         {isPreview
           ? '預覽模式只暫存在這台裝置，不會寫入資料庫。'
@@ -938,7 +938,7 @@ function HighRiskGoal({ risk }: { risk: 2 | 3 }) {
     <>
       <section className="mx-3 my-3.5 glass rounded-3xl px-4 py-4">
         <h2 className="text-lg font-bold">先照顧現在的自己</h2>
-        <p className="mt-2 text-[14px] leading-relaxed text-[#4E5F74]">
+        <p className="mt-2 text-[14px] leading-relaxed text-[#44556A]">
           請先看完下面的關懷訊息。關懷與課堂作業會分開進行，你仍可在下方完成 SMART 目標。
         </p>
       </section>

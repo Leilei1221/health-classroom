@@ -136,20 +136,20 @@ export default function HealthRegister({ preview }: { preview?: StudentProfile }
         </div>
 
         {isPreview && (
-          <div className="mx-3 mt-3 rounded-lg border border-[#E2C9A6] bg-[#FDF3E3] px-4 py-3 text-sm text-[#8A5310]">
+          <div className="mx-3 mt-3 rounded-lg border border-[#E2C9A6] bg-[#FDF3E3] px-4 py-3 text-sm text-[#7A4A08]">
             <strong>預覽模式</strong>　這是學生在手機上看到的畫面。欄位可以試填、
             自動計算也會跟著動，但送出已停用，不會寫入任何資料。
           </div>
         )}
 
         {loadWarning && (
-          <div className="mx-3 mt-3 rounded-lg bg-[#FDF3E3] px-4 py-3 text-sm text-[#8A5310]">
+          <div className="mx-3 mt-3 rounded-lg bg-[#FDF3E3] px-4 py-3 text-sm text-[#7A4A08]">
             {loadWarning}
           </div>
         )}
 
         {error && (
-          <div className="mx-3 mt-3 rounded-lg bg-[#FBEDEC] px-4 py-3 text-sm text-[#A8403C]">
+          <div className="mx-3 mt-3 rounded-lg bg-[#FBEDEC] px-4 py-3 text-sm text-[#9A3834]">
             {error}
           </div>
         )}
@@ -162,7 +162,7 @@ export default function HealthRegister({ preview }: { preview?: StudentProfile }
               <section key={sec.title} className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
                 <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
                   <h3 className="text-base font-bold">{sec.title}</h3>
-                  <p className="mt-0.5 text-[13px] text-[#4E5F74]">{sec.hint}</p>
+                  <p className="mt-0.5 text-[13px] text-[#44556A]">{sec.hint}</p>
                 </div>
                 <div className="px-4 pb-3.5 pt-1.5">
                   {sec.fields.map((f) => {
@@ -172,7 +172,7 @@ export default function HealthRegister({ preview }: { preview?: StudentProfile }
                         <div className="flex items-center gap-3 border-b border-[#F2F5F8] py-2.5 last:border-0">
                           <label className="flex-1 text-[15px]" htmlFor={f.key}>
                             {f.label}
-                            {f.sub && <span className="block text-xs text-[#4E5F74]">{f.sub}</span>}
+                            {f.sub && <span className="block text-xs text-[#44556A]">{f.sub}</span>}
                           </label>
                           <input
                             id={f.key}
@@ -181,13 +181,13 @@ export default function HealthRegister({ preview }: { preview?: StudentProfile }
                             onChange={(e) => set(f.key, e.target.value)}
                             placeholder="—"
                             className={`w-[110px] rounded-lg border-[1.5px] px-2.5 py-2 text-right text-[19px] font-semibold tabular-nums outline-none focus:border-[#4F6F92] focus:ring-1 focus:ring-[#4F6F92] ${
-                              bad ? 'border-[#A8403C] bg-[#FBEDEC]' : 'border-mist-main/25 bg-white'
+                              bad ? 'border-[#9A3834] bg-[#FBEDEC]' : 'border-mist-main/25 bg-white'
                             }`}
                           />
-                          <span className="w-9 text-[13px] text-[#4E5F74]">{f.unit}</span>
+                          <span className="w-9 text-[13px] text-[#44556A]">{f.unit}</span>
                         </div>
                         {bad && (
-                          <div className="mb-2.5 rounded-lg bg-[#FBEDEC] px-3 py-2 text-[13px] text-[#A8403C]">
+                          <div className="mb-2.5 rounded-lg bg-[#FBEDEC] px-3 py-2 text-[13px] text-[#9A3834]">
                             這個數字看起來不太對（合理範圍 {f.min}～{f.max}），請再確認一次機器上的讀數。
                           </div>
                         )}
@@ -199,7 +199,7 @@ export default function HealthRegister({ preview }: { preview?: StudentProfile }
             ))}
 
             {suspicious.length > 0 && missing.length === 0 && (
-              <div className="mx-3 mb-3 rounded-xl border border-[#E2C9A6] bg-[#FDF3E3] p-4 text-sm text-[#8A5310]">
+              <div className="mx-3 mb-3 rounded-xl border border-[#E2C9A6] bg-[#FDF3E3] p-4 text-sm text-[#7A4A08]">
                 <p className="mb-2">
                   有 {suspicious.length} 個數字超出常見範圍：
                   {suspicious.map((f) => f.label).join('、')}。
@@ -224,7 +224,7 @@ export default function HealthRegister({ preview }: { preview?: StudentProfile }
 
       {!saved && (
         <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[520px] border-t border-mist-main/25 bg-white/95 px-4 pb-[calc(12px+env(safe-area-inset-bottom))] pt-3">
-          <div className="mb-2 text-[13px] text-[#4E5F74]">
+          <div className="mb-2 text-[13px] text-[#44556A]">
             {isPreview
               ? '預覽模式：不會寫入資料'
               : missing.length > 0
@@ -269,7 +269,7 @@ function Result({ bmi, whr, sbp, dbp, onEdit }: {
       <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
         <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
           <h3 className="text-base font-bold">今天的紀錄</h3>
-          <p className="mt-0.5 text-[13px] text-[#4E5F74]">
+          <p className="mt-0.5 text-[13px] text-[#44556A]">
             這些數字是這學期的起點，之後會拿來跟自己比較
           </p>
         </div>
@@ -279,19 +279,19 @@ function Result({ bmi, whr, sbp, dbp, onEdit }: {
             <div>
               <h4 className="text-[15px]">{name}</h4>
               <div className="my-0.5 text-2xl font-bold tabular-nums">{value}</div>
-              <p className="text-sm text-[#4E5F74]">
+              <p className="text-sm text-[#44556A]">
                 <strong>{v.label}</strong>　{v.msg}
               </p>
             </div>
           </div>
         ))}
       </section>
-      <div className="mx-3 rounded-2xl border border-dashed border-mist-main/40 bg-white/50 px-4 py-3.5 text-[13px] text-[#4E5F74]">
+      <div className="mx-3 rounded-2xl border border-dashed border-mist-main/40 bg-white/50 px-4 py-3.5 text-[13px] text-[#44556A]">
         這裡看到的是參考範圍，不是診斷。數值只是提供你認識自己身體的線索，
         接下來的課會一起討論可以怎麼調整。
       </div>
       <div className="mx-3 mt-4">
-        <button onClick={onEdit} className="w-full rounded-xl border border-mist-main/25 bg-white py-3 text-[15px] font-medium text-[#4F6F92]">
+        <button onClick={onEdit} className="w-full rounded-xl border border-mist-main/25 bg-white py-3 text-[15px] font-medium text-[#3F5F82]">
           修改我填的數值
         </button>
       </div>

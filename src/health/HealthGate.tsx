@@ -147,7 +147,7 @@ function SignIn({ onSignIn }: { onSignIn: () => Promise<void> }) {
       <div className="w-full max-w-sm space-y-6 glass rounded-3xl p-8">
         <div className="space-y-1 text-center">
           <h1 className="text-xl font-bold text-[#2B3A4A]">健康管理・身體數值登記</h1>
-          <p className="text-sm text-[#4E5F74]">國立花蓮高級中學</p>
+          <p className="text-sm text-[#44556A]">國立花蓮高級中學</p>
         </div>
         <button
           onClick={() => void onSignIn()}
@@ -155,7 +155,7 @@ function SignIn({ onSignIn }: { onSignIn: () => Promise<void> }) {
         >
           用學校 Google 帳號登入
         </button>
-        <p className="text-center text-xs text-[#4E5F74]">
+        <p className="text-center text-xs text-[#44556A]">
           請使用學校發的帳號（<span className="font-mono">s學號@hlhs.hlc.edu.tw</span>）
         </p>
       </div>
@@ -170,10 +170,10 @@ function Notice({ title, body, onSignOut }: {
     <div className="glass-page-mesh flex min-h-screen items-center justify-center p-6">
       <div className="w-full max-w-sm space-y-4 glass rounded-3xl p-8 text-center">
         <h1 className="text-lg font-bold text-[#2B3A4A]">{title}</h1>
-        <p className="text-sm leading-relaxed text-[#4E5F74]">{body}</p>
+        <p className="text-sm leading-relaxed text-[#44556A]">{body}</p>
         <button
           onClick={() => void onSignOut()}
-          className="w-full rounded-xl border border-mist-main/25 py-3 text-sm font-medium text-[#4F6F92]"
+          className="w-full rounded-xl border border-mist-main/25 py-3 text-sm font-medium text-[#3F5F82]"
         >
           換一個帳號登入
         </button>

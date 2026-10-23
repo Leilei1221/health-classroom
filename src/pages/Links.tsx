@@ -253,7 +253,7 @@ export default function Links() {
                     )}
                     <p className="mt-1 break-all font-mono text-xs text-mist-mute">{l.url}</p>
                     {isArtifact(l.url) && (
-                      <p className="mt-1 text-xs leading-relaxed text-[#8A5310]">
+                      <p className="mt-1 text-xs leading-relaxed text-[#7A4A08]">
                         這是 Artifact 連結：要先在該頁按 Share 分享出去，學生才打得開。
                         建議用無痕視窗測一次。
                       </p>
@@ -325,7 +325,7 @@ function LinkForm({ draft, setDraft, classes, busy, onSave, onCancel }: {
       <p className="-mt-2 text-xs leading-relaxed text-mist-mute">
         只收 https 開頭的網址。
         {isArtifact(draft.url) && (
-          <span className="text-[#8A5310]">
+          <span className="text-[#7A4A08]">
             　這是 Artifact 連結：要先在該頁按 Share 分享出去，學生才打得開。
             存好之後用「測試開啟」加無痕視窗確認一次。
           </span>

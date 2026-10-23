@@ -51,7 +51,7 @@ export default function GratitudeJournal() {
     <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
       <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
         <h3 className="text-base font-bold">感恩日記</h3>
-        <p className="mt-0.5 text-[13px] text-[#4E5F74]">
+        <p className="mt-0.5 text-[13px] text-[#44556A]">
           寫一點點就好，資料只存在這台裝置，不會送到資料庫
         </p>
       </div>
@@ -82,7 +82,7 @@ export default function GratitudeJournal() {
           儲存在這台裝置
         </button>
         {saved && (
-          <p className="text-center text-[13px] font-medium text-[#4F6F92]">已儲存今天的紀錄</p>
+          <p className="text-center text-[13px] font-medium text-[#3F5F82]">已儲存今天的紀錄</p>
         )}
       </div>
     </section>

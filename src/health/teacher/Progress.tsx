@@ -120,7 +120,7 @@ export default function Progress() {
               「七份」指七份量表，不含身體數值登記與我的餐盤
             </p>
             <p className="mt-2 border-t border-mist-main/15 pt-2 text-[14px]">
-              SMART 目標完成 <strong className="text-lg tabular-nums text-[#4F6F92]">{goalsDone}</strong>
+              SMART 目標完成 <strong className="text-lg tabular-nums text-[#3F5F82]">{goalsDone}</strong>
               ／{mine.length} 人
             </p>
           </div>
@@ -134,7 +134,7 @@ export default function Progress() {
                   <div key={r.student_id} className="flex items-center gap-2 px-3.5 py-2.5">
                     <span className="w-10 text-sm tabular-nums text-mist-mute">{r.seat_no ?? '—'} 號</span>
                     <span className="flex-1 text-[14px] font-medium">{r.name}</span>
-                    <span className={`text-[13px] font-bold ${r.done.goal ? 'text-[#4F6F92]' : 'text-mist-mute'}`}>
+                    <span className={`text-[13px] font-bold ${r.done.goal ? 'text-[#3F5F82]' : 'text-mist-mute'}`}>
                       {r.done.goal ? '✓ 已完成' : '□ 尚未完成'}
                     </span>
                   </div>
@@ -191,7 +191,7 @@ export default function Progress() {
                       <td key={t.key} className="px-2 py-2.5 text-center">
                         {/* 要投影到布幕上，勾要夠大；沒做的用淡色方框而不是小點，遠看才分得出來 */}
                         {r.done[t.key] ? (
-                          <span className="text-xl font-bold leading-none text-[#4F6F92]" aria-label="已完成">✓</span>
+                          <span className="text-xl font-bold leading-none text-[#3F5F82]" aria-label="已完成">✓</span>
                         ) : (
                           <span className="text-xl leading-none text-white/80" aria-label="尚未完成">□</span>
                         )}
@@ -241,7 +241,7 @@ function Box({ tone, children }: { tone?: 'error'; children: React.ReactNode }) 
   return (
     <div className={`rounded-xl border px-4 py-4 text-sm ${
       tone === 'error'
-        ? 'border-[#E7C4C2] bg-[#FBEDEC] text-[#A8403C]'
+        ? 'border-[#E7C4C2] bg-[#FBEDEC] text-[#9A3834]'
         : 'border-mist-main/20 bg-white text-mist-mute'
     }`}>
       {children}

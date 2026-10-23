@@ -33,8 +33,8 @@ const STATUS_TEXT: Record<HealthCheckinStatus, string> = {
 
 const STATUS_STYLE: Record<HealthCheckinStatus, string> = {
   done: 'border-[#4F6F92] bg-[#E6EBF0] text-[#3B5878]',
-  partial: 'border-[#E2C9A6] bg-[#FDF3E3] text-[#8A5310]',
-  rest: 'border-mist-main/25 bg-white text-[#4E5F74]',
+  partial: 'border-[#E2C9A6] bg-[#FDF3E3] text-[#7A4A08]',
+  rest: 'border-mist-main/25 bg-white text-[#44556A]',
 }
 
 const SAMPLE_GOAL: HealthGoal = {
@@ -267,7 +267,7 @@ export default function WeekOneCheckin({ preview }: { preview?: StudentProfile }
           </PreviewBanner>
         )}
         {error && (
-          <div className="mx-3 mt-3 rounded-lg bg-[#FBEDEC] px-4 py-3 text-sm text-[#A8403C]">
+          <div className="mx-3 mt-3 rounded-lg bg-[#FBEDEC] px-4 py-3 text-sm text-[#9A3834]">
             {error}
           </div>
         )}
@@ -321,12 +321,12 @@ export default function WeekOneCheckin({ preview }: { preview?: StudentProfile }
                   </p>
                 )}
                 {current.note && (
-                  <p className="mt-1.5 text-[14px] leading-relaxed text-[#4E5F74]">
+                  <p className="mt-1.5 text-[14px] leading-relaxed text-[#44556A]">
                     <b>感受：</b>{current.note}
                   </p>
                 )}
                 {current.evidence_note && (
-                  <p className="mt-1.5 text-[14px] leading-relaxed text-[#4E5F74]">
+                  <p className="mt-1.5 text-[14px] leading-relaxed text-[#44556A]">
                     <b>佐證：</b>{current.evidence_note}
                   </p>
                 )}
@@ -348,23 +348,23 @@ function GoalSummary({ goal, doneCount, partialCount }: {
 }) {
   return (
     <section className="mx-3 my-3.5 glass rounded-3xl px-4 py-4">
-      <p className="text-[12px] font-bold tracking-widest text-[#4F6F92]">健康行動打卡</p>
+      <p className="text-[12px] font-bold tracking-widest text-[#3F5F82]">健康行動打卡</p>
       <h2 className="mt-1 text-xl font-bold">今天有靠近目標一點點嗎？</h2>
       <div className="mt-3 rounded-xl bg-[#F4F7FA] px-3 py-3">
-        <p className="text-[13px] font-bold text-[#4F6F92]">{goal.direction}</p>
+        <p className="text-[13px] font-bold text-[#3F5F82]">{goal.direction}</p>
         <p className="mt-1 text-[14px] leading-relaxed">{goal.s_action}</p>
-        <p className="mt-1.5 text-[12.5px] leading-relaxed text-[#4E5F74]">
+        <p className="mt-1.5 text-[12.5px] leading-relaxed text-[#44556A]">
           目標頻率：{goal.frequency || `每週 ${goal.target_per_week} 天`}
         </p>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2 text-center">
         <div className="rounded-xl bg-[#E6EBF0] px-3 py-2">
           <b className="text-lg tabular-nums">{doneCount}</b>
-          <p className="text-[12.5px] text-[#4E5F74]">完成</p>
+          <p className="text-[12.5px] text-[#44556A]">完成</p>
         </div>
         <div className="rounded-xl bg-[#FDF3E3] px-3 py-2">
           <b className="text-lg tabular-nums">{partialCount}</b>
-          <p className="text-[12.5px] text-[#8A5310]">有做到一部分</p>
+          <p className="text-[12.5px] text-[#7A4A08]">有做到一部分</p>
         </div>
       </div>
     </section>
@@ -381,7 +381,7 @@ function WeekSelector({ weeks, selectedWeek, onPick, onAdd }: {
     <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
       <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
         <h3 className="text-base font-bold">選擇週次</h3>
-        <p className="mt-0.5 text-[13px] text-[#4E5F74]">預設四週；如果想繼續追蹤，可以自己增加週次。</p>
+        <p className="mt-0.5 text-[13px] text-[#44556A]">預設四週；如果想繼續追蹤，可以自己增加週次。</p>
       </div>
       <div className="flex gap-2 overflow-x-auto p-3">
         {weeks.map((week) => (
@@ -391,7 +391,7 @@ function WeekSelector({ weeks, selectedWeek, onPick, onAdd }: {
             className={`min-w-[76px] rounded-xl border px-3 py-2 text-sm font-bold ${
               selectedWeek === week.week_no
                 ? 'border-[#4F6F92] bg-[#E6EBF0] text-[#3B5878]'
-                : 'border-mist-main/25 bg-white text-[#4E5F74]'
+                : 'border-mist-main/25 bg-white text-[#44556A]'
             }`}
           >
             第 {week.week_no} 週
@@ -399,7 +399,7 @@ function WeekSelector({ weeks, selectedWeek, onPick, onAdd }: {
         ))}
         <button
           onClick={onAdd}
-          className="min-w-[88px] rounded-xl border border-dashed border-[#4F6F92] bg-white px-3 py-2 text-sm font-bold text-[#4F6F92]"
+          className="min-w-[88px] rounded-xl border border-dashed border-[#4F6F92] bg-white px-3 py-2 text-sm font-bold text-[#3F5F82]"
         >
           新增週次
         </button>
@@ -418,7 +418,7 @@ function WeekStartEditor({ weekNo, value, saving, onChange, onSave }: {
   return (
     <section className="mx-3 my-3.5 glass rounded-3xl px-4 py-4">
       <h3 className="text-base font-bold">第 {weekNo} 週開始日期</h3>
-      <p className="mt-1 text-[13px] leading-relaxed text-[#4E5F74]">
+      <p className="mt-1 text-[13px] leading-relaxed text-[#44556A]">
         選這一週從哪一天開始，下面七格會自動排出日期。
       </p>
       <div className="mt-3 flex gap-2">
@@ -450,7 +450,7 @@ function WeekGrid({ selectedDay, byDay, weekStartDate, onPick }: {
     <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
       <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
         <h3 className="text-base font-bold">本週 7 天</h3>
-        <p className="mt-0.5 text-[13px] text-[#4E5F74]">點一天來打卡。可以補前面的紀錄，不需要一次填完。</p>
+        <p className="mt-0.5 text-[13px] text-[#44556A]">點一天來打卡。可以補前面的紀錄，不需要一次填完。</p>
       </div>
       <div className="grid grid-cols-7 gap-1.5 p-3">
         {Array.from({ length: 7 }, (_, i) => i + 1).map((day) => {
@@ -464,10 +464,10 @@ function WeekGrid({ selectedDay, byDay, weekStartDate, onPick }: {
                 on ? 'border-[#4F6F92] bg-[#E6EBF0]' : 'border-mist-main/25 bg-white'
               }`}
             >
-              <span className="block text-[11px] text-[#4E5F74]">第</span>
+              <span className="block text-[11px] text-[#44556A]">第</span>
               <b className="text-lg tabular-nums">{day}</b>
-              <span className="block text-[11px] text-[#4E5F74]">天</span>
-              <span className="block text-[10.5px] text-[#4E5F74]">
+              <span className="block text-[11px] text-[#44556A]">天</span>
+              <span className="block text-[10.5px] text-[#44556A]">
                 {dateLabel(weekStartDate, day)}
               </span>
               <span className="mt-0.5 block text-[15px] leading-none">
@@ -513,7 +513,7 @@ function CheckinEditor({
                 key={item}
                 onClick={() => onStatus(item)}
                 className={`rounded-xl border px-2 py-2.5 text-[13px] font-bold ${
-                  status === item ? STATUS_STYLE[item] : 'border-mist-main/25 bg-white text-[#4E5F74]'
+                  status === item ? STATUS_STYLE[item] : 'border-mist-main/25 bg-white text-[#44556A]'
                 }`}
               >
                 {STATUS_TEXT[item]}
@@ -541,7 +541,7 @@ function CheckinEditor({
               placeholder="例：10"
               className="w-full rounded-xl border border-mist-main/25 px-3 py-2.5 text-[14px] outline-none focus:border-[#4F6F92]"
             />
-            <span className="shrink-0 text-[13px] text-[#4E5F74]">分鐘</span>
+            <span className="shrink-0 text-[13px] text-[#44556A]">分鐘</span>
           </div>
         </label>
         <label className="block">
@@ -558,15 +558,15 @@ function CheckinEditor({
           <div className="flex items-start justify-between gap-3">
             <div>
               <h4 className="text-[14px] font-bold">照片或截圖佐證</h4>
-              <p className="mt-1 text-[12.5px] leading-relaxed text-[#4E5F74]">
+              <p className="mt-1 text-[12.5px] leading-relaxed text-[#44556A]">
                 現在先用文字記錄，之後才會開放上傳檔案。
               </p>
             </div>
-            <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[11.5px] font-bold text-[#4F6F92]">
+            <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[11.5px] font-bold text-[#3F5F82]">
               選填
             </span>
           </div>
-          <ul className="mt-2 space-y-1 text-[12.5px] leading-relaxed text-[#4E5F74]">
+          <ul className="mt-2 space-y-1 text-[12.5px] leading-relaxed text-[#44556A]">
             <li>可以寫：有運動手錶截圖、睡眠紀錄截圖、操場照片、餐點照片。</li>
             <li>不要拍到同學清楚臉部、學號、班級名牌或定位資訊。</li>
             <li>沒有照片也可以，只要用文字把今天的行動寫清楚。</li>
@@ -594,9 +594,9 @@ function CheckinEditor({
 function Encouragement({ message, savedAt }: { message: string; savedAt: string | null }) {
   return (
     <section className="mx-3 my-3.5 rounded-2xl border border-[#BBDDD6] bg-[#F4F7FA] px-4 py-4 text-center">
-      <p className="text-lg font-bold text-[#4F6F92]">{message}</p>
+      <p className="text-lg font-bold text-[#3F5F82]">{message}</p>
       {savedAt && (
-        <p className="mt-1 text-[12.5px] text-[#4E5F74]">
+        <p className="mt-1 text-[12.5px] text-[#44556A]">
           已儲存：{new Date(savedAt).toLocaleString('zh-TW', { hour12: false })}
         </p>
       )}
@@ -608,7 +608,7 @@ function MissingGoal() {
   return (
     <section className="mx-3 my-3.5 glass rounded-3xl px-4 py-5">
       <h2 className="text-lg font-bold">還沒有 SMART 目標</h2>
-      <p className="mt-2 text-[14px] leading-relaxed text-[#4E5F74]">
+      <p className="mt-2 text-[14px] leading-relaxed text-[#44556A]">
         打卡會連到你的 SMART 目標。先完成目標設定，再回來記錄每週行動。
       </p>
       <Link

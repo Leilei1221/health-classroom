@@ -26,7 +26,7 @@ export default function HealthHeader({ student, isPreview, tab }: {
             自己在預覽模式。這一行跟著頁首走，整頁都在。
           */}
           {isPreview && (
-            <div className="mt-1.5 inline-block rounded bg-[#FDF3E3] px-2 py-0.5 text-[12px] font-bold text-[#8A5310]">
+            <div className="mt-1.5 inline-block rounded bg-[#FDF3E3] px-2 py-0.5 text-[12px] font-bold text-[#7A4A08]">
               預覽模式・不會儲存
             </div>
           )}
@@ -55,7 +55,7 @@ export default function HealthHeader({ student, isPreview, tab }: {
 /** 教師預覽時的提醒條，三個頁面共用 */
 export function PreviewBanner({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mx-3 mt-3 rounded-lg border border-[#E2C9A6] bg-[#FDF3E3] px-4 py-3 text-sm text-[#8A5310]">
+    <div className="mx-3 mt-3 rounded-lg border border-[#E2C9A6] bg-[#FDF3E3] px-4 py-3 text-sm text-[#7A4A08]">
       <strong>預覽模式</strong>　{children}
     </div>
   )

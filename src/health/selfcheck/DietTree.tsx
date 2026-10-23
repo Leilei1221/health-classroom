@@ -36,7 +36,7 @@ export default function DietTree({ onFinish, onBack, saving }: {
       <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
         <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
           <h3 className="text-base font-bold">{s.nm}</h3>
-          <p className="mt-0.5 text-[13px] text-[#4E5F74]">
+          <p className="mt-0.5 text-[13px] text-[#44556A]">
             第 {history.length + 1} 題・依你的答案決定下一題
           </p>
         </div>
@@ -58,7 +58,7 @@ export default function DietTree({ onFinish, onBack, saving }: {
           {history.length > 0 && (
             <button
               onClick={back}
-              className="mt-3 text-[14px] font-medium text-[#4F6F92]"
+              className="mt-3 text-[14px] font-medium text-[#3F5F82]"
             >
               ← 上一題
             </button>

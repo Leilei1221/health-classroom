@@ -106,12 +106,12 @@ export default function SelfCheck({ preview }: { preview?: StudentProfile }) {
           </PreviewBanner>
         )}
         {loadWarning && (
-          <div className="mx-3 mt-3 rounded-lg bg-[#FDF3E3] px-4 py-3 text-sm text-[#8A5310]">
+          <div className="mx-3 mt-3 rounded-lg bg-[#FDF3E3] px-4 py-3 text-sm text-[#7A4A08]">
             {loadWarning}
           </div>
         )}
         {error && (
-          <div className="mx-3 mt-3 rounded-lg bg-[#FBEDEC] px-4 py-3 text-sm text-[#A8403C]">
+          <div className="mx-3 mt-3 rounded-lg bg-[#FBEDEC] px-4 py-3 text-sm text-[#9A3834]">
             {error}
           </div>
         )}
@@ -178,7 +178,7 @@ function Home({ row, onOpen, isPreview }: {
       <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
         <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
           <h3 className="text-base font-bold">課本自我檢測</h3>
-          <p className="mt-0.5 text-[13px] text-[#4E5F74]">
+          <p className="mt-0.5 text-[13px] text-[#44556A]">
             照你最近的狀況回答就好，沒有標準答案，也不算成績
           </p>
         </div>
@@ -192,15 +192,15 @@ function Home({ row, onOpen, isPreview }: {
               className="flex w-full items-center gap-3 border-b border-[#F2F5F8] px-4 py-3.5 text-left last:border-0"
             >
               <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold ${
-                finished ? 'bg-[#4F6F92] text-white' : 'bg-[#E6EBF0] text-[#4F6F92]'
+                finished ? 'bg-[#4F6F92] text-white' : 'bg-[#E6EBF0] text-[#3F5F82]'
               }`}>
                 {finished ? '✓' : s.no}
               </span>
               <span className="flex-1">
                 <b className="block text-[15px]">{s.nm}</b>
-                <span className="block text-[12.5px] text-[#4E5F74]">{subLine(k)}</span>
+                <span className="block text-[12.5px] text-[#44556A]">{subLine(k)}</span>
               </span>
-              <span className={`shrink-0 text-[12.5px] ${finished ? 'font-medium text-[#4F6F92]' : 'text-[#8A9BAE]'}`}>
+              <span className={`shrink-0 text-[12.5px] ${finished ? 'font-medium text-[#3F5F82]' : 'text-[#8A9BAE]'}`}>
                 {finished ? '已完成' : '尚未做'}
               </span>
             </button>
@@ -208,7 +208,7 @@ function Home({ row, onOpen, isPreview }: {
         })}
       </section>
 
-      <div className="mx-3 rounded-2xl border border-dashed border-mist-main/40 bg-white/50 px-4 py-3.5 text-[13px] leading-relaxed text-[#4E5F74]">
+      <div className="mx-3 rounded-2xl border border-dashed border-mist-main/40 bg-white/50 px-4 py-3.5 text-[13px] leading-relaxed text-[#44556A]">
         這幾份量表是「自我覺察」的工具，不是診斷。分數高不代表你有病，分數低也不代表完全沒事。
         真正有用的是：做完之後，你比昨天更知道自己現在的狀態。
       </div>
@@ -216,7 +216,7 @@ function Home({ row, onOpen, isPreview }: {
       <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
         <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
           <h3 className="text-base font-bold">做完檢測之後</h3>
-          <p className="mt-0.5 text-[13px] text-[#4E5F74]">
+          <p className="mt-0.5 text-[13px] text-[#44556A]">
             可以先看這學期的起點，也可以進行我的餐盤課堂活動
           </p>
         </div>
@@ -229,26 +229,26 @@ function Home({ row, onOpen, isPreview }: {
           </span>
           <span className="flex-1">
             <b className="block text-[15px]">健康分析・這學期的起點</b>
-            <span className="block text-[12.5px] text-[#4E5F74]">
+            <span className="block text-[12.5px] text-[#44556A]">
               整合身體數值和自我檢測，先挑 1-2 件最值得做的事
             </span>
           </span>
-          <span className="shrink-0 text-[12.5px] text-[#4F6F92]">查看 →</span>
+          <span className="shrink-0 text-[12.5px] text-[#3F5F82]">查看 →</span>
         </Link>
         <Link
           to={isPreview ? '/health/plate/preview' : '/health/plate'}
           className="flex items-center gap-3 px-4 py-3.5"
         >
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E6EBF0] text-[13px] font-bold text-[#4F6F92]">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E6EBF0] text-[13px] font-bold text-[#3F5F82]">
             ▶
           </span>
           <span className="flex-1">
             <b className="block text-[15px]">我的餐盤・一日份量拼盤</b>
-            <span className="block text-[12.5px] text-[#4E5F74]">
+            <span className="block text-[12.5px] text-[#44556A]">
               把今天吃的點進去，看六大類各裝了多少、哪一格先滿出來
             </span>
           </span>
-          <span className="shrink-0 text-[12.5px] text-[#4F6F92]">開始 →</span>
+          <span className="shrink-0 text-[12.5px] text-[#3F5F82]">開始 →</span>
         </Link>
       </section>
 
