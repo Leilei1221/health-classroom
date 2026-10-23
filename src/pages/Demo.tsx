@@ -24,7 +24,7 @@ const DEMOS: { to: string; label: string; desc: string }[] = [
 export default function Demo() {
   return (
     <Layout title="示範區" back="/">
-      <div className="mb-4 rounded-lg border border-[#E2C9A6] bg-[#FDF3E3] px-4 py-3 text-sm leading-relaxed text-[#8A5310]">
+      <div className="mb-4 rounded-lg border border-[#E2C9A6] bg-[#FDF3E3] px-4 py-3 text-sm leading-relaxed text-[#7A4A08]">
         <strong>這些是示範畫面</strong>
         　用的是範例學生「王小明」，不會讀也不會寫任何學生資料，可以放心投影、
         也可以按按看每一個欄位。要回到這一頁，按畫面右上角的「離開預覽」。
@@ -35,10 +35,10 @@ export default function Demo() {
           <Link
             key={d.to}
             to={d.to}
-            className="rounded-xl border border-slate-200 bg-white p-4 transition hover:border-slate-400 hover:shadow-sm"
+            className="glass rounded-3xl p-4 transition hover:border-mist-main/60 hover:shadow-sm"
           >
             <div className="font-medium">{d.label}</div>
-            <p className="mt-1 text-xs leading-relaxed text-slate-500">{d.desc}</p>
+            <p className="mt-1 text-xs leading-relaxed text-mist-mute">{d.desc}</p>
           </Link>
         ))}
       </div>

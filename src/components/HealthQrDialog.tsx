@@ -17,7 +17,7 @@ export default function HealthQrDialog({ onClose }: { onClose: () => void }) {
       role="dialog"
       aria-modal="true"
       aria-label="學生入口 QR code"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 p-6"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B3A4A]/70 p-6"
       onClick={onClose}
     >
       <div
@@ -25,13 +25,13 @@ export default function HealthQrDialog({ onClose }: { onClose: () => void }) {
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-semibold">學生入口</h3>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-mist-mute">
           請同學用手機掃描，並以學校的 Google 帳號登入
         </p>
         <div className="flex justify-center">
           <QrCode value={url} size={280} />
         </div>
-        <p className="break-all font-mono text-xs text-slate-500">{url}</p>
+        <p className="break-all font-mono text-xs text-mist-mute">{url}</p>
         <div className="flex justify-center gap-2">
           <Button
             variant="secondary"

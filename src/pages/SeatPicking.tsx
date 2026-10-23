@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import GroupSeatMap, { type SeatOccupant } from '../components/GroupSeatMap'
-import { Button, ErrorBox, Spinner, inputClass } from '../components/ui'
+import GlassPage from '../components/GlassPage'
+import { ErrorBox, Spinner } from '../components/ui'
 import { claimSeat, seatPickingInfo } from '../lib/api'
 import { friendlyError } from '../lib/errors'
 import type { SeatPickingInfo } from '../lib/types'
@@ -48,13 +49,15 @@ export default function SeatPicking() {
     }
   }
 
-  if (loading) return <Spinner />
+  if (loading) return <GlassPage><Spinner /></GlassPage>
 
   if (!info) {
     return (
-      <div className="mx-auto max-w-md p-6">
-        <ErrorBox message={error || '無法載入選位資訊'} />
-      </div>
+      <GlassPage>
+        <div className="mx-auto max-w-md p-6">
+          <ErrorBox message={error || '無法載入選位資訊'} />
+        </div>
+      </GlassPage>
     )
   }
 
@@ -69,74 +72,103 @@ export default function SeatPicking() {
   }))
 
   return (
-    <div className="mx-auto max-w-5xl space-y-5 p-4 pb-16">
-      <header className="space-y-1 text-center">
-        <h1 className="text-lg font-semibold">{info.class.name} — 座位登記</h1>
-        <p className="text-sm text-slate-500">先選你的名字，再點一個空位</p>
-      </header>
+    <GlassPage>
+      <div className="mx-auto flex max-w-md flex-col gap-3.5 px-4 pb-16 pt-5">
+        <header className="glass flex flex-col items-center gap-1 rounded-[28px] px-4 py-[18px] text-center">
+          <h1 className="text-[22px] font-bold leading-snug">{info.class.name}　座位登記</h1>
+          <p className="text-sm text-mist-mute">先選你的名字，再點一個空位</p>
+        </header>
 
-      {done && (
-        <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-center text-sm text-emerald-800">
-          已完成登記：第 {done.group} 組 第 {done.slot} 個位子。想換位可以直接再點其他空位。
-        </div>
-      )}
-
-      {error && <ErrorBox message={error} />}
-
-      <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-        <label className="block">
-          <span className="mb-1 block text-sm font-medium text-slate-700">你的名字</span>
-          <select
-            className={inputClass}
-            value={studentId}
-            onChange={(e) => { setStudentId(e.target.value); setDone(null); setError('') }}
+        {done && (
+          <div
+            role="status"
+            className="flex items-center gap-3 rounded-3xl border border-white/85 bg-gradient-to-br from-[#d6e2ee]/90 to-[#c2d0e1]/65 px-4 py-3.5 text-sm leading-relaxed shadow-[0_10px_30px_rgb(50_70_100/0.14),inset_0_1px_0_rgb(255_255_255/0.95)] backdrop-blur-[22px]"
           >
-            <option value="">— 請選擇 —</option>
-            {info.students.map((s) => (
-              <option key={s.id} value={s.id}>
-                {s.seat_no ? `${s.seat_no}. ` : ''}{s.name}
-                {info.occupied.some((o) => o.student_id === s.id) ? '（已選位）' : ''}
-              </option>
-            ))}
-          </select>
-        </label>
+            <div className="glass-tile flex h-9 w-9 shrink-0 items-center justify-center rounded-full text-white">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M5 12.5l4.5 4.5L19 7.5" />
+              </svg>
+            </div>
+            <p>
+              <strong>已完成登記：第 {done.group} 組 第 {done.slot} 個位子。</strong>
+              想換位可以直接再點其他空位。
+            </p>
+          </div>
+        )}
 
-        {info.class.require_student_no && (
+        {error && <ErrorBox message={error} />}
+
+        <div className="glass flex flex-col gap-2.5 rounded-3xl p-4">
           <label className="block">
-            <span className="mb-1 block text-sm font-medium text-slate-700">學號後三碼</span>
-            <input
-              className={inputClass}
-              inputMode="numeric"
-              maxLength={3}
-              placeholder="例：101"
-              value={studentNo}
-              onChange={(e) => setStudentNo(e.target.value)}
-            />
+            <span className="mb-2.5 block text-sm font-bold">你的名字</span>
+            <div className="relative">
+              <select
+                className={FIELD + ' appearance-none pr-11'}
+                value={studentId}
+                onChange={(e) => { setStudentId(e.target.value); setDone(null); setError('') }}
+              >
+                <option value="">— 請選擇 —</option>
+                {info.students.map((s) => (
+                  <option key={s.id} value={s.id}>
+                    {s.seat_no ? `${s.seat_no}. ` : ''}{s.name}
+                    {info.occupied.some((o) => o.student_id === s.id) ? '（已選位）' : ''}
+                  </option>
+                ))}
+              </select>
+              <svg className="pointer-events-none absolute right-3.5 top-3.5 text-mist-main" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden>
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </div>
           </label>
-        )}
 
-        {mySeat && (
-          <p className="text-sm text-emerald-700">
-            你目前的位子：第 {mySeat.group_no} 組 第 {mySeat.seat_slot} 個
-          </p>
-        )}
-      </div>
+          {info.class.require_student_no && (
+            <label className="block">
+              <span className="mb-2.5 block text-sm font-bold">學號後三碼</span>
+              <input
+                className={FIELD}
+                inputMode="numeric"
+                maxLength={3}
+                placeholder="例：101"
+                value={studentNo}
+                onChange={(e) => setStudentNo(e.target.value)}
+              />
+            </label>
+          )}
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
-        <GroupSeatMap
-          groupCount={info.class.group_count}
-          groupCapacity={info.class.group_capacity}
-          capacityOverrides={info.class.group_capacity_overrides}
-          occupants={occupants}
-          onSelect={busy ? undefined : pick}
-        />
-      </div>
+          {mySeat && (
+            <p className="text-sm font-medium text-mist-deep">
+              你目前的位子：第 {mySeat.group_no} 組 第 {mySeat.seat_slot} 個
+            </p>
+          )}
+        </div>
 
-      <div className="text-center">
-        <Button variant="secondary" onClick={() => void load()} disabled={busy}>
+        <div className="glass rounded-3xl p-3.5">
+          <GroupSeatMap
+            variant="glass"
+            groupCount={info.class.group_count}
+            groupCapacity={info.class.group_capacity}
+            capacityOverrides={info.class.group_capacity_overrides}
+            occupants={occupants}
+            onSelect={busy ? undefined : pick}
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={() => void load()}
+          disabled={busy}
+          className="glass flex h-12 items-center justify-center gap-2 rounded-3xl text-sm font-medium disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden className="text-mist-main">
+            <path d="M20 11a8 8 0 0 0-14.5-4.5M4 4v4h4M4 13a8 8 0 0 0 14.5 4.5M20 20v-4h-4" />
+          </svg>
           重新整理座位圖
-        </Button>
+        </button>
       </div>
-    </div>
+    </GlassPage>
   )
 }
+
+/** 玻璃風格的輸入欄位：高度 48px，手機上好點、字級 16px 避免 iOS 自動放大 */
+const FIELD =
+  'h-12 w-full rounded-2xl border border-mist-main/40 bg-white/85 px-4 text-base text-mist-ink outline-none focus:border-mist-main focus:ring-2 focus:ring-mist-light/50'

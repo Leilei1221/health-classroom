@@ -13,11 +13,11 @@ export default function HealthHeader({ student, isPreview, tab }: {
   const navigate = useNavigate()
 
   return (
-    <header className="bg-[#0B4A44] px-5 pb-3 pt-5 text-white">
+    <header className="glass mx-3 mt-3 rounded-[28px] px-5 pb-3.5 pt-5 text-mist-ink">
       <div className="flex items-start justify-between gap-3">
         <div>
           <div className="text-xl font-bold tracking-wide">{student.name}</div>
-          <div className="mt-0.5 text-[13px] opacity-70">
+          <div className="mt-0.5 text-[13px] text-mist-mute">
             {student.class_name} 班・座號 {student.seat_no ?? '—'}・
             {student.academic_year} 學年度第 {student.semester} 學期
           </div>
@@ -26,7 +26,7 @@ export default function HealthHeader({ student, isPreview, tab }: {
             自己在預覽模式。這一行跟著頁首走，整頁都在。
           */}
           {isPreview && (
-            <div className="mt-1.5 inline-block rounded bg-[#FDF3E3] px-2 py-0.5 text-[12px] font-bold text-[#8A5310]">
+            <div className="mt-1.5 inline-block rounded bg-[#FDF3E3] px-2 py-0.5 text-[12px] font-bold text-[#7A4A08]">
               預覽模式・不會儲存
             </div>
           )}
@@ -35,13 +35,13 @@ export default function HealthHeader({ student, isPreview, tab }: {
           {/* 課程活動與其他作業都在入口頁，分頁列裡沒有它 */}
           <button
             onClick={() => navigate(isPreview ? '/health/preview' : '/health')}
-            className="-m-2 p-2 text-[13px] opacity-70 hover:opacity-100"
+            className="-m-2 p-3 text-[13px] text-mist-mute hover:text-mist-ink"
           >
             首頁
           </button>
           <button
             onClick={() => (isPreview ? navigate('/demo') : void signOut())}
-            className="-m-2 p-2 text-[13px] opacity-70 hover:opacity-100"
+            className="-m-2 p-3 text-[13px] text-mist-mute hover:text-mist-ink"
           >
             {isPreview ? '離開預覽' : '登出'}
           </button>
@@ -55,7 +55,7 @@ export default function HealthHeader({ student, isPreview, tab }: {
 /** 教師預覽時的提醒條，三個頁面共用 */
 export function PreviewBanner({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mx-3 mt-3 rounded-lg border border-[#E2C9A6] bg-[#FDF3E3] px-4 py-3 text-sm text-[#8A5310]">
+    <div className="mx-3 mt-3 rounded-lg border border-[#E2C9A6] bg-[#FDF3E3] px-4 py-3 text-sm text-[#7A4A08]">
       <strong>預覽模式</strong>　{children}
     </div>
   )

@@ -284,7 +284,7 @@ export default function LessonPanel({ cls, teacherId }: {
     <div className="space-y-4">
       {error && <ErrorBox message={error} />}
 
-      <div className="grid gap-3 rounded-xl border border-slate-200 bg-white p-4 sm:grid-cols-4">
+      <div className="grid gap-3 glass rounded-3xl p-4 sm:grid-cols-4">
         <Field label="日期">
           <input type="date" className={inputClass} value={newLesson.lesson_date}
             onChange={(e) => setNewLesson({ ...newLesson, lesson_date: e.target.value })} />
@@ -311,10 +311,10 @@ export default function LessonPanel({ cls, teacherId }: {
               <button
                 key={l.id}
                 onClick={() => setCurrent(l)}
-                className={`rounded-lg border px-3 py-1.5 text-sm transition ${
+                className={`h-10 rounded-full border px-4 text-sm font-medium transition ${
                   current?.id === l.id
-                    ? 'border-slate-900 bg-slate-900 text-white'
-                    : 'border-slate-300 bg-white hover:border-slate-500'
+                    ? 'border-white/60 bg-gradient-to-br from-[#6F8FAF] to-mist-main text-white shadow-[0_4px_10px_rgb(79_111_146/0.3)]'
+                    : 'border-mist-main/30 bg-white/70 text-mist-ink hover:bg-white'
                 }`}
               >
                 {l.lesson_date} 第{l.period}節
@@ -324,10 +324,10 @@ export default function LessonPanel({ cls, teacherId }: {
 
           {current && (
             <>
-              <div className="flex items-center justify-between rounded-xl border border-slate-200 bg-white p-4">
+              <div className="flex items-center justify-between glass rounded-3xl p-4">
                 <div>
                   <p className="font-medium">{current.lesson_date} 第 {current.period} 節</p>
-                  {current.topic && <p className="text-sm text-slate-500">{current.topic}</p>}
+                  {current.topic && <p className="text-sm text-mist-mute">{current.topic}</p>}
                 </div>
                 <div className="flex gap-2">
                   <Button onClick={persistAttendance} disabled={saving}>
@@ -338,7 +338,7 @@ export default function LessonPanel({ cls, teacherId }: {
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
-                <div className="inline-flex rounded-lg border border-slate-300 bg-white p-0.5">
+                <div className="inline-flex rounded-full border border-white/80 bg-white/55 p-1">
                   {([
                     { key: 'list' as const, label: '座號模式' },
                     { key: 'seatmap' as const, label: '座位圖模式' },
@@ -346,18 +346,21 @@ export default function LessonPanel({ cls, teacherId }: {
                     <button
                       key={m.key}
                       onClick={() => void switchMode(m.key)}
-                      className={`rounded-md px-3 py-1.5 text-sm font-medium transition ${
+                      className={`h-10 rounded-full px-4 text-sm font-medium transition ${
                         mode === m.key
-                          ? 'bg-slate-900 text-white'
-                          : 'text-slate-600 hover:bg-slate-100'
+                          ? 'bg-gradient-to-br from-[#6F8FAF] to-mist-main text-white shadow-[0_4px_10px_rgb(79_111_146/0.3),inset_0_1px_0_rgb(255_255_255/0.4)]'
+                          : 'text-mist-deep hover:bg-white/60'
                       }`}
                     >
                       {m.label}
                     </button>
                   ))}
                 </div>
-                <span className="text-xs text-slate-500">
-                  已點名 {marked}/{students.length}
+                <span className="text-xs text-mist-mute">
+                  <b className="text-sm text-mist-ink">已點名 {marked}/{students.length}</b>
+                  {marked < students.length && (
+                    <b className="ml-1.5 text-sm text-[#7A4A08]">還有 {students.length - marked} 位未點名</b>
+                  )}
                   {mode === 'seatmap' && ' · 點座位即可修改，變更立即儲存'}
                   {mode === 'list' && dirtyIds.size > 0 && ` · ${dirtyIds.size} 筆未儲存`}
                 </span>
@@ -367,8 +370,11 @@ export default function LessonPanel({ cls, teacherId }: {
                 <Empty>這個班還沒有學生名單。</Empty>
               ) : mode === 'seatmap' ? (
                 <div className="space-y-4">
-                  <div className="rounded-xl border border-slate-200 bg-white p-4">
+                  <div className="glass rounded-3xl p-4">
                     <GroupSeatMap
+                      variant="glass"
+                      wide
+                      showLegend={false}
                       groupCount={cls.group_count}
                       groupCapacity={cls.group_capacity}
                       capacityOverrides={cls.group_capacity_overrides}
@@ -379,29 +385,29 @@ export default function LessonPanel({ cls, teacherId }: {
                         if (seat) setOpenStudent(seat.student_id)
                       }}
                     />
-                    <div className="mt-4 flex flex-wrap justify-center gap-3 text-xs text-slate-500">
+                    <div className="mt-4 flex flex-wrap justify-center gap-x-3.5 gap-y-2 text-xs text-mist-mute">
                       {statuses.map((st) => (
                         <span key={st.code} className="inline-flex items-center gap-1.5">
-                          <span className={`inline-block h-3 w-3 rounded border ${{
-                            present: 'border-slate-300 bg-white',
-                            late: 'border-amber-400 bg-amber-50',
-                            absent: 'border-red-400 bg-red-50',
-                            leave: 'border-sky-400 bg-sky-50',
-                            official: 'border-violet-400 bg-violet-50',
+                          <span className={`inline-block h-3.5 w-3.5 rounded-[5px] border ${{
+                            present: 'border-[#32465f]/20 bg-white/90',
+                            late: 'border-[#C9B27A] bg-[#E8D9B8]',
+                            absent: 'border-[#C48C8C] bg-[#E3C4C4]',
+                            leave: 'border-[#8FB2CF] bg-[#C6DAEA]',
+                            official: 'border-[#A79CC9] bg-[#D5CDE6]',
                           }[st.code]}`} />
                           {st.label}
                         </span>
                       ))}
                       <span className="inline-flex items-center gap-1.5">
-                        <span className="inline-block h-3 w-3 rounded border border-slate-200 bg-slate-50" />
+                        <span className="inline-block h-3.5 w-3.5 rounded-[5px] border-[1.5px] border-dashed border-mist-main/50 bg-white/35" />
                         未點名
                       </span>
                     </div>
                   </div>
 
                   {unseated.length > 0 && (
-                    <div className="rounded-xl border border-slate-200 bg-white p-4">
-                      <h3 className="mb-2 text-sm font-medium">
+                    <div className="glass rounded-3xl p-4">
+                      <h3 className="mb-2.5 text-sm font-bold text-mist-deep">
                         尚未選位（{unseated.length}）— 一樣可以點名
                       </h3>
                       <div className="flex flex-wrap gap-2">
@@ -411,10 +417,10 @@ export default function LessonPanel({ cls, teacherId }: {
                             <button
                               key={s.id}
                               onClick={() => setOpenStudent(s.id)}
-                              className={`rounded-full border px-3 py-1 text-sm transition ${
+                              className={`min-h-11 rounded-full border px-4 text-sm transition ${
                                 code
-                                  ? 'border-slate-400 bg-slate-50 text-slate-800'
-                                  : 'border-dashed border-slate-300 text-slate-500 hover:border-slate-500'
+                                  ? 'border-[#32465f]/25 bg-white/90 text-mist-ink'
+                                  : 'border-[1.5px] border-dashed border-mist-main/60 bg-white/40 text-mist-mute hover:bg-white/70'
                               }`}
                             >
                               {s.seat_no ? `${s.seat_no}. ` : ''}{s.name}
@@ -427,9 +433,9 @@ export default function LessonPanel({ cls, teacherId }: {
                   )}
                 </div>
               ) : (
-                <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+                <div className="glass overflow-x-auto rounded-3xl">
                   <table className="w-full text-sm">
-                    <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs text-slate-500">
+                    <thead className="border-b border-white/70 bg-white/40 text-left text-xs text-mist-mute">
                       <tr>
                         <th className="px-3 py-2">學生</th>
                         <th className="px-3 py-2">出缺席</th>
@@ -442,7 +448,7 @@ export default function LessonPanel({ cls, teacherId }: {
                         const code = attendance[s.id]?.status ?? 'present'
                         const pts = pointsOf(s.id)
                         return (
-                          <tr key={s.id} className="border-b border-slate-100 last:border-0 align-top">
+                          <tr key={s.id} className="border-b border-white/60 last:border-0 align-top">
                             <td className="whitespace-nowrap px-3 py-2 font-medium">
                               {s.seat_no ? `${s.seat_no}. ` : ''}{s.name}
                             </td>
@@ -454,8 +460,8 @@ export default function LessonPanel({ cls, teacherId }: {
                                     onClick={() => setStatus(s.id, st.code)}
                                     className={`rounded px-2 py-1 text-xs transition ${
                                       code === st.code
-                                        ? 'bg-slate-900 text-white'
-                                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                        ? 'bg-gradient-to-br from-[#6F8FAF] to-mist-main text-white'
+                                        : 'bg-mist-main/10 text-mist-deep hover:bg-mist-main/20'
                                     }`}
                                   >
                                     {st.label}
@@ -472,8 +478,8 @@ export default function LessonPanel({ cls, teacherId }: {
                                     title={`${it.label} ${it.default_points > 0 ? '+' : ''}${it.default_points}`}
                                     className={`rounded px-2 py-1 text-xs transition ${
                                       it.default_points >= 0
-                                        ? 'bg-emerald-50 text-emerald-700 hover:bg-emerald-100'
-                                        : 'bg-red-50 text-red-700 hover:bg-red-100'
+                                        ? 'bg-[#DCE8E2] text-[#2F5B45] hover:bg-[#cfe0d7]'
+                                        : 'bg-[#EBD4D4] text-[#7A3434] hover:bg-[#e3c7c7]'
                                     }`}
                                   >
                                     {it.label}
@@ -482,7 +488,7 @@ export default function LessonPanel({ cls, teacherId }: {
                               </div>
                             </td>
                             <td className="px-3 py-2">
-                              <span className={`font-medium ${pts > 0 ? 'text-emerald-700' : pts < 0 ? 'text-red-700' : 'text-slate-400'}`}>
+                              <span className={`font-medium ${pts > 0 ? 'text-[#2F5B45]' : pts < 0 ? 'text-[#7A3434]' : 'text-mist-mute'}`}>
                                 {pts > 0 ? `+${pts}` : pts}
                               </span>
                               <div className="mt-1 flex flex-wrap gap-1">
@@ -491,7 +497,7 @@ export default function LessonPanel({ cls, teacherId }: {
                                     key={r.id}
                                     onClick={() => removeRecord(r.id)}
                                     title="點擊移除這筆紀錄"
-                                    className="rounded bg-slate-100 px-1.5 py-0.5 text-[10px] text-slate-600 hover:bg-red-100 hover:text-red-700"
+                                    className="rounded bg-mist-main/10 px-1.5 py-0.5 text-[10px] text-mist-deep hover:bg-red-100 hover:text-red-700"
                                   >
                                     {r.label} {Number(r.points) > 0 ? '+' : ''}{r.points} ✕
                                   </button>
@@ -569,20 +575,20 @@ function NotePrompt({ title, points, studentName, value, onChange, onCancel, onC
       role="dialog"
       aria-modal="true"
       aria-label={`${studentName} ${title}`}
-      className="fixed inset-0 z-[60] flex items-end justify-center bg-slate-900/60 p-0 sm:items-center sm:p-6"
+      className="fixed inset-0 z-[60] flex items-end justify-center bg-[#2B3A4A]/50 p-0 sm:items-center sm:p-6"
       onClick={onCancel}
     >
       <div
-        className="w-full max-w-sm rounded-t-2xl bg-white p-5 shadow-xl sm:rounded-2xl"
+        className="glass w-full max-w-sm rounded-t-[28px] bg-white/90 p-5 sm:rounded-[28px]"
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-base font-semibold">
           {studentName}　{title}
-          <span className="ml-1.5 text-sm font-normal text-red-700">
+          <span className="ml-1.5 text-sm font-normal text-[#7A3434]">
             {points > 0 ? '+' : ''}{points}
           </span>
         </h3>
-        <p className="mt-1 text-xs text-slate-500">可以留空，之後再補。</p>
+        <p className="mt-1 text-xs text-mist-mute">可以留空，之後再補。</p>
         <input
           autoFocus
           value={value}

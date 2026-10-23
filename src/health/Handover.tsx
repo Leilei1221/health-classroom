@@ -25,10 +25,10 @@ export default function Handover() {
   }
 
   return (
-    <section className="mx-3 my-4 overflow-hidden rounded-2xl border-[1.5px] border-[#C7E2DC] bg-white">
+    <section className="mx-3 my-4 overflow-hidden glass rounded-3xl">
       <div className="px-4 pb-3 pt-3.5">
         <h3 className="text-[15.5px] font-bold">填好了嗎？換下一位同學之前請按這裡</h3>
-        <p className="mt-1 text-[13px] leading-relaxed text-[#4A6461]">
+        <p className="mt-1 text-[13px] leading-relaxed text-[#44556A]">
           這台平板是大家輪流用的。不按的話，下一位同學打開網頁會直接看到你的資料，
           也能用你的帳號繼續填。
         </p>
@@ -37,11 +37,11 @@ export default function Handover() {
         <button
           onClick={() => void handOver()}
           disabled={busy}
-          className="w-full rounded-xl bg-[#B26A12] py-4 text-[17px] font-bold text-white disabled:cursor-not-allowed disabled:bg-[#D3B48A]"
+          className="w-full rounded-xl bg-[#965609] py-4 text-[17px] font-bold text-white disabled:cursor-not-allowed disabled:opacity-70"
         >
           {busy ? '登出中…' : '我填好了，換下一位同學'}
         </button>
-        <p className="mt-2 text-center text-[12px] leading-relaxed text-[#4A6461]">
+        <p className="mt-2 text-center text-[12px] leading-relaxed text-[#44556A]">
           會一併登出這台平板上的 Google 帳號，登出後畫面會停在 Google。
           <br />
           下一位同學重新掃 QR code 就可以開始。

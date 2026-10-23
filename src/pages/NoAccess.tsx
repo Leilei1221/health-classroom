@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { Button } from '../components/ui'
+import GlassPage from '../components/GlassPage'
 
 /**
  * 登入成功、但不是教師白名單上的帳號。
@@ -18,26 +19,27 @@ export default function NoAccess() {
   const email = session?.user.email ?? ''
 
   return (
+    <GlassPage>
     <div className="flex min-h-screen items-center justify-center p-6">
-      <div className="w-full max-w-md space-y-5 rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+      <div className="w-full max-w-md space-y-5 glass rounded-3xl p-8">
         <div className="space-y-1">
           <h1 className="text-lg font-semibold">這個帳號沒有教師權限</h1>
           {email && (
-            <p className="break-all text-sm text-slate-500">
+            <p className="break-all text-sm text-mist-mute">
               目前登入的是 <span className="font-mono">{email}</span>
             </p>
           )}
         </div>
 
-        <p className="text-sm leading-relaxed text-slate-600">
+        <p className="text-sm leading-relaxed text-mist-mute">
           教師端只開放給指定的帳號。如果你是學生，要填的東西在
-          <Link to="/health" className="mx-1 font-medium text-slate-900 underline">
+          <Link to="/health" className="mx-1 font-medium text-mist-ink underline">
             學生入口
           </Link>
           ，用同一個 Google 帳號就可以進去。
         </p>
 
-        <p className="text-sm leading-relaxed text-slate-600">
+        <p className="text-sm leading-relaxed text-mist-mute">
           如果你覺得這是弄錯了，請跟健護老師說一聲。
         </p>
 
@@ -48,5 +50,6 @@ export default function NoAccess() {
         </div>
       </div>
     </div>
+    </GlassPage>
   )
 }

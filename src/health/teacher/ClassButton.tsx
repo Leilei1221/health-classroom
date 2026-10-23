@@ -19,13 +19,13 @@ export default function ClassButton({ cls, current, onPick }: {
       title={cls.enabled ? undefined : '這個班的健康模組已停用，資料仍然看得到'}
       className={`rounded-lg px-3 py-1.5 text-sm ${
         on
-          ? 'bg-slate-900 font-bold text-white'
-          : 'border border-slate-300 bg-white text-slate-600 hover:bg-slate-50'
+          ? 'bg-mist-main font-bold text-white'
+          : 'border border-mist-main/35 bg-white text-mist-mute hover:bg-white/70'
       }`}
     >
       {cls.row.name}
       {!cls.enabled && (
-        <span className={`ml-1.5 text-xs ${on ? 'opacity-70' : 'text-slate-400'}`}>
+        <span className={`ml-1.5 text-xs ${on ? 'opacity-70' : 'text-mist-mute'}`}>
           已停用
         </span>
       )}

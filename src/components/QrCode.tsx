@@ -23,7 +23,7 @@ export default function QrCode({ value, size = 240 }: { value: string; size?: nu
   }, [value, size])
 
   if (error) return <p className="text-sm text-red-700">{error}</p>
-  if (!dataUrl) return <div className="h-[240px] w-[240px] animate-pulse rounded-lg bg-slate-100" />
+  if (!dataUrl) return <div className="h-[240px] w-[240px] animate-pulse rounded-lg bg-mist-main/10" />
 
   return (
     <img
@@ -31,7 +31,7 @@ export default function QrCode({ value, size = 240 }: { value: string; size?: nu
       alt="選位連結 QR code"
       width={size}
       height={size}
-      className="rounded-lg border border-slate-200"
+      className="rounded-lg border border-mist-main/20"
     />
   )
 }

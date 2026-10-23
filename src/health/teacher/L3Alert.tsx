@@ -54,7 +54,7 @@ export default function L3Alert({ classes }: { classes: ClassRow[] }) {
 
   if (error) {
     return (
-      <div className="mb-4 rounded-xl border border-[#E7C4C2] bg-[#FBEDEC] px-4 py-3 text-sm text-[#A8403C]">
+      <div className="mb-4 rounded-xl border border-[#E7C4C2] bg-[#FBEDEC] px-4 py-3 text-sm text-[#9A3834]">
         {error}
       </div>
     )
@@ -62,20 +62,20 @@ export default function L3Alert({ classes }: { classes: ClassRow[] }) {
   if (rows.length === 0) return null
 
   return (
-    <div className="mb-4 rounded-xl border-2 border-[#A8403C] bg-[#FBEDEC] px-4 py-3.5">
+    <div className="mb-4 rounded-xl border-2 border-[#9A3834] bg-[#FBEDEC] px-4 py-3.5">
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-        <span className="rounded-md bg-[#A8403C] px-2 py-1 text-xs font-bold text-white">
+        <span className="rounded-md bg-[#9A3834] px-2 py-1 text-xs font-bold text-white">
           ● 立即
         </span>
-        <strong className="text-[15px] text-[#A8403C]">
+        <strong className="text-[15px] text-[#9A3834]">
           有 {rows.length} 位學生需要今天處理
         </strong>
-        <button onClick={toggle} className="text-xs text-[#A8403C] underline">
+        <button onClick={toggle} className="text-xs text-[#9A3834] underline">
           {collapsed ? '展開' : '上課投影時先收起'}
         </button>
         <Link
           to="/health/teacher"
-          className="ml-auto rounded-lg bg-[#A8403C] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#8F3532]"
+          className="ml-auto rounded-lg bg-[#9A3834] px-3 py-1.5 text-sm font-medium text-white hover:bg-[#8F3532]"
         >
           前往處理
         </Link>
@@ -85,20 +85,20 @@ export default function L3Alert({ classes }: { classes: ClassRow[] }) {
         <ul className="mt-2 space-y-1 text-sm">
           {rows.map((r) => (
             <li key={r.student_email + r.semester} className="flex flex-wrap items-baseline gap-x-2">
-              <span className="text-slate-600">{r.class_name ?? '—'} 班　{r.seat_no ?? '—'} 號</span>
+              <span className="text-mist-mute">{r.class_name ?? '—'} 班　{r.seat_no ?? '—'} 號</span>
               <span className="font-semibold">{r.name ?? r.student_email}</span>
               {r.l3Count >= 2 && (
-                <span className="rounded border border-[#A8403C] px-1 text-xs font-bold text-[#A8403C]">
+                <span className="rounded border border-[#9A3834] px-1 text-xs font-bold text-[#9A3834]">
                   重複觸發 {r.l3Count} 次
                 </span>
               )}
-              <span className="text-xs tabular-nums text-slate-500">觸發 {when(r.flaggedAt)}</span>
+              <span className="text-xs tabular-nums text-mist-mute">觸發 {when(r.flaggedAt)}</span>
             </li>
           ))}
         </ul>
       )}
 
-      <p className="mt-2 text-xs text-[#8A5310]">
+      <p className="mt-2 text-xs text-[#7A4A08]">
         標記「已聯繫」之後這一則才會消失。
       </p>
     </div>

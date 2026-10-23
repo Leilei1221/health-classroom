@@ -118,7 +118,7 @@ export default function Dashboard() {
   return (
     <Layout title="我的班級" back="/">
       <div className="mb-4 flex items-center justify-between">
-        <p className="text-sm text-slate-500">共 {classes.length} 個班級</p>
+        <p className="text-sm text-mist-mute">共 {classes.length} 個班級</p>
         {/*
           健康管理、示範區與內容管理的入口都搬到教師入口頁（/）了。
           這裡以前有十顆按鈕，點名、健康、預覽混在一排，蕾蕾 9/27：「有點混亂」。
@@ -144,7 +144,7 @@ export default function Dashboard() {
       )}
 
       {showForm && (
-        <div className="mb-6 space-y-4 rounded-xl border border-slate-200 bg-white p-4">
+        <div className="mb-6 space-y-4 glass rounded-3xl p-4">
           <div className="grid gap-3 sm:grid-cols-3">
             <Field label="學年度">
               <input type="number" className={inputClass} value={form.academic_year}
@@ -180,7 +180,7 @@ export default function Dashboard() {
                 onChange={(e) => setForm({ ...form, group_capacity: +e.target.value })} />
             </Field>
           </div>
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-mist-mute">
             標準 7 組、每組 5 人（U 字型：左 2、右 2、桌子後端 1）；308 班為 8 組。
           </p>
           <Button onClick={submit}>建立班級</Button>
@@ -194,10 +194,10 @@ export default function Dashboard() {
       ) : (
         Object.entries(grouped).map(([label, rows]) => (
           <section key={label} className="mb-6">
-            <h2 className="mb-2 text-sm font-medium text-slate-500">{label}</h2>
+            <h2 className="mb-2 text-sm font-medium text-mist-mute">{label}</h2>
             <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {rows.map((c) => (
-                <div key={c.id} className="rounded-xl border border-slate-200 bg-white transition hover:border-slate-400 hover:shadow-sm">
+                <div key={c.id} className="glass rounded-3xl transition hover:border-mist-main/60 hover:shadow-sm">
                   {/* 編輯模式 */}
                   {editingId === c.id ? (
                     <div className="space-y-3 p-4">
@@ -227,12 +227,12 @@ export default function Dashboard() {
                         健康模組的 BMI 門檻是年齡別的，要靠年級推年齡。
                         多元選修混年級時一個年級說不清楚，取消勾選就不會套門檻。
                       */}
-                      <label className="flex items-start gap-2 text-sm text-slate-700">
+                      <label className="flex items-start gap-2 text-sm text-mist-deep">
                         <input type="checkbox" className="mt-0.5" checked={editForm.grade_confirmed}
                           onChange={(e) => setEditForm({ ...editForm, grade_confirmed: e.target.checked })} />
                         <span>
                           年級已確認
-                          <span className="ml-1.5 text-xs text-slate-500">
+                          <span className="ml-1.5 text-xs text-mist-mute">
                             取消勾選代表這個班混年級或還沒查證，健康模組就不會套 BMI 的年齡別門檻
                           </span>
                         </span>
@@ -241,12 +241,12 @@ export default function Dashboard() {
                         健康模組白名單。預設關閉，要用的班自己開——
                         新增班級時忘記設定，結果是「看不到」而不是「全校都能填」。
                       */}
-                      <label className="flex items-start gap-2 text-sm text-slate-700">
+                      <label className="flex items-start gap-2 text-sm text-mist-deep">
                         <input type="checkbox" className="mt-0.5" checked={editForm.health_enabled}
                           onChange={(e) => setEditForm({ ...editForm, health_enabled: e.target.checked })} />
                         <span>
                           使用健康管理模組
-                          <span className="ml-1.5 text-xs text-slate-500">
+                          <span className="ml-1.5 text-xs text-mist-mute">
                             沒勾的班級，學生掃 QR code 進來也看不到登記表單，
                             教師端的進度與明細也不會列出這個班
                           </span>
@@ -269,14 +269,14 @@ export default function Dashboard() {
                             </span>
                           )}
                         </div>
-                        <p className="mt-1 text-xs text-slate-500">
+                        <p className="mt-1 text-xs text-mist-mute">
                           {c.group_count} 組 · 每組 {c.group_capacity} 人
                         </p>
                       </Link>
                       <div className="flex items-center gap-1 ml-2">
                         <button
                           onClick={(e) => { e.preventDefault(); startEdit(c) }}
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition"
+                          className="rounded-lg p-1.5 text-mist-mute hover:bg-white/60 hover:text-mist-ink transition"
                           title="編輯班級"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -286,7 +286,7 @@ export default function Dashboard() {
                         </button>
                         <button
                           onClick={(e) => { e.preventDefault(); handleDelete(c) }}
-                          className="rounded-lg p-1.5 text-slate-400 hover:bg-red-50 hover:text-red-600 transition"
+                          className="rounded-lg p-1.5 text-mist-mute hover:bg-red-50 hover:text-red-600 transition"
                           title="刪除班級"
                         >
                           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

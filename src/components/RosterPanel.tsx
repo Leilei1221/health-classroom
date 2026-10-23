@@ -107,7 +107,7 @@ export default function RosterPanel({ classId }: { classId: string }) {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-slate-500">共 {students.length} 位學生</p>
+        <p className="text-sm text-mist-mute">共 {students.length} 位學生</p>
         <div className="flex gap-2">
           {students.length > 0 && (
             <Button variant="danger" onClick={removeAll}>清空全班名單</Button>
@@ -121,8 +121,8 @@ export default function RosterPanel({ classId }: { classId: string }) {
       {error && <ErrorBox message={error} />}
 
       {showImport && (
-        <div className="space-y-3 rounded-xl border border-slate-200 bg-white p-4">
-          <p className="text-sm text-slate-600">
+        <div className="space-y-3 glass rounded-3xl p-4">
+          <p className="text-sm text-mist-mute">
             從 Excel 複製「學號、座號、姓名」三欄後貼在這裡，一行一位學生。
             學號相同者會更新既有資料，不會重複建立。
           </p>
@@ -132,7 +132,7 @@ export default function RosterPanel({ classId }: { classId: string }) {
             value={paste}
             onChange={(e) => setPaste(e.target.value)}
           />
-          <label className="flex items-start gap-2 text-sm text-slate-700">
+          <label className="flex items-start gap-2 text-sm text-mist-deep">
             <input
               type="checkbox"
               checked={serialSeat}
@@ -141,7 +141,7 @@ export default function RosterPanel({ classId }: { classId: string }) {
             />
             <span>
               座號改用流水號（多元選修等跨班課程）
-              <span className="block text-xs text-slate-500">
+              <span className="block text-xs text-mist-mute">
                 學生來自不同原班時原班座號會重複，勾選後改用貼上順序 1、2、3…。
                 原班與座號請放在姓名裡，例如「20106林宥漢」。
               </span>
@@ -156,9 +156,9 @@ export default function RosterPanel({ classId }: { classId: string }) {
       ) : students.length === 0 ? (
         <Empty>還沒有學生名單，請先匯入。</Empty>
       ) : (
-        <div className="overflow-x-auto rounded-xl border border-slate-200 bg-white">
+        <div className="overflow-x-auto glass rounded-3xl">
           <table className="w-full text-sm">
-            <thead className="border-b border-slate-200 bg-slate-50 text-left text-xs text-slate-500">
+            <thead className="border-b border-white/70 bg-white/40 text-left text-xs text-mist-mute">
               <tr>
                 <th className="px-3 py-2">座號</th>
                 <th className="px-3 py-2">學號</th>
@@ -169,11 +169,11 @@ export default function RosterPanel({ classId }: { classId: string }) {
             </thead>
             <tbody>
               {students.map((s) => (
-                <tr key={s.id} className="border-b border-slate-100 last:border-0">
-                  <td className="px-3 py-2 text-slate-500">{s.seat_no ?? '—'}</td>
+                <tr key={s.id} className="border-b border-mist-main/15 last:border-0">
+                  <td className="px-3 py-2 text-mist-mute">{s.seat_no ?? '—'}</td>
                   <td className="px-3 py-2 font-mono text-xs">{s.student_no}</td>
                   <td className="px-3 py-2 font-medium">{s.name}</td>
-                  <td className="px-3 py-2 text-slate-500">{s.note || '—'}</td>
+                  <td className="px-3 py-2 text-mist-mute">{s.note || '—'}</td>
                   <td className="px-3 py-2 text-right">
                     <Button variant="ghost" onClick={() => remove(s)}>刪除</Button>
                   </td>

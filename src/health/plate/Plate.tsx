@@ -107,18 +107,18 @@ export default function Plate({ preview }: { preview?: StudentProfile }) {
   }
 
   if (!student) return null
-  if (loading) return <div className="p-10 text-center text-sm text-slate-500">載入中…</div>
+  if (loading) return <div className="p-10 text-center text-sm text-mist-mute">載入中…</div>
 
   const filled = CAT_KEYS.filter((k) => t[k] > 0).length
   const q = query.trim()
 
   return (
-    <div className="min-h-screen bg-[#E9F5F2] text-[#0E2E2B]">
+    <div className="glass-page-mesh min-h-screen text-mist-ink">
       <div className="mx-auto max-w-[520px] pb-32">
         <HealthHeader student={student} isPreview={isPreview} tab="plate" />
 
         {/* 置頂儀表：六條份量尺 */}
-        <div className="sticky top-0 z-20 border-b border-white/15 bg-[#0B4A44] px-3.5 pb-3 pt-1 text-white">
+        <div className="sticky top-0 z-20 border-b border-white/15 bg-[#3B5878] px-3.5 pb-3 pt-1 text-white">
           {CAT_KEYS.map((k) => {
             const cur = t[k]
             const goal = goals[k]
@@ -127,7 +127,7 @@ export default function Plate({ preview }: { preview?: StudentProfile }) {
             const inGoal = (Math.min(cur, goal) / SCALE) * 100
             return (
               <div key={k} className="mb-[5px] flex items-center gap-[7px]">
-                <span className="flex w-[60px] shrink-0 items-center gap-[5px] whitespace-nowrap text-[11px] tracking-tight text-[#CFE7E3]">
+                <span className="flex w-[60px] shrink-0 items-center gap-[5px] whitespace-nowrap text-[11px] tracking-tight text-[#D3DEE9]">
                   <i className="h-[9px] w-[9px] shrink-0 rounded-sm" style={{ background: CAT[k].col }} />
                   {CAT[k].sh}
                 </span>
@@ -157,7 +157,7 @@ export default function Plate({ preview }: { preview?: StudentProfile }) {
             )
           })}
           <div className="mb-[5px] flex items-center gap-[7px]">
-            <span className="flex w-[60px] shrink-0 items-center gap-[5px] whitespace-nowrap text-[11px] text-[#CFE7E3]">
+            <span className="flex w-[60px] shrink-0 items-center gap-[5px] whitespace-nowrap text-[11px] text-[#D3DEE9]">
               <i className="h-[9px] w-[9px] shrink-0 rounded-sm bg-[#4FA8C7]" />喝水
             </span>
             <span className="relative h-[17px] flex-1 rounded bg-white/10">
@@ -193,17 +193,17 @@ export default function Plate({ preview }: { preview?: StudentProfile }) {
           <PreviewBanner>這是學生在手機上看到的畫面。可以試點食物，但送出不會寫入任何資料。</PreviewBanner>
         )}
         {error && (
-          <div className="mx-3 mt-3 rounded-lg bg-[#FBEDEC] px-4 py-3 text-sm text-[#A8403C]">{error}</div>
+          <div className="mx-3 mt-3 rounded-lg bg-[#FBEDEC] px-4 py-3 text-sm text-[#9A3834]">{error}</div>
         )}
 
         {sent ? (
           <Result sent={sent} onAgain={() => setSent(null)} />
         ) : (
           <>
-            <section className="mx-3 my-3 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
-              <div className="border-b border-[#C7E2DC] bg-[#F7FCFB] px-4 pb-3 pt-3.5">
+            <section className="mx-3 my-3 overflow-hidden glass rounded-3xl">
+              <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
                 <h3 className="text-[15.5px] font-bold">先選你一天需要的熱量</h3>
-                <p className="mt-0.5 text-[12.5px] text-[#4A6461]">
+                <p className="mt-0.5 text-[12.5px] text-[#44556A]">
                   不知道就先用預設值，之後可由登記頁的體重與活動量自動帶入
                 </p>
               </div>
@@ -216,23 +216,23 @@ export default function Plate({ preview }: { preview?: StudentProfile }) {
                     onClick={() => setKcalTarget(k)}
                     className={`rounded-[10px] border-[1.5px] px-0.5 py-2.5 text-[13.5px] tabular-nums ${
                       k === kcalTarget
-                        ? 'border-[#12776E] bg-[#12776E] font-bold text-white'
-                        : 'border-[#C7E2DC] bg-white text-[#4A6461]'
+                        ? 'border-[#4F6F92] bg-[#4F6F92] font-bold text-white'
+                        : 'border-mist-main/25 bg-white text-[#44556A]'
                     }`}
                   >
                     {k}
                   </button>
                 ))}
               </div>
-              <p className="px-4 pb-3 text-[12.5px] text-[#4A6461]">
+              <p className="px-4 pb-3 text-[12.5px] text-[#44556A]">
                 熱量不同，六大類可以吃的份數就不同——這就是為什麼沒有一體適用的餐盤。
               </p>
             </section>
 
-            <section className="mx-3 my-3 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
-              <div className="border-b border-[#C7E2DC] bg-[#F7FCFB] px-4 pb-3 pt-3.5">
+            <section className="mx-3 my-3 overflow-hidden glass rounded-3xl">
+              <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
                 <h3 className="text-[15.5px] font-bold">今天吃了什麼</h3>
-                <p className="mt-0.5 text-[12.5px] text-[#4A6461]">點一下加一份，點下面的清單可以拿掉</p>
+                <p className="mt-0.5 text-[12.5px] text-[#44556A]">點一下加一份，點下面的清單可以拿掉</p>
               </div>
               <div className="px-3.5 pb-0.5 pt-2.5">
                 <input
@@ -240,7 +240,7 @@ export default function Plate({ preview }: { preview?: StudentProfile }) {
                   value={query}
                   onChange={(e) => setQuery(e.target.value)}
                   placeholder="搜尋食物… 例如「雞」「拿鐵」「盤」"
-                  className="w-full rounded-[10px] border-[1.5px] border-[#C7E2DC] bg-white px-3 py-2.5 text-[15px] outline-none focus:border-[#12776E] focus:ring-1 focus:ring-[#12776E]"
+                  className="w-full rounded-[10px] border-[1.5px] border-mist-main/25 bg-white px-3 py-2.5 text-[15px] outline-none focus:border-[#4F6F92] focus:ring-1 focus:ring-[#4F6F92]"
                 />
               </div>
 
@@ -251,7 +251,7 @@ export default function Plate({ preview }: { preview?: StudentProfile }) {
                 if (!items.length) return null
                 const expanded = q ? true : open.has(gi)
                 return (
-                  <div key={g.nm} className="border-b border-[#F0F6F5] last:border-0">
+                  <div key={g.nm} className="border-b border-[#F2F5F8] last:border-0">
                     <button
                       onClick={() => setOpen((prev) => {
                         const next = new Set(prev)
@@ -260,9 +260,9 @@ export default function Plate({ preview }: { preview?: StudentProfile }) {
                       })}
                       className="flex w-full items-baseline gap-1.5 px-3.5 py-3 text-left text-[14.5px] font-bold"
                     >
-                      <span className={`text-xs text-[#12776E] transition-transform ${expanded ? 'rotate-90' : ''}`}>▸</span>
+                      <span className={`text-xs text-[#3F5F82] transition-transform ${expanded ? 'rotate-90' : ''}`}>▸</span>
                       {g.nm}
-                      <span className="ml-auto text-right text-[11.5px] font-normal text-[#4A6461]">{g.note}</span>
+                      <span className="ml-auto text-right text-[11.5px] font-normal text-[#44556A]">{g.note}</span>
                     </button>
                     {expanded && (
                       <>
@@ -276,22 +276,22 @@ export default function Plate({ preview }: { preview?: StudentProfile }) {
                                 onClick={() => add(gi, ii)}
                                 className={`relative rounded-[11px] border-[1.5px] px-1 pb-1.5 pt-2 text-center leading-tight active:scale-95 ${
                                   n === 0
-                                    ? `border-[#C7E2DC] bg-white ${g.warn ? 'border-dashed' : ''}`
+                                    ? `border-mist-main/25 bg-white ${g.warn ? 'border-dashed' : ''}`
                                     : g.warn
                                       ? 'border-[#8B8177] bg-[#F6F4F2]'
-                                      : 'border-[#12776E] bg-[#F0F8F7]'
+                                      : 'border-[#4F6F92] bg-[#F2F6F9]'
                                 }`}
                               >
                                 {n > 0 && (
                                   <span className={`absolute -right-1.5 -top-[7px] flex h-[21px] min-w-[21px] items-center justify-center rounded-full px-1.5 text-xs font-bold text-white ${
-                                    g.warn ? 'bg-[#8B8177]' : 'bg-[#12776E]'
+                                    g.warn ? 'bg-[#8B8177]' : 'bg-[#4F6F92]'
                                   }`}>
                                     {n}
                                   </span>
                                 )}
                                 <span className="mb-0.5 block text-2xl">{f.e}</span>
                                 <span className="block text-[13px] font-semibold">{f.n}</span>
-                                <span className="block text-[11px] text-[#4A6461]">{f.p}</span>
+                                <span className="block text-[11px] text-[#44556A]">{f.p}</span>
                                 {!f.p.includes('大卡') && (
                                   <span className="mt-px block text-[10.5px] tabular-nums text-[#9AAFAC]">{kc} 大卡</span>
                                 )}
@@ -300,7 +300,7 @@ export default function Plate({ preview }: { preview?: StudentProfile }) {
                           })}
                         </div>
                         {g.src && (
-                          <p className="px-3.5 pb-3 text-[11.5px] leading-relaxed text-[#8CA5A2]">{g.src}</p>
+                          <p className="px-3.5 pb-3 text-[11.5px] leading-relaxed text-[#8A9BAE]">{g.src}</p>
                         )}
                       </>
                     )}
@@ -309,10 +309,10 @@ export default function Plate({ preview }: { preview?: StudentProfile }) {
               })}
             </section>
 
-            <section className="mx-3 my-3 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
-              <div className="border-b border-[#C7E2DC] bg-[#F7FCFB] px-4 pb-3 pt-3.5">
+            <section className="mx-3 my-3 overflow-hidden glass rounded-3xl">
+              <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
                 <h3 className="text-[15.5px] font-bold">我吃掉的</h3>
-                <p className="mt-0.5 text-[12.5px] text-[#4A6461]">點任一項可以移除</p>
+                <p className="mt-0.5 text-[12.5px] text-[#44556A]">點任一項可以移除</p>
               </div>
               {log.length ? (
                 <div className="flex flex-wrap gap-1.5 px-3.5 py-2.5">
@@ -322,21 +322,21 @@ export default function Plate({ preview }: { preview?: StudentProfile }) {
                       <button
                         key={`${e.gi}-${e.ii}`}
                         onClick={() => removeAt(i)}
-                        className="inline-flex items-center gap-1 rounded-full border border-[#C7E2DC] bg-[#F0F8F7] px-2.5 py-1.5 text-[13px]"
+                        className="inline-flex items-center gap-1 rounded-full border border-mist-main/25 bg-[#F2F6F9] px-2.5 py-1.5 text-[13px]"
                       >
                         {f.e} {f.n}
-                        {e.n > 1 && <b className="text-[11.5px] font-normal text-[#4A6461]">×{e.n}</b>}
-                        <span className="text-[#4A6461]">✕</span>
+                        {e.n > 1 && <b className="text-[11.5px] font-normal text-[#44556A]">×{e.n}</b>}
+                        <span className="text-[#44556A]">✕</span>
                       </button>
                     )
                   })}
                 </div>
               ) : (
-                <p className="px-4 py-3.5 text-[13px] text-[#4A6461]">還沒點任何東西。</p>
+                <p className="px-4 py-3.5 text-[13px] text-[#44556A]">還沒點任何東西。</p>
               )}
             </section>
 
-            <p className="mx-3 px-1 pb-2 text-[11.5px] leading-relaxed text-[#4A6461]">
+            <p className="mx-3 px-1 pb-2 text-[11.5px] leading-relaxed text-[#44556A]">
               份數與熱量依「衛生福利部國民健康署－每日飲食指南／食物代換表」；六大類口訣與 85210
               依育達乙版全一冊Ⅰ 第一章。連鎖店熱量為各品牌公布值（全家取自官方「食在購安心」平台；查核日
               2026-09-11）；所有<b>份數</b>皆為依成分的教學換算，非官方數據。菜單會改版，每學期複查一次。
@@ -349,7 +349,7 @@ export default function Plate({ preview }: { preview?: StudentProfile }) {
       </div>
 
       {toast && (
-        <div className="fixed bottom-24 left-1/2 z-50 w-[calc(100%-36px)] max-w-[440px] -translate-x-1/2 rounded-xl bg-[#0B4A44]/95 px-4 py-2.5 text-[13.5px] text-white">
+        <div className="fixed bottom-24 left-1/2 z-50 w-[calc(100%-36px)] max-w-[440px] -translate-x-1/2 rounded-xl bg-[#3B5878]/95 px-4 py-2.5 text-[13.5px] text-white">
           <b className="mb-0.5 block text-[14.5px]">{toast.title}</b>
           {toast.lines.map((l, i) => (
             <span key={i} className={`block ${i > 0 ? 'text-[#F0C24A]' : ''}`}>{l}</span>
@@ -358,8 +358,8 @@ export default function Plate({ preview }: { preview?: StudentProfile }) {
       )}
 
       {!sent && (
-        <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[520px] border-t border-[#C7E2DC] bg-white/95 px-4 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2.5">
-          <div className="mb-1.5 text-[12.5px] text-[#4A6461]">
+        <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[520px] border-t border-mist-main/25 bg-white/95 px-4 pb-[calc(10px+env(safe-area-inset-bottom))] pt-2.5">
+          <div className="mb-1.5 text-[12.5px] text-[#44556A]">
             {filled === 0 ? '六個格子都還是空的'
               : filled < 6 ? `還有 ${6 - filled} 類是空的`
               : '六類都有東西了，看看結果'}
@@ -367,7 +367,7 @@ export default function Plate({ preview }: { preview?: StudentProfile }) {
           <button
             onClick={() => void send()}
             disabled={log.length === 0 || saving}
-            className="w-full rounded-[11px] bg-[#12776E] py-3.5 text-[17px] font-bold text-white disabled:cursor-not-allowed disabled:bg-[#B8CFCC]"
+            className="w-full rounded-[11px] bg-[#4F6F92] py-3.5 text-[17px] font-bold text-white disabled:cursor-not-allowed disabled:bg-[#B9C6D4]"
           >
             {saving ? '送出中…' : '看我的一日餐盤'}
           </button>
@@ -384,13 +384,13 @@ function Result({ sent, onAgain }: { sent: PlateResult; onAgain: () => void }) {
 
   return (
     <>
-      <section className="mx-3 my-3 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
-        <div className="border-b border-[#C7E2DC] bg-[#F7FCFB] px-4 pb-3 pt-3.5">
+      <section className="mx-3 my-3 overflow-hidden glass rounded-3xl">
+        <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
           <h3 className="text-[15.5px] font-bold">六大類：裝滿了嗎</h3>
-          <p className="mt-0.5 text-[12.5px] text-[#4A6461]">不是分數，是看哪一格空著、哪一格滿出來</p>
+          <p className="mt-0.5 text-[12.5px] text-[#44556A]">不是分數，是看哪一格空著、哪一格滿出來</p>
         </div>
         {r.out.map((c) => (
-          <div key={c.t} className="flex items-start gap-3 border-b border-[#C7E2DC] px-4 py-3.5 last:border-0">
+          <div key={c.t} className="flex items-start gap-3 border-b border-mist-main/25 px-4 py-3.5 last:border-0">
             <span className={`mt-0.5 flex h-[21px] w-[21px] shrink-0 items-center justify-center rounded-full text-[12.5px] font-bold text-white ${
               c.ok ? 'bg-[#2E8B62]' : 'bg-[#D19A2E]'
             }`}>
@@ -398,40 +398,40 @@ function Result({ sent, onAgain }: { sent: PlateResult; onAgain: () => void }) {
             </span>
             <div>
               <h4 className="mb-0.5 text-[14.5px] font-bold">{c.t}</h4>
-              <p className="text-[13.5px] leading-relaxed text-[#4A6461]">{c.p}</p>
+              <p className="text-[13.5px] leading-relaxed text-[#44556A]">{c.p}</p>
             </div>
           </div>
         ))}
       </section>
 
-      <div className="mx-3 my-3 rounded-xl border border-[#C7E2DC] bg-[#F7FCFB] px-4 py-4">
-        <strong className="mb-1.5 block text-[15px] text-[#0B4A44]">{s.head}</strong>
-        <p className="text-[13.5px] leading-relaxed text-[#4A6461]">{s.body}</p>
+      <div className="mx-3 my-3 rounded-xl border border-mist-main/25 bg-[#F4F7FA] px-4 py-4">
+        <strong className="mb-1.5 block text-[15px] text-[#3B5878]">{s.head}</strong>
+        <p className="text-[13.5px] leading-relaxed text-[#44556A]">{s.body}</p>
         {r.over.length > 0 && (
-          <p className="mt-3 text-[13.5px] leading-relaxed text-[#4A6461]">
+          <p className="mt-3 text-[13.5px] leading-relaxed text-[#44556A]">
             <strong className="text-[#B26A12]">滿出來的份量：</strong>{r.over.join('、')}。
           </p>
         )}
         {r.notes.map((n, i) => (
-          <p key={i} className="mt-3 text-[13.5px] leading-relaxed text-[#4A6461]">{n}</p>
+          <p key={i} className="mt-3 text-[13.5px] leading-relaxed text-[#44556A]">{n}</p>
         ))}
       </div>
 
       {sent.items.length > 0 && (
-        <div className="mx-3 my-3 rounded-xl border border-[#C7E2DC] bg-white px-4 py-3.5">
+        <div className="mx-3 my-3 rounded-xl border border-mist-main/25 bg-white px-4 py-3.5">
           <h4 className="mb-1.5 text-[14px] font-bold">你點的</h4>
-          <p className="text-[13px] leading-relaxed text-[#4A6461]">
+          <p className="text-[13px] leading-relaxed text-[#44556A]">
             {sent.items.map((i) => i.n > 1 ? `${i.name} ×${i.n}` : i.name).join('、')}
           </p>
         </div>
       )}
 
-      <div className="mx-3 rounded-xl border border-dashed border-[#C7E2DC] bg-[#F7FCFB] px-4 py-3.5 text-[12.5px] leading-relaxed text-[#4A6461]">
+      <div className="mx-3 rounded-2xl border border-dashed border-mist-main/40 bg-white/50 px-4 py-3.5 text-[12.5px] leading-relaxed text-[#44556A]">
         份數是「代換」的概念，不是精確的秤重。同一類裡的食物可以互換，
         所以重點不是你吃了什麼牌子，而是每一類裝了多少。
         <button
           onClick={onAgain}
-          className="mt-3 block w-full rounded-[11px] border-[1.5px] border-[#12776E] bg-white py-3 text-[15.5px] font-bold text-[#12776E]"
+          className="mt-3 block w-full rounded-[11px] border-[1.5px] border-[#4F6F92] bg-white py-3 text-[15.5px] font-bold text-[#3F5F82]"
         >
           重新來一次
         </button>

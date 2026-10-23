@@ -24,7 +24,7 @@ export default function RiskCare({ level }: {
         ? 'border-[#E2C9A6] bg-[#FDF3E3] text-[#7A4A08]'
         : level === 2
           ? 'border-[#E2C9A6] bg-[#FDF3E3] text-[#7A4A08]'
-          : 'border-[#C7E2DC] bg-[#F7FCFB] text-[#0E2E2B]'
+          : 'border-mist-main/25 bg-[#F4F7FA] text-[#2B3A4A]'
     }`}>
       {CARE_COPY[level].map((b, i) => (
         <Block key={i} block={b} first={i === 0} />

@@ -10,12 +10,9 @@ import {
   judgeBmi, judgeBp, judgeWhr, type Verdict,
 } from './rules'
 import type { HealthMeasurement, StudentProfile } from '../lib/types'
+import LevelMark from './LevelMark'
 
 type Values = Record<string, string>
-
-const DOT: Record<Verdict['level'], string> = {
-  g: 'bg-emerald-600', y: 'bg-amber-500', o: 'bg-amber-700',
-}
 
 function outOfRange(f: Field, raw: string): boolean {
   if (f.min === undefined || raw.trim() === '') return false
@@ -106,16 +103,16 @@ export default function HealthRegister({ preview }: { preview?: StudentProfile }
 
   if (!student) return null
   if (loading) {
-    return <div className="p-10 text-center text-sm text-slate-500">載入中…</div>
+    return <div className="p-10 text-center text-sm text-mist-mute">載入中…</div>
   }
 
   return (
-    <div className="min-h-screen bg-[#E9F5F2] text-[#0E2E2B]">
+    <div className="glass-page-mesh min-h-screen text-mist-ink">
       <div className="mx-auto max-w-[520px] pb-32">
         <HealthHeader student={student} isPreview={isPreview} tab="register" />
 
         {/* 自動計算讀數（sticky） */}
-        <div className="sticky top-0 z-20 border-b border-white/15 bg-[#0B4A44] px-5 pb-4 pt-3 text-white">
+        <div className="sticky top-0 z-20 border-b border-white/15 bg-[#3B5878] px-5 pb-4 pt-3 text-white">
           <h2 className="mb-2.5 text-xs font-medium tracking-widest text-[#8FC9C1]">自動計算</h2>
           <div className="grid grid-cols-3 gap-2.5">
             {[
@@ -136,20 +133,20 @@ export default function HealthRegister({ preview }: { preview?: StudentProfile }
         </div>
 
         {isPreview && (
-          <div className="mx-3 mt-3 rounded-lg border border-[#E2C9A6] bg-[#FDF3E3] px-4 py-3 text-sm text-[#8A5310]">
+          <div className="mx-3 mt-3 rounded-lg border border-[#E2C9A6] bg-[#FDF3E3] px-4 py-3 text-sm text-[#7A4A08]">
             <strong>預覽模式</strong>　這是學生在手機上看到的畫面。欄位可以試填、
             自動計算也會跟著動，但送出已停用，不會寫入任何資料。
           </div>
         )}
 
         {loadWarning && (
-          <div className="mx-3 mt-3 rounded-lg bg-[#FDF3E3] px-4 py-3 text-sm text-[#8A5310]">
+          <div className="mx-3 mt-3 rounded-lg bg-[#FDF3E3] px-4 py-3 text-sm text-[#7A4A08]">
             {loadWarning}
           </div>
         )}
 
         {error && (
-          <div className="mx-3 mt-3 rounded-lg bg-[#FBEDEC] px-4 py-3 text-sm text-[#A8403C]">
+          <div className="mx-3 mt-3 rounded-lg bg-[#FBEDEC] px-4 py-3 text-sm text-[#9A3834]">
             {error}
           </div>
         )}
@@ -159,20 +156,20 @@ export default function HealthRegister({ preview }: { preview?: StudentProfile }
         ) : (
           <>
             {SECTIONS.map((sec) => (
-              <section key={sec.title} className="mx-3 my-3.5 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
-                <div className="border-b border-[#C7E2DC] bg-[#F7FCFB] px-4 pb-3 pt-3.5">
+              <section key={sec.title} className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
+                <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
                   <h3 className="text-base font-bold">{sec.title}</h3>
-                  <p className="mt-0.5 text-[13px] text-[#4A6461]">{sec.hint}</p>
+                  <p className="mt-0.5 text-[13px] text-[#44556A]">{sec.hint}</p>
                 </div>
                 <div className="px-4 pb-3.5 pt-1.5">
                   {sec.fields.map((f) => {
                     const bad = outOfRange(f, values[f.key] ?? '')
                     return (
                       <div key={f.key}>
-                        <div className="flex items-center gap-3 border-b border-[#F0F6F5] py-2.5 last:border-0">
+                        <div className="flex items-center gap-3 border-b border-[#F2F5F8] py-2.5 last:border-0">
                           <label className="flex-1 text-[15px]" htmlFor={f.key}>
                             {f.label}
-                            {f.sub && <span className="block text-xs text-[#4A6461]">{f.sub}</span>}
+                            {f.sub && <span className="block text-xs text-[#44556A]">{f.sub}</span>}
                           </label>
                           <input
                             id={f.key}
@@ -180,14 +177,14 @@ export default function HealthRegister({ preview }: { preview?: StudentProfile }
                             value={values[f.key] ?? ''}
                             onChange={(e) => set(f.key, e.target.value)}
                             placeholder="—"
-                            className={`w-[110px] rounded-lg border-[1.5px] px-2.5 py-2 text-right text-[19px] font-semibold tabular-nums outline-none focus:border-[#12776E] focus:ring-1 focus:ring-[#12776E] ${
-                              bad ? 'border-[#A8403C] bg-[#FBEDEC]' : 'border-[#C7E2DC] bg-white'
+                            className={`w-[110px] rounded-lg border-[1.5px] px-2.5 py-2 text-right text-[19px] font-semibold tabular-nums outline-none focus:border-[#4F6F92] focus:ring-1 focus:ring-[#4F6F92] ${
+                              bad ? 'border-[#9A3834] bg-[#FBEDEC]' : 'border-mist-main/25 bg-white'
                             }`}
                           />
-                          <span className="w-9 text-[13px] text-[#4A6461]">{f.unit}</span>
+                          <span className="w-9 text-[13px] text-[#44556A]">{f.unit}</span>
                         </div>
                         {bad && (
-                          <div className="mb-2.5 rounded-lg bg-[#FBEDEC] px-3 py-2 text-[13px] text-[#A8403C]">
+                          <div className="mb-2.5 rounded-lg bg-[#FBEDEC] px-3 py-2 text-[13px] text-[#9A3834]">
                             這個數字看起來不太對（合理範圍 {f.min}～{f.max}），請再確認一次機器上的讀數。
                           </div>
                         )}
@@ -199,7 +196,7 @@ export default function HealthRegister({ preview }: { preview?: StudentProfile }
             ))}
 
             {suspicious.length > 0 && missing.length === 0 && (
-              <div className="mx-3 mb-3 rounded-xl border border-[#E2C9A6] bg-[#FDF3E3] p-4 text-sm text-[#8A5310]">
+              <div className="mx-3 mb-3 rounded-xl border border-[#E2C9A6] bg-[#FDF3E3] p-4 text-sm text-[#7A4A08]">
                 <p className="mb-2">
                   有 {suspicious.length} 個數字超出常見範圍：
                   {suspicious.map((f) => f.label).join('、')}。
@@ -223,8 +220,8 @@ export default function HealthRegister({ preview }: { preview?: StudentProfile }
       </div>
 
       {!saved && (
-        <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[520px] border-t border-[#C7E2DC] bg-white/95 px-4 pb-[calc(12px+env(safe-area-inset-bottom))] pt-3">
-          <div className="mb-2 text-[13px] text-[#4A6461]">
+        <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[520px] border-t border-mist-main/25 bg-white/95 px-4 pb-[calc(12px+env(safe-area-inset-bottom))] pt-3">
+          <div className="mb-2 text-[13px] text-[#44556A]">
             {isPreview
               ? '預覽模式：不會寫入資料'
               : missing.length > 0
@@ -236,7 +233,7 @@ export default function HealthRegister({ preview }: { preview?: StudentProfile }
           <button
             onClick={submit}
             disabled={!canSubmit || saving}
-            className="w-full rounded-xl bg-[#12776E] py-4 text-[17px] font-bold text-white disabled:cursor-not-allowed disabled:bg-[#B8CFCC]"
+            className="w-full rounded-xl bg-[#4F6F92] py-4 text-[17px] font-bold text-white disabled:cursor-not-allowed disabled:bg-[#B9C6D4]"
           >
             {isPreview ? '送出登記（預覽中停用）' : saving ? '送出中…' : '送出登記'}
           </button>
@@ -266,32 +263,32 @@ function Result({ bmi, whr, sbp, dbp, onEdit }: {
 
   return (
     <>
-      <section className="mx-3 my-3.5 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
-        <div className="border-b border-[#C7E2DC] bg-[#F7FCFB] px-4 pb-3 pt-3.5">
+      <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
+        <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
           <h3 className="text-base font-bold">今天的紀錄</h3>
-          <p className="mt-0.5 text-[13px] text-[#4A6461]">
+          <p className="mt-0.5 text-[13px] text-[#44556A]">
             這些數字是這學期的起點，之後會拿來跟自己比較
           </p>
         </div>
         {items.map(([name, value, v]) => (
-          <div key={name} className="flex items-start gap-3.5 border-b border-[#C7E2DC] px-4 py-4 last:border-0">
-            <span className={`mt-1.5 h-3 w-3 shrink-0 rounded-full ${DOT[v.level]}`} />
+          <div key={name} className="flex items-start gap-3.5 border-b border-mist-main/25 px-4 py-4 last:border-0">
+            <span className="mt-1.5 shrink-0"><LevelMark level={v.level} /></span>
             <div>
               <h4 className="text-[15px]">{name}</h4>
               <div className="my-0.5 text-2xl font-bold tabular-nums">{value}</div>
-              <p className="text-sm text-[#4A6461]">
+              <p className="text-sm text-[#44556A]">
                 <strong>{v.label}</strong>　{v.msg}
               </p>
             </div>
           </div>
         ))}
       </section>
-      <div className="mx-3 rounded-xl border border-dashed border-[#C7E2DC] bg-[#F7FCFB] px-4 py-3.5 text-[13px] text-[#4A6461]">
+      <div className="mx-3 rounded-2xl border border-dashed border-mist-main/40 bg-white/50 px-4 py-3.5 text-[13px] text-[#44556A]">
         這裡看到的是參考範圍，不是診斷。數值只是提供你認識自己身體的線索，
         接下來的課會一起討論可以怎麼調整。
       </div>
       <div className="mx-3 mt-4">
-        <button onClick={onEdit} className="w-full rounded-xl border border-[#C7E2DC] bg-white py-3 text-[15px] font-medium text-[#12776E]">
+        <button onClick={onEdit} className="w-full rounded-xl border border-mist-main/25 bg-white py-3 text-[15px] font-medium text-[#3F5F82]">
           修改我填的數值
         </button>
       </div>

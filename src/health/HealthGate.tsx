@@ -143,19 +143,19 @@ export default function HealthGate({ page = 'home', preview = false }: {
 
 function SignIn({ onSignIn }: { onSignIn: () => Promise<void> }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#E9F5F2] p-6">
-      <div className="w-full max-w-sm space-y-6 rounded-2xl border border-[#C7E2DC] bg-white p-8">
+    <div className="glass-page-mesh flex min-h-screen items-center justify-center p-6">
+      <div className="w-full max-w-sm space-y-6 glass rounded-3xl p-8">
         <div className="space-y-1 text-center">
-          <h1 className="text-xl font-bold text-[#0E2E2B]">健康管理・身體數值登記</h1>
-          <p className="text-sm text-[#4A6461]">國立花蓮高級中學</p>
+          <h1 className="text-xl font-bold text-[#2B3A4A]">健康管理・身體數值登記</h1>
+          <p className="text-sm text-[#44556A]">國立花蓮高級中學</p>
         </div>
         <button
           onClick={() => void onSignIn()}
-          className="w-full rounded-xl bg-[#12776E] py-4 text-base font-bold text-white"
+          className="w-full rounded-xl bg-[#4F6F92] py-4 text-base font-bold text-white"
         >
           用學校 Google 帳號登入
         </button>
-        <p className="text-center text-xs text-[#4A6461]">
+        <p className="text-center text-xs text-[#44556A]">
           請使用學校發的帳號（<span className="font-mono">s學號@hlhs.hlc.edu.tw</span>）
         </p>
       </div>
@@ -167,13 +167,13 @@ function Notice({ title, body, onSignOut }: {
   title: string; body: string; onSignOut: () => Promise<void>
 }) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-[#E9F5F2] p-6">
-      <div className="w-full max-w-sm space-y-4 rounded-2xl border border-[#C7E2DC] bg-white p-8 text-center">
-        <h1 className="text-lg font-bold text-[#0E2E2B]">{title}</h1>
-        <p className="text-sm leading-relaxed text-[#4A6461]">{body}</p>
+    <div className="glass-page-mesh flex min-h-screen items-center justify-center p-6">
+      <div className="w-full max-w-sm space-y-4 glass rounded-3xl p-8 text-center">
+        <h1 className="text-lg font-bold text-[#2B3A4A]">{title}</h1>
+        <p className="text-sm leading-relaxed text-[#44556A]">{body}</p>
         <button
           onClick={() => void onSignOut()}
-          className="w-full rounded-xl border border-[#C7E2DC] py-3 text-sm font-medium text-[#12776E]"
+          className="w-full rounded-xl border border-mist-main/25 py-3 text-sm font-medium text-[#3F5F82]"
         >
           換一個帳號登入
         </button>

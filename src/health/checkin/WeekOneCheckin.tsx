@@ -32,9 +32,9 @@ const STATUS_TEXT: Record<HealthCheckinStatus, string> = {
 }
 
 const STATUS_STYLE: Record<HealthCheckinStatus, string> = {
-  done: 'border-[#12776E] bg-[#E9F5F2] text-[#0B4A44]',
-  partial: 'border-[#E2C9A6] bg-[#FDF3E3] text-[#8A5310]',
-  rest: 'border-[#C7E2DC] bg-white text-[#4A6461]',
+  done: 'border-[#4F6F92] bg-[#E6EBF0] text-[#3B5878]',
+  partial: 'border-[#E2C9A6] bg-[#FDF3E3] text-[#7A4A08]',
+  rest: 'border-mist-main/25 bg-white text-[#44556A]',
 }
 
 const SAMPLE_GOAL: HealthGoal = {
@@ -171,7 +171,7 @@ export default function WeekOneCheckin({ preview }: { preview?: StudentProfile }
   }, [activeWeek])
 
   if (!student) return null
-  if (loading) return <div className="p-10 text-center text-sm text-slate-500">載入中…</div>
+  if (loading) return <div className="p-10 text-center text-sm text-mist-mute">載入中…</div>
 
   const save = async () => {
     if (!goal) return
@@ -257,7 +257,7 @@ export default function WeekOneCheckin({ preview }: { preview?: StudentProfile }
   }
 
   return (
-    <div className="min-h-screen bg-[#E9F5F2] text-[#0E2E2B]">
+    <div className="glass-page-mesh min-h-screen text-mist-ink">
       <div className="mx-auto max-w-[520px] pb-12">
         <HealthHeader student={student} isPreview={isPreview} tab="checkin" />
 
@@ -267,7 +267,7 @@ export default function WeekOneCheckin({ preview }: { preview?: StudentProfile }
           </PreviewBanner>
         )}
         {error && (
-          <div className="mx-3 mt-3 rounded-lg bg-[#FBEDEC] px-4 py-3 text-sm text-[#A8403C]">
+          <div className="mx-3 mt-3 rounded-lg bg-[#FBEDEC] px-4 py-3 text-sm text-[#9A3834]">
             {error}
           </div>
         )}
@@ -313,7 +313,7 @@ export default function WeekOneCheckin({ preview }: { preview?: StudentProfile }
             />
             {message && <Encouragement message={message} savedAt={savedAt} />}
             {(current?.action_done || current?.note || current?.evidence_note) && (
-              <section className="mx-3 my-3.5 rounded-2xl border border-[#C7E2DC] bg-white px-4 py-3">
+              <section className="mx-3 my-3.5 glass rounded-3xl px-4 py-3">
                 <h3 className="text-[14px] font-bold">這一天的紀錄</h3>
                 {current.action_done && (
                   <p className="mt-1.5 text-[14px] leading-relaxed">
@@ -321,12 +321,12 @@ export default function WeekOneCheckin({ preview }: { preview?: StudentProfile }
                   </p>
                 )}
                 {current.note && (
-                  <p className="mt-1.5 text-[14px] leading-relaxed text-[#4A6461]">
+                  <p className="mt-1.5 text-[14px] leading-relaxed text-[#44556A]">
                     <b>感受：</b>{current.note}
                   </p>
                 )}
                 {current.evidence_note && (
-                  <p className="mt-1.5 text-[14px] leading-relaxed text-[#4A6461]">
+                  <p className="mt-1.5 text-[14px] leading-relaxed text-[#44556A]">
                     <b>佐證：</b>{current.evidence_note}
                   </p>
                 )}
@@ -347,24 +347,24 @@ function GoalSummary({ goal, doneCount, partialCount }: {
   partialCount: number
 }) {
   return (
-    <section className="mx-3 my-3.5 rounded-2xl border border-[#C7E2DC] bg-white px-4 py-4">
-      <p className="text-[12px] font-bold tracking-widest text-[#12776E]">健康行動打卡</p>
+    <section className="mx-3 my-3.5 glass rounded-3xl px-4 py-4">
+      <p className="text-[12px] font-bold tracking-widest text-[#3F5F82]">健康行動打卡</p>
       <h2 className="mt-1 text-xl font-bold">今天有靠近目標一點點嗎？</h2>
-      <div className="mt-3 rounded-xl bg-[#F7FCFB] px-3 py-3">
-        <p className="text-[13px] font-bold text-[#12776E]">{goal.direction}</p>
+      <div className="mt-3 rounded-xl bg-[#F4F7FA] px-3 py-3">
+        <p className="text-[13px] font-bold text-[#3F5F82]">{goal.direction}</p>
         <p className="mt-1 text-[14px] leading-relaxed">{goal.s_action}</p>
-        <p className="mt-1.5 text-[12.5px] leading-relaxed text-[#4A6461]">
+        <p className="mt-1.5 text-[12.5px] leading-relaxed text-[#44556A]">
           目標頻率：{goal.frequency || `每週 ${goal.target_per_week} 天`}
         </p>
       </div>
       <div className="mt-3 grid grid-cols-2 gap-2 text-center">
-        <div className="rounded-xl bg-[#E9F5F2] px-3 py-2">
+        <div className="rounded-xl bg-[#E6EBF0] px-3 py-2">
           <b className="text-lg tabular-nums">{doneCount}</b>
-          <p className="text-[12.5px] text-[#4A6461]">完成</p>
+          <p className="text-[12.5px] text-[#44556A]">完成</p>
         </div>
         <div className="rounded-xl bg-[#FDF3E3] px-3 py-2">
           <b className="text-lg tabular-nums">{partialCount}</b>
-          <p className="text-[12.5px] text-[#8A5310]">有做到一部分</p>
+          <p className="text-[12.5px] text-[#7A4A08]">有做到一部分</p>
         </div>
       </div>
     </section>
@@ -378,10 +378,10 @@ function WeekSelector({ weeks, selectedWeek, onPick, onAdd }: {
   onAdd: () => void
 }) {
   return (
-    <section className="mx-3 my-3.5 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
-      <div className="border-b border-[#C7E2DC] bg-[#F7FCFB] px-4 pb-3 pt-3.5">
+    <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
+      <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
         <h3 className="text-base font-bold">選擇週次</h3>
-        <p className="mt-0.5 text-[13px] text-[#4A6461]">預設四週；如果想繼續追蹤，可以自己增加週次。</p>
+        <p className="mt-0.5 text-[13px] text-[#44556A]">預設四週；如果想繼續追蹤，可以自己增加週次。</p>
       </div>
       <div className="flex gap-2 overflow-x-auto p-3">
         {weeks.map((week) => (
@@ -390,8 +390,8 @@ function WeekSelector({ weeks, selectedWeek, onPick, onAdd }: {
             onClick={() => onPick(week.week_no)}
             className={`min-w-[76px] rounded-xl border px-3 py-2 text-sm font-bold ${
               selectedWeek === week.week_no
-                ? 'border-[#12776E] bg-[#E9F5F2] text-[#0B4A44]'
-                : 'border-[#C7E2DC] bg-white text-[#4A6461]'
+                ? 'border-[#4F6F92] bg-[#E6EBF0] text-[#3B5878]'
+                : 'border-mist-main/25 bg-white text-[#44556A]'
             }`}
           >
             第 {week.week_no} 週
@@ -399,7 +399,7 @@ function WeekSelector({ weeks, selectedWeek, onPick, onAdd }: {
         ))}
         <button
           onClick={onAdd}
-          className="min-w-[88px] rounded-xl border border-dashed border-[#12776E] bg-white px-3 py-2 text-sm font-bold text-[#12776E]"
+          className="min-w-[88px] rounded-xl border border-dashed border-[#4F6F92] bg-white px-3 py-2 text-sm font-bold text-[#3F5F82]"
         >
           新增週次
         </button>
@@ -416,9 +416,9 @@ function WeekStartEditor({ weekNo, value, saving, onChange, onSave }: {
   onSave: () => void
 }) {
   return (
-    <section className="mx-3 my-3.5 rounded-2xl border border-[#C7E2DC] bg-white px-4 py-4">
+    <section className="mx-3 my-3.5 glass rounded-3xl px-4 py-4">
       <h3 className="text-base font-bold">第 {weekNo} 週開始日期</h3>
-      <p className="mt-1 text-[13px] leading-relaxed text-[#4A6461]">
+      <p className="mt-1 text-[13px] leading-relaxed text-[#44556A]">
         選這一週從哪一天開始，下面七格會自動排出日期。
       </p>
       <div className="mt-3 flex gap-2">
@@ -426,12 +426,12 @@ function WeekStartEditor({ weekNo, value, saving, onChange, onSave }: {
           type="date"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          className="min-w-0 flex-1 rounded-xl border border-[#C7E2DC] px-3 py-2.5 text-[14px] outline-none focus:border-[#12776E]"
+          className="min-w-0 flex-1 rounded-xl border border-mist-main/25 px-3 py-2.5 text-[14px] outline-none focus:border-[#4F6F92]"
         />
         <button
           disabled={saving}
           onClick={onSave}
-          className="shrink-0 rounded-xl bg-[#12776E] px-4 py-2.5 text-[14px] font-bold text-white disabled:bg-[#B8CFCC]"
+          className="shrink-0 rounded-xl bg-[#4F6F92] px-4 py-2.5 text-[14px] font-bold text-white disabled:bg-[#B9C6D4]"
         >
           儲存
         </button>
@@ -447,10 +447,10 @@ function WeekGrid({ selectedDay, byDay, weekStartDate, onPick }: {
   onPick: (day: number) => void
 }) {
   return (
-    <section className="mx-3 my-3.5 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
-      <div className="border-b border-[#C7E2DC] bg-[#F7FCFB] px-4 pb-3 pt-3.5">
+    <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
+      <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
         <h3 className="text-base font-bold">本週 7 天</h3>
-        <p className="mt-0.5 text-[13px] text-[#4A6461]">點一天來打卡。可以補前面的紀錄，不需要一次填完。</p>
+        <p className="mt-0.5 text-[13px] text-[#44556A]">點一天來打卡。可以補前面的紀錄，不需要一次填完。</p>
       </div>
       <div className="grid grid-cols-7 gap-1.5 p-3">
         {Array.from({ length: 7 }, (_, i) => i + 1).map((day) => {
@@ -461,13 +461,13 @@ function WeekGrid({ selectedDay, byDay, weekStartDate, onPick }: {
               key={day}
               onClick={() => onPick(day)}
               className={`aspect-square rounded-xl border text-center transition ${
-                on ? 'border-[#12776E] bg-[#E9F5F2]' : 'border-[#C7E2DC] bg-white'
+                on ? 'border-[#4F6F92] bg-[#E6EBF0]' : 'border-mist-main/25 bg-white'
               }`}
             >
-              <span className="block text-[11px] text-[#4A6461]">第</span>
+              <span className="block text-[11px] text-[#44556A]">第</span>
               <b className="text-lg tabular-nums">{day}</b>
-              <span className="block text-[11px] text-[#4A6461]">天</span>
-              <span className="block text-[10.5px] text-[#4A6461]">
+              <span className="block text-[11px] text-[#44556A]">天</span>
+              <span className="block text-[10.5px] text-[#44556A]">
                 {dateLabel(weekStartDate, day)}
               </span>
               <span className="mt-0.5 block text-[15px] leading-none">
@@ -500,20 +500,20 @@ function CheckinEditor({
   onSave: () => void
 }) {
   return (
-    <section className="mx-3 my-3.5 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
-      <div className="border-b border-[#C7E2DC] bg-[#F7FCFB] px-4 pb-3 pt-3.5">
+    <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
+      <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
         <h3 className="text-base font-bold">第 {day} 天打卡</h3>
       </div>
       <div className="space-y-4 p-4">
         <div>
-          <label className="mb-1.5 block text-[13px] font-bold text-[#0B4A44]">今天的狀態</label>
+          <label className="mb-1.5 block text-[13px] font-bold text-[#3B5878]">今天的狀態</label>
           <div className="grid grid-cols-3 gap-2">
             {(['done', 'partial', 'rest'] as const).map((item) => (
               <button
                 key={item}
                 onClick={() => onStatus(item)}
                 className={`rounded-xl border px-2 py-2.5 text-[13px] font-bold ${
-                  status === item ? STATUS_STYLE[item] : 'border-[#C7E2DC] bg-white text-[#4A6461]'
+                  status === item ? STATUS_STYLE[item] : 'border-mist-main/25 bg-white text-[#44556A]'
                 }`}
               >
                 {STATUS_TEXT[item]}
@@ -522,51 +522,51 @@ function CheckinEditor({
           </div>
         </div>
         <label className="block">
-          <span className="mb-1.5 block text-[13px] font-bold text-[#0B4A44]">今天做了什麼行動？</span>
+          <span className="mb-1.5 block text-[13px] font-bold text-[#3B5878]">今天做了什麼行動？</span>
           <textarea
             rows={3}
             value={actionDone}
             onChange={(e) => onActionDone(e.target.value)}
             placeholder="例：晚自習前做一輪正念呼吸、午餐後到操場走 10 分鐘、睡前把手機放到書桌。"
-            className="w-full resize-none rounded-xl border border-[#C7E2DC] px-3 py-2.5 text-[14px] leading-relaxed outline-none focus:border-[#12776E]"
+            className="w-full resize-none rounded-xl border border-mist-main/25 px-3 py-2.5 text-[14px] leading-relaxed outline-none focus:border-[#4F6F92]"
           />
         </label>
         <label className="block">
-          <span className="mb-1.5 block text-[13px] font-bold text-[#0B4A44]">大約花多久？</span>
+          <span className="mb-1.5 block text-[13px] font-bold text-[#3B5878]">大約花多久？</span>
           <div className="flex items-center gap-2">
             <input
               inputMode="numeric"
               value={minutes}
               onChange={(e) => onMinutes(e.target.value.replace(/[^\d]/g, '').slice(0, 4))}
               placeholder="例：10"
-              className="w-full rounded-xl border border-[#C7E2DC] px-3 py-2.5 text-[14px] outline-none focus:border-[#12776E]"
+              className="w-full rounded-xl border border-mist-main/25 px-3 py-2.5 text-[14px] outline-none focus:border-[#4F6F92]"
             />
-            <span className="shrink-0 text-[13px] text-[#4A6461]">分鐘</span>
+            <span className="shrink-0 text-[13px] text-[#44556A]">分鐘</span>
           </div>
         </label>
         <label className="block">
-          <span className="mb-1.5 block text-[13px] font-bold text-[#0B4A44]">今天的感受或發現</span>
+          <span className="mb-1.5 block text-[13px] font-bold text-[#3B5878]">今天的感受或發現</span>
           <textarea
             rows={3}
             value={note}
             onChange={(e) => onNote(e.target.value)}
             placeholder="例：剛開始有點懶，但做完比較清醒；也發現如果有人提醒我會比較容易開始。"
-            className="w-full resize-none rounded-xl border border-[#C7E2DC] px-3 py-2.5 text-[14px] leading-relaxed outline-none focus:border-[#12776E]"
+            className="w-full resize-none rounded-xl border border-mist-main/25 px-3 py-2.5 text-[14px] leading-relaxed outline-none focus:border-[#4F6F92]"
           />
         </label>
-        <div className="rounded-xl border border-[#C7E2DC] bg-[#F7FCFB] px-3 py-3">
+        <div className="rounded-xl border border-mist-main/25 bg-[#F4F7FA] px-3 py-3">
           <div className="flex items-start justify-between gap-3">
             <div>
               <h4 className="text-[14px] font-bold">照片或截圖佐證</h4>
-              <p className="mt-1 text-[12.5px] leading-relaxed text-[#4A6461]">
+              <p className="mt-1 text-[12.5px] leading-relaxed text-[#44556A]">
                 現在先用文字記錄，之後才會開放上傳檔案。
               </p>
             </div>
-            <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[11.5px] font-bold text-[#12776E]">
+            <span className="shrink-0 rounded-full bg-white px-2 py-1 text-[11.5px] font-bold text-[#3F5F82]">
               選填
             </span>
           </div>
-          <ul className="mt-2 space-y-1 text-[12.5px] leading-relaxed text-[#4A6461]">
+          <ul className="mt-2 space-y-1 text-[12.5px] leading-relaxed text-[#44556A]">
             <li>可以寫：有運動手錶截圖、睡眠紀錄截圖、操場照片、餐點照片。</li>
             <li>不要拍到同學清楚臉部、學號、班級名牌或定位資訊。</li>
             <li>沒有照片也可以，只要用文字把今天的行動寫清楚。</li>
@@ -576,13 +576,13 @@ function CheckinEditor({
             value={evidenceNote}
             onChange={(e) => onEvidenceNote(e.target.value)}
             placeholder="例：有運動 app 截圖；有拍操場照片但沒有拍到人；今天沒有照片，用文字記錄。"
-            className="mt-3 w-full resize-none rounded-xl border border-[#C7E2DC] bg-white px-3 py-2.5 text-[14px] leading-relaxed outline-none focus:border-[#12776E]"
+            className="mt-3 w-full resize-none rounded-xl border border-mist-main/25 bg-white px-3 py-2.5 text-[14px] leading-relaxed outline-none focus:border-[#4F6F92]"
           />
         </div>
         <button
           disabled={saving}
           onClick={onSave}
-          className="w-full rounded-xl bg-[#12776E] py-3 text-[15px] font-bold text-white disabled:bg-[#B8CFCC]"
+          className="w-full rounded-xl bg-[#4F6F92] py-3 text-[15px] font-bold text-white disabled:bg-[#B9C6D4]"
         >
           {saving ? '儲存中…' : '儲存今天打卡'}
         </button>
@@ -593,10 +593,10 @@ function CheckinEditor({
 
 function Encouragement({ message, savedAt }: { message: string; savedAt: string | null }) {
   return (
-    <section className="mx-3 my-3.5 rounded-2xl border border-[#BBDDD6] bg-[#F7FCFB] px-4 py-4 text-center">
-      <p className="text-lg font-bold text-[#12776E]">{message}</p>
+    <section className="mx-3 my-3.5 rounded-2xl border border-[#BBDDD6] bg-[#F4F7FA] px-4 py-4 text-center">
+      <p className="text-lg font-bold text-[#3F5F82]">{message}</p>
       {savedAt && (
-        <p className="mt-1 text-[12.5px] text-[#4A6461]">
+        <p className="mt-1 text-[12.5px] text-[#44556A]">
           已儲存：{new Date(savedAt).toLocaleString('zh-TW', { hour12: false })}
         </p>
       )}
@@ -606,14 +606,14 @@ function Encouragement({ message, savedAt }: { message: string; savedAt: string 
 
 function MissingGoal() {
   return (
-    <section className="mx-3 my-3.5 rounded-2xl border border-[#C7E2DC] bg-white px-4 py-5">
+    <section className="mx-3 my-3.5 glass rounded-3xl px-4 py-5">
       <h2 className="text-lg font-bold">還沒有 SMART 目標</h2>
-      <p className="mt-2 text-[14px] leading-relaxed text-[#4A6461]">
+      <p className="mt-2 text-[14px] leading-relaxed text-[#44556A]">
         打卡會連到你的 SMART 目標。先完成目標設定，再回來記錄每週行動。
       </p>
       <Link
         to="/health/goal"
-        className="mt-4 block rounded-xl bg-[#12776E] py-3 text-center text-[15px] font-bold text-white"
+        className="mt-4 block rounded-xl bg-[#4F6F92] py-3 text-center text-[15px] font-bold text-white"
       >
         前往 SMART 目標
       </Link>
