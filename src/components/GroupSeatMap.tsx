@@ -34,6 +34,12 @@ interface Props {
   variant?: 'default' | 'glass'
   /** glass 版型頂端的「空位／已被選／我的位子」圖例；點名用自己的圖例時關掉 */
   showLegend?: boolean
+  /**
+   * glass 版型的欄數：預設兩欄（學生手機與平板的窄容器）；
+   * 容器夠寬的教師頁傳 true，寬螢幕改四欄。這裡看的是容器不是視窗，
+   * 所以不能交給 md: 自動判斷——學生選位頁在平板上視窗很寬、容器卻只有 448px。
+   */
+  wide?: boolean
 }
 
 const SEAT_BASE =
@@ -301,7 +307,7 @@ function GlassLegend() {
  */
 export default function GroupSeatMap({
   groupCount, groupCapacity, capacityOverrides, occupants, onSelect, showCounts = true,
-  variant = 'default', showLegend = true,
+  variant = 'default', showLegend = true, wide = false,
 }: Props) {
   if (variant === 'glass') {
     // 手機寬度每排放兩組；組數是奇數時，最後一組置中
@@ -313,7 +319,7 @@ export default function GroupSeatMap({
           講　台
         </div>
         {showLegend && <GlassLegend />}
-        <div className="mx-auto grid max-w-3xl grid-cols-2 gap-2.5 md:grid-cols-4">
+        <div className={`mx-auto grid grid-cols-2 gap-2.5 ${wide ? 'max-w-3xl md:grid-cols-4' : ''}`}>
           {groups.map((g) => (
             <GlassGroup
               key={g}
@@ -322,7 +328,7 @@ export default function GroupSeatMap({
               occupants={occupants}
               onSelect={onSelect}
               showCounts={showCounts}
-              className={g === oddLast ? 'col-span-2 w-[calc(50%-5px)] justify-self-center md:col-span-1 md:w-auto md:justify-self-stretch' : ''}
+              className={g === oddLast ? `col-span-2 w-[calc(50%-5px)] justify-self-center ${wide ? 'md:col-span-1 md:w-auto md:justify-self-stretch' : ''}` : ''}
             />
           ))}
         </div>

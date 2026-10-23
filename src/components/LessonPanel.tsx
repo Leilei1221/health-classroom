@@ -357,7 +357,10 @@ export default function LessonPanel({ cls, teacherId }: {
                   ))}
                 </div>
                 <span className="text-xs text-mist-mute">
-                  已點名 {marked}/{students.length}
+                  <b className="text-sm text-mist-ink">已點名 {marked}/{students.length}</b>
+                  {marked < students.length && (
+                    <b className="ml-1.5 text-sm text-[#7A4A08]">還有 {students.length - marked} 位未點名</b>
+                  )}
                   {mode === 'seatmap' && ' · 點座位即可修改，變更立即儲存'}
                   {mode === 'list' && dirtyIds.size > 0 && ` · ${dirtyIds.size} 筆未儲存`}
                 </span>
@@ -370,6 +373,7 @@ export default function LessonPanel({ cls, teacherId }: {
                   <div className="glass rounded-3xl p-4">
                     <GroupSeatMap
                       variant="glass"
+                      wide
                       showLegend={false}
                       groupCount={cls.group_count}
                       groupCapacity={cls.group_capacity}

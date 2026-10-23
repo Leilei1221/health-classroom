@@ -198,6 +198,7 @@ export default function SeatPanel({ cls, onClassChange }: {
       <div className="glass rounded-3xl p-4">
         <GroupSeatMap
           variant="glass"
+          wide
           showLegend={false}
           groupCount={cls.group_count}
           groupCapacity={cls.group_capacity}
