@@ -32,6 +32,8 @@ interface Props {
    * glass：學生手機選位用，每排放兩組、座位縮小、莫蘭迪霧藍玻璃風格。
    */
   variant?: 'default' | 'glass'
+  /** glass 版型頂端的「空位／已被選／我的位子」圖例；點名用自己的圖例時關掉 */
+  showLegend?: boolean
 }
 
 const SEAT_BASE =
@@ -180,8 +182,27 @@ const GLASS_SEAT_STYLE: Record<SeatState, string> = {
   empty: 'border-[1.5px] border-dashed border-mist-main/60 bg-white/40 text-mist-mute',
   taken: 'border border-[#32465f]/20 bg-white/90 text-mist-ink shadow-[0_3px_8px_rgb(50_70_100/0.1)]',
   mine: 'border border-white/70 bg-gradient-to-br from-mist-light to-mist-main text-white shadow-[0_0_0_3px_rgb(127_157_187/0.38),0_6px_14px_rgb(79_111_146/0.4)]',
-  // 選位頁沒有用到 selected；萬一用到，維持和「我的位子」一樣醒目
-  selected: 'border border-white/70 bg-gradient-to-br from-mist-light to-mist-main text-white shadow-[0_0_0_3px_rgb(127_157_187/0.38)]',
+  // 點名時代表「正在操作這一位」：保留出缺席底色，外面多一圈藍框
+  selected: 'ring-[3px] ring-mist-main/70 ring-offset-1 ring-offset-white',
+}
+
+/** 點名用的出缺席底色（莫蘭迪色系，文字與底色對比均 ≥ 4.5:1） */
+const GLASS_TONE_STYLE: Record<SeatTone, string> = {
+  unmarked: 'border-[1.5px] border-dashed border-mist-main/50 bg-white/35 text-mist-mute',
+  present: 'border border-[#32465f]/20 bg-white/90 text-mist-ink',
+  late: 'border border-[#C9B27A] bg-[#E8D9B8] text-[#6B5420]',
+  absent: 'border border-[#C48C8C] bg-[#E3C4C4] text-[#7A3434]',
+  leave: 'border border-[#8FB2CF] bg-[#C6DAEA] text-[#2E5878]',
+  official: 'border border-[#A79CC9] bg-[#D5CDE6] text-[#4A3F78]',
+}
+
+const GLASS_BADGE_STYLE: Record<SeatTone, string> = {
+  unmarked: 'bg-[#64748b]',
+  present: 'bg-[#64748b]',
+  late: 'bg-[#8A6414]',
+  absent: 'bg-[#A04545]',
+  leave: 'bg-[#3F6E96]',
+  official: 'bg-[#6A5AA0]',
 }
 
 function GlassSeat({
@@ -193,15 +214,27 @@ function GlassSeat({
   onSelect?: (g: number, s: number) => void
 }) {
   const state: SeatState = occupant?.state ?? 'empty'
+  const base = occupant?.tone ? GLASS_TONE_STYLE[occupant.tone] : GLASS_SEAT_STYLE[state === 'selected' ? 'taken' : state]
+  const style = state === 'selected' ? `${base} ${GLASS_SEAT_STYLE.selected}` : base
   return (
     <button
       type="button"
       disabled={!onSelect}
       onClick={() => onSelect?.(groupNo, slot)}
       aria-label={`第 ${groupNo} 組 第 ${slot} 位${occupant ? `：${occupant.label}` : '：空位'}${state === 'mine' ? '（我的位子）' : ''}`}
-      className={`flex h-11 w-[50px] items-center justify-center overflow-hidden rounded-[14px] px-0.5 text-center text-xs font-medium transition ${GLASS_SEAT_STYLE[state]} ${onSelect ? 'cursor-pointer active:scale-95' : 'cursor-default'}`}
+      className={`relative flex h-11 w-[50px] flex-col items-center justify-center rounded-[14px] px-0.5 text-center text-xs font-medium leading-tight transition ${style} ${onSelect ? 'cursor-pointer active:scale-95' : 'cursor-default'}`}
     >
-      <span className="line-clamp-2 w-full break-all leading-tight">{occupant ? occupant.label : '空位'}</span>
+      {occupant?.badge && (
+        <span
+          className={`absolute -right-[5px] -top-[5px] flex h-[18px] w-[18px] items-center justify-center rounded-full border-[1.5px] border-white text-[10px] font-bold leading-none text-white ${GLASS_BADGE_STYLE[occupant.tone ?? 'unmarked']}`}
+        >
+          {occupant.badge}
+        </span>
+      )}
+      <span className={`w-full break-all ${occupant?.sublabel ? 'line-clamp-1' : 'line-clamp-2'}`}>
+        {occupant ? occupant.label : '空位'}
+      </span>
+      {occupant?.sublabel && <span className="text-[10px] opacity-85">{occupant.sublabel}</span>}
     </button>
   )
 }
@@ -268,7 +301,7 @@ function GlassLegend() {
  */
 export default function GroupSeatMap({
   groupCount, groupCapacity, capacityOverrides, occupants, onSelect, showCounts = true,
-  variant = 'default',
+  variant = 'default', showLegend = true,
 }: Props) {
   if (variant === 'glass') {
     // 手機寬度每排放兩組；組數是奇數時，最後一組置中
@@ -279,7 +312,7 @@ export default function GroupSeatMap({
         <div className="mx-auto w-[70%] rounded-b-3xl rounded-t-2xl bg-mist-deep/90 py-2 text-center text-[13px] font-medium tracking-[0.4em] text-white shadow-[inset_0_1px_0_rgb(255_255_255/0.3)]">
           講　台
         </div>
-        <GlassLegend />
+        {showLegend && <GlassLegend />}
         <div className="grid grid-cols-2 gap-2.5">
           {groups.map((g) => (
             <GlassGroup

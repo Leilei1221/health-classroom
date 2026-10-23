@@ -32,17 +32,18 @@ export function Button({
   className?: string
 }) {
   const styles = {
-    primary: 'bg-slate-900 text-white hover:bg-slate-700',
-    secondary: 'bg-white text-slate-700 border border-slate-300 hover:bg-slate-50',
+    primary:
+      'bg-gradient-to-br from-[#6F8FAF] to-mist-main text-white shadow-[0_6px_14px_rgb(79_111_146/0.32),inset_0_1px_0_rgb(255_255_255/0.45)] hover:brightness-105',
+    secondary: 'border border-mist-main/30 bg-white/70 text-mist-deep hover:bg-white',
     danger: 'bg-red-600 text-white hover:bg-red-700',
-    ghost: 'text-slate-600 hover:bg-slate-100',
+    ghost: 'text-mist-mute hover:bg-white/60',
   }[variant]
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`rounded-lg px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${styles} ${className}`}
+      className={`min-h-[40px] rounded-full px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${styles} ${className}`}
     >
       {children}
     </button>
@@ -59,4 +60,4 @@ export function Field({ label, children }: { label: string; children: ReactNode 
 }
 
 export const inputClass =
-  'w-full rounded-lg border border-slate-300 px-3 py-2 text-sm outline-none focus:border-slate-500 focus:ring-1 focus:ring-slate-500'
+  'w-full rounded-xl border border-mist-main/40 bg-white/85 px-3 py-2 text-sm outline-none focus:border-mist-main focus:ring-2 focus:ring-mist-light/50'

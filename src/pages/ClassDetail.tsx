@@ -79,7 +79,7 @@ export default function ClassDetail() {
       <div className="mb-4 flex items-center justify-end gap-2">
         <button
           onClick={openSettings}
-          className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition"
+          className="flex min-h-11 items-center gap-1 rounded-full px-3 text-sm text-mist-mute transition hover:bg-white/60 hover:text-mist-ink"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
@@ -89,7 +89,7 @@ export default function ClassDetail() {
         </button>
         <button
           onClick={handleDeleteClass}
-          className="flex items-center gap-1 rounded-lg px-3 py-1.5 text-sm text-slate-500 hover:bg-red-50 hover:text-red-600 transition"
+          className="flex min-h-11 items-center gap-1 rounded-full px-3 text-sm text-mist-mute transition hover:bg-red-50 hover:text-red-600"
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
@@ -103,8 +103,8 @@ export default function ClassDetail() {
 
       {/* 編輯班級設定面板 */}
       {showSettings && (
-        <div className="mb-6 space-y-4 rounded-xl border border-slate-200 bg-white p-4">
-          <h3 className="text-sm font-medium text-slate-700">編輯班級設定</h3>
+        <div className="glass mb-6 space-y-4 rounded-3xl p-4">
+          <h3 className="text-sm font-bold text-mist-deep">編輯班級設定</h3>
           <Field label="班級名稱">
             <input className={inputClass} value={editForm.name}
               onChange={(e) => setEditForm({ ...editForm, name: e.target.value })} />
@@ -126,15 +126,15 @@ export default function ClassDetail() {
         </div>
       )}
 
-      <div className="mb-5 flex gap-1 border-b border-slate-200">
+      <div className="mb-5 flex gap-1.5 overflow-x-auto rounded-[26px] border border-white/75 bg-white/45 p-[5px] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
         {TABS.map((t) => (
           <button
             key={t.key}
             onClick={() => setTab(t.key)}
-            className={`-mb-px border-b-2 px-4 py-2 text-sm font-medium transition ${
+            className={`h-10 shrink-0 rounded-full px-4 text-sm font-medium transition ${
               tab === t.key
-                ? 'border-slate-900 text-slate-900'
-                : 'border-transparent text-slate-500 hover:text-slate-800'
+                ? 'bg-gradient-to-br from-[#6F8FAF] to-mist-main text-white shadow-[0_4px_10px_rgb(79_111_146/0.3),inset_0_1px_0_rgb(255_255_255/0.4)]'
+                : 'text-mist-deep hover:bg-white/60'
             }`}
           >
             {t.label}
