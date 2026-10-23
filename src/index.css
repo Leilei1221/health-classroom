@@ -37,3 +37,15 @@ body { @apply bg-slate-50 text-slate-900 antialiased; }
     box-shadow: 0 6px 14px rgb(102 115 158 / 0.32), inset 0 1px 0 rgb(255 255 255 / 0.5);
   }
 }
+
+/* 沒有用 GlassPage 元件的頁面（健康學生頁、教師看板）：用背景漸層模擬同樣的柔光 */
+@layer components {
+  .glass-page-mesh {
+    background:
+      radial-gradient(circle at 0% 0%, rgb(175 195 217 / 0.85) 0, transparent 38%),
+      radial-gradient(circle at 100% 45%, rgb(195 204 224 / 0.8) 0, transparent 38%),
+      radial-gradient(circle at 0% 100%, rgb(188 207 214 / 0.8) 0, transparent 38%),
+      linear-gradient(165deg, #e6ebf0 0%, #dae2ea 55%, #e3e7ee 100%);
+    background-attachment: fixed;
+  }
+}

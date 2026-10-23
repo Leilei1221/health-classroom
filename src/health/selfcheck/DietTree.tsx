@@ -33,10 +33,10 @@ export default function DietTree({ onFinish, onBack, saving }: {
 
   return (
     <>
-      <section className="mx-3 my-3.5 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
-        <div className="border-b border-[#C7E2DC] bg-[#F7FCFB] px-4 pb-3 pt-3.5">
+      <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
+        <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
           <h3 className="text-base font-bold">{s.nm}</h3>
-          <p className="mt-0.5 text-[13px] text-[#4A6461]">
+          <p className="mt-0.5 text-[13px] text-[#4E5F74]">
             第 {history.length + 1} 題・依你的答案決定下一題
           </p>
         </div>
@@ -49,7 +49,7 @@ export default function DietTree({ onFinish, onBack, saving }: {
                 type="button"
                 disabled={saving}
                 onClick={() => choose(next)}
-                className="rounded-xl border-[1.5px] border-[#C7E2DC] bg-white px-4 py-3.5 text-left text-[15px] leading-snug text-[#0E2E2B] disabled:opacity-60"
+                className="rounded-xl border-[1.5px] border-mist-main/25 bg-white px-4 py-3.5 text-left text-[15px] leading-snug text-[#2B3A4A] disabled:opacity-60"
               >
                 {label}
               </button>
@@ -58,7 +58,7 @@ export default function DietTree({ onFinish, onBack, saving }: {
           {history.length > 0 && (
             <button
               onClick={back}
-              className="mt-3 text-[14px] font-medium text-[#12776E]"
+              className="mt-3 text-[14px] font-medium text-[#4F6F92]"
             >
               ← 上一題
             </button>

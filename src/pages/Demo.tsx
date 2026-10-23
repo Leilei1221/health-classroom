@@ -35,10 +35,10 @@ export default function Demo() {
           <Link
             key={d.to}
             to={d.to}
-            className="rounded-xl border border-slate-200 bg-white p-4 transition hover:border-slate-400 hover:shadow-sm"
+            className="glass rounded-3xl p-4 transition hover:border-mist-main/60 hover:shadow-sm"
           >
             <div className="font-medium">{d.label}</div>
-            <p className="mt-1 text-xs leading-relaxed text-slate-500">{d.desc}</p>
+            <p className="mt-1 text-xs leading-relaxed text-mist-mute">{d.desc}</p>
           </Link>
         ))}
       </div>

@@ -313,7 +313,7 @@ export default function GroupSeatMap({
           講　台
         </div>
         {showLegend && <GlassLegend />}
-        <div className="grid grid-cols-2 gap-2.5">
+        <div className="mx-auto grid max-w-3xl grid-cols-2 gap-2.5 md:grid-cols-4">
           {groups.map((g) => (
             <GlassGroup
               key={g}
@@ -322,7 +322,7 @@ export default function GroupSeatMap({
               occupants={occupants}
               onSelect={onSelect}
               showCounts={showCounts}
-              className={g === oddLast ? 'col-span-2 w-[calc(50%-5px)] justify-self-center' : ''}
+              className={g === oddLast ? 'col-span-2 w-[calc(50%-5px)] justify-self-center md:col-span-1 md:w-auto md:justify-self-stretch' : ''}
             />
           ))}
         </div>

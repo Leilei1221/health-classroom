@@ -29,10 +29,10 @@ export default function HealthTabs({ current, preview = false }: {
             key={t.key}
             to={preview ? `${t.path}/preview` : t.path}
             aria-current={on ? 'page' : undefined}
-            className={`min-w-[72px] flex-1 rounded-lg py-2 text-center text-[12.5px] transition ${
+            className={`min-w-[72px] flex-1 rounded-full py-2.5 text-center text-[12.5px] transition ${
               on
-                ? 'bg-white/95 font-bold text-[#0B4A44]'
-                : 'bg-white/10 text-white/75 hover:bg-white/20'
+                ? 'bg-gradient-to-br from-[#6F8FAF] to-mist-main font-bold text-white shadow-[0_4px_10px_rgb(79_111_146/0.3)]'
+                : 'bg-white/50 text-mist-deep hover:bg-white/70'
             }`}
           >
             {t.label}

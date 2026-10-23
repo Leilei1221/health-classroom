@@ -118,48 +118,48 @@ export default function BreathingGuide() {
   }
 
   return (
-    <div className="mt-3 rounded-xl border border-[#C7E2DC] bg-[#F7FCFB] px-4 py-4 text-center">
+    <div className="mt-3 rounded-xl border border-mist-main/25 bg-[#F4F7FA] px-4 py-4 text-center">
       <div className="mb-3 rounded-xl bg-white px-3 py-3 text-left">
         <b className="block text-[14px]">語音引導冥想</b>
-        <p className="mt-1 text-[12.5px] leading-relaxed text-[#4A6461]">
+        <p className="mt-1 text-[12.5px] leading-relaxed text-[#4E5F74]">
           按下後會用瀏覽器中文語音帶你做三輪 3-3-6，最後接一個感恩覺察。
         </p>
         <button
           type="button"
           onClick={playVoiceGuide}
-          className="mt-2 w-full rounded-xl bg-[#12776E] py-2.5 text-[14px] font-bold text-white"
+          className="mt-2 w-full rounded-xl bg-[#4F6F92] py-2.5 text-[14px] font-bold text-white"
         >
           {speaking ? '停止語音引導' : '播放語音引導'}
         </button>
       </div>
       <div className="mx-auto flex h-32 w-32 items-center justify-center rounded-full bg-[#DDF0EC]">
-        <div className={`flex h-20 w-20 items-center justify-center rounded-full bg-[#12776E] text-white transition-transform duration-1000 ${running ? current.scale : 'scale-90'}`}>
+        <div className={`flex h-20 w-20 items-center justify-center rounded-full bg-[#4F6F92] text-white transition-transform duration-1000 ${running ? current.scale : 'scale-90'}`}>
           <span className="text-lg font-bold">{running ? current.label : '準備'}</span>
         </div>
       </div>
-      <p className="mt-3 text-[13.5px] text-[#4A6461]">
+      <p className="mt-3 text-[13.5px] text-[#4E5F74]">
         {MODES[mode].label}，一輪 {total} 秒。跟著圓圈放大縮小，先做 3 輪就好。
       </p>
       {scan && (
-        <p className="mt-1 text-[13.5px] font-medium text-[#12776E]">
+        <p className="mt-1 text-[13.5px] font-medium text-[#4F6F92]">
           吐氣時放鬆：{scan}
         </p>
       )}
       {running && (
-        <p className="mt-1 text-2xl font-bold tabular-nums text-[#0E2E2B]">{left}</p>
+        <p className="mt-1 text-2xl font-bold tabular-nums text-[#2B3A4A]">{left}</p>
       )}
       <div className="mt-3 grid grid-cols-2 gap-2">
         <button
           type="button"
           onClick={() => start('focus', false)}
-          className="rounded-xl border border-[#12776E] bg-white py-2.5 text-[14px] font-bold text-[#12776E]"
+          className="rounded-xl border border-[#4F6F92] bg-white py-2.5 text-[14px] font-bold text-[#4F6F92]"
         >
           3-3-6
         </button>
         <button
           type="button"
           onClick={() => start('sleep', false)}
-          className="rounded-xl bg-[#12776E] py-2.5 text-[14px] font-bold text-white"
+          className="rounded-xl bg-[#4F6F92] py-2.5 text-[14px] font-bold text-white"
         >
           3-3-9
         </button>
@@ -171,7 +171,7 @@ export default function BreathingGuide() {
         <button
           type="button"
           onClick={() => setRunning(false)}
-          className="mt-2 text-[13px] font-medium text-[#4A6461] underline"
+          className="mt-2 text-[13px] font-medium text-[#4E5F74] underline"
         >
           暫停
         </button>

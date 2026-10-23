@@ -79,16 +79,16 @@ export default function SelfCheck({ preview }: { preview?: StudentProfile }) {
   }
 
   if (!student) return null
-  if (loading) return <div className="p-10 text-center text-sm text-slate-500">載入中…</div>
+  if (loading) return <div className="p-10 text-center text-sm text-mist-mute">載入中…</div>
 
   const done = SCALE_KEYS.filter((k) => outcomeFromRow(row, k) !== null).length
 
   return (
-    <div className="min-h-screen bg-[#E9F5F2] text-[#0E2E2B]">
+    <div className="glass-page-mesh min-h-screen text-mist-ink">
       <div className="mx-auto max-w-[520px] pb-32">
         <HealthHeader student={student} isPreview={isPreview} tab="selfcheck" />
 
-        <div className="bg-[#0B4A44] px-5 pb-4 text-white">
+        <div className="bg-[#3B5878] px-5 pb-4 text-white">
           <div className="h-1.5 overflow-hidden rounded-full bg-white/15">
             <i
               className="block h-full rounded-full bg-[#8FE0B4] transition-[width] duration-300"
@@ -175,10 +175,10 @@ function Home({ row, onOpen, isPreview }: {
 }) {
   return (
     <>
-      <section className="mx-3 my-3.5 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
-        <div className="border-b border-[#C7E2DC] bg-[#F7FCFB] px-4 pb-3 pt-3.5">
+      <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
+        <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
           <h3 className="text-base font-bold">課本自我檢測</h3>
-          <p className="mt-0.5 text-[13px] text-[#4A6461]">
+          <p className="mt-0.5 text-[13px] text-[#4E5F74]">
             照你最近的狀況回答就好，沒有標準答案，也不算成績
           </p>
         </div>
@@ -189,18 +189,18 @@ function Home({ row, onOpen, isPreview }: {
             <button
               key={k}
               onClick={() => onOpen(k)}
-              className="flex w-full items-center gap-3 border-b border-[#F0F6F5] px-4 py-3.5 text-left last:border-0"
+              className="flex w-full items-center gap-3 border-b border-[#F2F5F8] px-4 py-3.5 text-left last:border-0"
             >
               <span className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[13px] font-bold ${
-                finished ? 'bg-[#12776E] text-white' : 'bg-[#E9F5F2] text-[#12776E]'
+                finished ? 'bg-[#4F6F92] text-white' : 'bg-[#E6EBF0] text-[#4F6F92]'
               }`}>
                 {finished ? '✓' : s.no}
               </span>
               <span className="flex-1">
                 <b className="block text-[15px]">{s.nm}</b>
-                <span className="block text-[12.5px] text-[#4A6461]">{subLine(k)}</span>
+                <span className="block text-[12.5px] text-[#4E5F74]">{subLine(k)}</span>
               </span>
-              <span className={`shrink-0 text-[12.5px] ${finished ? 'font-medium text-[#12776E]' : 'text-[#8CA5A2]'}`}>
+              <span className={`shrink-0 text-[12.5px] ${finished ? 'font-medium text-[#4F6F92]' : 'text-[#8A9BAE]'}`}>
                 {finished ? '已完成' : '尚未做'}
               </span>
             </button>
@@ -208,51 +208,51 @@ function Home({ row, onOpen, isPreview }: {
         })}
       </section>
 
-      <div className="mx-3 rounded-xl border border-dashed border-[#C7E2DC] bg-[#F7FCFB] px-4 py-3.5 text-[13px] leading-relaxed text-[#4A6461]">
+      <div className="mx-3 rounded-2xl border border-dashed border-mist-main/40 bg-white/50 px-4 py-3.5 text-[13px] leading-relaxed text-[#4E5F74]">
         這幾份量表是「自我覺察」的工具，不是診斷。分數高不代表你有病，分數低也不代表完全沒事。
         真正有用的是：做完之後，你比昨天更知道自己現在的狀態。
       </div>
 
-      <section className="mx-3 my-3.5 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
-        <div className="border-b border-[#C7E2DC] bg-[#F7FCFB] px-4 pb-3 pt-3.5">
+      <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
+        <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
           <h3 className="text-base font-bold">做完檢測之後</h3>
-          <p className="mt-0.5 text-[13px] text-[#4A6461]">
+          <p className="mt-0.5 text-[13px] text-[#4E5F74]">
             可以先看這學期的起點，也可以進行我的餐盤課堂活動
           </p>
         </div>
         <Link
           to={isPreview ? '/health/analysis/preview' : '/health/analysis'}
-          className="flex items-center gap-3 border-b border-[#F0F6F5] px-4 py-3.5"
+          className="flex items-center gap-3 border-b border-[#F2F5F8] px-4 py-3.5"
         >
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#12776E] text-[13px] font-bold text-white">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#4F6F92] text-[13px] font-bold text-white">
             ✓
           </span>
           <span className="flex-1">
             <b className="block text-[15px]">健康分析・這學期的起點</b>
-            <span className="block text-[12.5px] text-[#4A6461]">
+            <span className="block text-[12.5px] text-[#4E5F74]">
               整合身體數值和自我檢測，先挑 1-2 件最值得做的事
             </span>
           </span>
-          <span className="shrink-0 text-[12.5px] text-[#12776E]">查看 →</span>
+          <span className="shrink-0 text-[12.5px] text-[#4F6F92]">查看 →</span>
         </Link>
         <Link
           to={isPreview ? '/health/plate/preview' : '/health/plate'}
           className="flex items-center gap-3 px-4 py-3.5"
         >
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E9F5F2] text-[13px] font-bold text-[#12776E]">
+          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-[#E6EBF0] text-[13px] font-bold text-[#4F6F92]">
             ▶
           </span>
           <span className="flex-1">
             <b className="block text-[15px]">我的餐盤・一日份量拼盤</b>
-            <span className="block text-[12.5px] text-[#4A6461]">
+            <span className="block text-[12.5px] text-[#4E5F74]">
               把今天吃的點進去，看六大類各裝了多少、哪一格先滿出來
             </span>
           </span>
-          <span className="shrink-0 text-[12.5px] text-[#12776E]">開始 →</span>
+          <span className="shrink-0 text-[12.5px] text-[#4F6F92]">開始 →</span>
         </Link>
       </section>
 
-      <p className="mx-3 pb-2 text-[11.5px] leading-relaxed text-[#8CA5A2]">{SOURCE_LINE}</p>
+      <p className="mx-3 pb-2 text-[11.5px] leading-relaxed text-[#8A9BAE]">{SOURCE_LINE}</p>
 
       {/* 共用平板：交接按鈕只放在清單頁，作答到一半不要打斷 */}
       {!isPreview && <Handover />}

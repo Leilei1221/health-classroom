@@ -48,10 +48,10 @@ export default function GratitudeJournal() {
   }
 
   return (
-    <section className="mx-3 my-3.5 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
-      <div className="border-b border-[#C7E2DC] bg-[#F7FCFB] px-4 pb-3 pt-3.5">
+    <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
+      <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
         <h3 className="text-base font-bold">感恩日記</h3>
-        <p className="mt-0.5 text-[13px] text-[#4A6461]">
+        <p className="mt-0.5 text-[13px] text-[#4E5F74]">
           寫一點點就好，資料只存在這台裝置，不會送到資料庫
         </p>
       </div>
@@ -77,12 +77,12 @@ export default function GratitudeJournal() {
         <button
           type="button"
           onClick={save}
-          className="w-full rounded-xl bg-[#12776E] py-3 text-[15px] font-bold text-white"
+          className="w-full rounded-xl bg-[#4F6F92] py-3 text-[15px] font-bold text-white"
         >
           儲存在這台裝置
         </button>
         {saved && (
-          <p className="text-center text-[13px] font-medium text-[#12776E]">已儲存今天的紀錄</p>
+          <p className="text-center text-[13px] font-medium text-[#4F6F92]">已儲存今天的紀錄</p>
         )}
       </div>
     </section>
@@ -104,7 +104,7 @@ function Field({ label, value, onChange, placeholder }: {
         rows={3}
         maxLength={160}
         placeholder={placeholder}
-        className="mt-1.5 w-full resize-none rounded-xl border border-[#C7E2DC] bg-[#F7FCFB] px-3 py-2 text-[14px] leading-relaxed outline-none focus:border-[#12776E]"
+        className="mt-1.5 w-full resize-none rounded-xl border border-mist-main/25 bg-[#F4F7FA] px-3 py-2 text-[14px] leading-relaxed outline-none focus:border-[#4F6F92]"
       />
     </label>
   )

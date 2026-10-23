@@ -2,8 +2,8 @@ import type { ReactNode } from 'react'
 
 export function Spinner({ label = '載入中…' }: { label?: string }) {
   return (
-    <div className="flex items-center justify-center gap-2 p-8 text-slate-500">
-      <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-slate-600" />
+    <div className="flex items-center justify-center gap-2 p-8 text-mist-mute">
+      <div className="h-4 w-4 animate-spin rounded-full border-2 border-mist-main/30 border-t-mist-main" />
       <span>{label}</span>
     </div>
   )
@@ -18,7 +18,7 @@ export function ErrorBox({ message }: { message: string }) {
 }
 
 export function Empty({ children }: { children: ReactNode }) {
-  return <div className="p-8 text-center text-sm text-slate-500">{children}</div>
+  return <div className="p-8 text-center text-sm text-mist-mute">{children}</div>
 }
 
 export function Button({
@@ -53,7 +53,7 @@ export function Button({
 export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium text-slate-700">{label}</span>
+      <span className="mb-1 block text-sm font-medium text-mist-deep">{label}</span>
       {children}
     </label>
   )

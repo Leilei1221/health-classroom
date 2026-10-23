@@ -102,17 +102,17 @@ export default function SeatPanel({ cls, onClassChange }: {
     <div className="space-y-4">
       {error && <ErrorBox message={error} />}
 
-      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-slate-200 bg-white p-4">
-        <div className="flex-1">
+      <div className="flex flex-wrap items-center gap-3 glass rounded-3xl p-4">
+        <div className="min-w-[220px] flex-1">
           <p className="text-sm font-medium">
             學生選位：{cls.seat_picking_open ? '開放中' : '已關閉'}
-            <span className="ml-2 text-slate-400">
+            <span className="ml-2 text-mist-mute">
               {cls.group_count} 組 · 每組 {cls.group_capacity} 人
               {Object.entries(currentOverrides).map(([g, cap]) => `（第 ${g} 組 ${cap} 人）`).join('')}
               · 共 {totalSeats} 位 / {activeStudents.length} 人
             </span>
           </p>
-          <p className="mt-1 break-all font-mono text-xs text-slate-500">{pickUrl}</p>
+          <p className="mt-1 break-all font-mono text-xs text-mist-mute">{pickUrl}</p>
         </div>
         <Button
           variant="secondary"
@@ -128,7 +128,7 @@ export default function SeatPanel({ cls, onClassChange }: {
         <Button onClick={togglePicking}>
           {cls.seat_picking_open ? '關閉選位' : '開放選位'}
         </Button>
-        <p className="w-full text-xs text-slate-500">
+        <p className="w-full text-xs text-mist-mute">
           關閉選位後學生就不能再自己換位子，只剩這裡的座位圖可以調整。
         </p>
       </div>
@@ -138,7 +138,7 @@ export default function SeatPanel({ cls, onClassChange }: {
           role="dialog"
           aria-modal="true"
           aria-label="選位 QR code"
-          className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/80 p-6"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-[#2B3A4A]/70 p-6"
           onClick={() => setShowQr(false)}
         >
           <div
@@ -154,8 +154,8 @@ export default function SeatPanel({ cls, onClassChange }: {
             <div className="flex justify-center">
               <QrCode value={pickUrl} size={280} />
             </div>
-            <p className="break-all font-mono text-xs text-slate-500">{pickUrl}</p>
-            <p className="text-sm text-slate-600">請同學用手機掃描，或直接開啟上面的連結</p>
+            <p className="break-all font-mono text-xs text-mist-mute">{pickUrl}</p>
+            <p className="text-sm text-mist-mute">請同學用手機掃描，或直接開啟上面的連結</p>
             <Button variant="secondary" onClick={() => setShowQr(false)}>關閉</Button>
           </div>
         </div>
@@ -195,23 +195,25 @@ export default function SeatPanel({ cls, onClassChange }: {
         </div>
       )}
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="glass rounded-3xl p-4">
         <GroupSeatMap
+          variant="glass"
+          showLegend={false}
           groupCount={cls.group_count}
           groupCapacity={cls.group_capacity}
           capacityOverrides={currentOverrides}
           occupants={occupants}
           onSelect={onSeatClick}
         />
-        <p className="mt-4 text-center text-xs text-slate-500">
+        <p className="mt-4 text-center text-xs text-mist-mute">
           點有人的位子可選取該生調位；選取後再點空位即完成調動。
         </p>
       </div>
 
-      <div className="rounded-xl border border-slate-200 bg-white p-4">
+      <div className="glass rounded-3xl p-4">
         <h3 className="mb-2 text-sm font-medium">尚未選位（{unseated.length}）</h3>
         {unseated.length === 0 ? (
-          <p className="text-sm text-slate-500">全班都已完成選位。</p>
+          <p className="text-sm text-mist-mute">全班都已完成選位。</p>
         ) : (
           <div className="flex flex-wrap gap-2">
             {unseated.map((s) => (
@@ -221,7 +223,7 @@ export default function SeatPanel({ cls, onClassChange }: {
                 className={`rounded-full border px-3 py-1 text-sm transition ${
                   moving === s.id
                     ? 'border-amber-500 bg-amber-50 text-amber-900'
-                    : 'border-slate-300 bg-white hover:border-slate-500'
+                    : 'border-mist-main/35 bg-white hover:border-mist-main/60'
                 }`}
               >
                 {s.seat_no ? `${s.seat_no}. ` : ''}{s.name}
@@ -232,7 +234,7 @@ export default function SeatPanel({ cls, onClassChange }: {
       </div>
 
       {seats.length > 0 && (
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
+        <div className="glass rounded-3xl p-4">
           <h3 className="mb-2 text-sm font-medium">清除座位</h3>
           <div className="flex flex-wrap gap-2">
             {seats.map((s) => (
@@ -242,7 +244,7 @@ export default function SeatPanel({ cls, onClassChange }: {
                   try { await clearSeat(cls.id, s.student_id); reload() }
                   catch (e) { setError(friendlyError(e)) }
                 }}
-                className="rounded-full border border-slate-300 px-3 py-1 text-sm hover:border-red-400 hover:text-red-700"
+                className="rounded-full border border-mist-main/35 px-3 py-1 text-sm hover:border-red-400 hover:text-red-700"
               >
                 {nameOf(s.student_id)} ✕
               </button>

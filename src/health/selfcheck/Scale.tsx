@@ -41,15 +41,15 @@ export default function Scale({ scaleKey, onSubmit, onBack, saving }: {
 
   return (
     <>
-      <section className="mx-3 my-3.5 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
-        <div className="border-b border-[#C7E2DC] bg-[#F7FCFB] px-4 pb-3 pt-3.5">
+      <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
+        <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
           <h3 className="text-base font-bold">{s.nm}</h3>
-          <p className="mt-0.5 text-[13px] text-[#4A6461]">{s.src}</p>
+          <p className="mt-0.5 text-[13px] text-[#4E5F74]">{s.src}</p>
         </div>
 
-        {s.lead && <p className="px-4 pb-1 pt-3 text-[14px] text-[#4A6461]">{s.lead}</p>}
+        {s.lead && <p className="px-4 pb-1 pt-3 text-[14px] text-[#4E5F74]">{s.lead}</p>}
         {s.note224 && (
-          <p className="mx-3 mt-3 rounded-xl border border-dashed border-[#C7E2DC] bg-[#F7FCFB] px-3.5 py-3 text-[13px] text-[#4A6461]">
+          <p className="mx-3 mt-3 rounded-2xl border border-dashed border-mist-main/40 bg-white/50 px-3.5 py-3 text-[13px] text-[#4E5F74]">
             {s.note224}
           </p>
         )}
@@ -58,12 +58,12 @@ export default function Scale({ scaleKey, onSubmit, onBack, saving }: {
         {s.kind === 'check' ? (
           <div className="px-3 pb-3 pt-1">
             {(s.qs ?? []).map((q, i) => (
-              <label key={i} className="flex items-start gap-3 border-b border-[#F0F6F5] px-1 py-3 last:border-0">
+              <label key={i} className="flex items-start gap-3 border-b border-[#F2F5F8] px-1 py-3 last:border-0">
                 <input
                   type="checkbox"
                   checked={ans[i] === 1}
                   onChange={(e) => pick(i, e.target.checked ? 1 : 0)}
-                  className="mt-0.5 h-5 w-5 shrink-0 accent-[#12776E]"
+                  className="mt-0.5 h-5 w-5 shrink-0 accent-[#4F6F92]"
                 />
                 <QuestionText q={q} />
               </label>
@@ -72,9 +72,9 @@ export default function Scale({ scaleKey, onSubmit, onBack, saving }: {
         ) : (
           <div className="px-3 pb-3 pt-1">
             {rows(scaleKey).map(({ q, opts, values, i }) => (
-              <div key={i} className="border-b border-[#F0F6F5] px-1 py-3 last:border-0">
+              <div key={i} className="border-b border-[#F2F5F8] px-1 py-3 last:border-0">
                 <div className="mb-2.5 flex gap-1.5 text-[15px]">
-                  <i className="not-italic tabular-nums text-[#4A6461]">{i + 1}.</i>
+                  <i className="not-italic tabular-nums text-[#4E5F74]">{i + 1}.</i>
                   <QuestionText q={q} />
                 </div>
                 <div className={`grid gap-1.5 ${opts.length <= 2 ? 'grid-cols-2' : 'grid-cols-3'}`}>
@@ -89,13 +89,13 @@ export default function Scale({ scaleKey, onSubmit, onBack, saving }: {
                         onClick={() => pick(i, v)}
                         className={`rounded-xl border-[1.5px] px-1.5 py-2.5 text-[13.5px] leading-tight ${
                           on
-                            ? 'border-[#12776E] bg-[#12776E] font-bold text-white'
-                            : 'border-[#C7E2DC] bg-white text-[#4A6461]'
+                            ? 'border-[#4F6F92] bg-[#4F6F92] font-bold text-white'
+                            : 'border-mist-main/25 bg-white text-[#4E5F74]'
                         }`}
                       >
                         {choiceLabel(o)}
                         {choiceSub(o) && (
-                          <span className={`mt-0.5 block text-[11px] ${on ? 'text-white/80' : 'text-[#8CA5A2]'}`}>
+                          <span className={`mt-0.5 block text-[11px] ${on ? 'text-white/80' : 'text-[#8A9BAE]'}`}>
                             {choiceSub(o)}
                           </span>
                         )}
@@ -111,14 +111,14 @@ export default function Scale({ scaleKey, onSubmit, onBack, saving }: {
 
       <BackLink onClick={onBack} />
 
-      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[520px] border-t border-[#C7E2DC] bg-white/95 px-4 pb-[calc(12px+env(safe-area-inset-bottom))] pt-3">
-        <div className="mb-2 text-[13px] text-[#4A6461]">
+      <div className="fixed inset-x-0 bottom-0 z-30 mx-auto max-w-[520px] border-t border-mist-main/25 bg-white/95 px-4 pb-[calc(12px+env(safe-area-inset-bottom))] pt-3">
+        <div className="mb-2 text-[13px] text-[#4E5F74]">
           {left ? `還有 ${left} 題沒作答` : '都答完了，可以送出'}
         </div>
         <button
           onClick={send}
           disabled={left > 0 || saving}
-          className="w-full rounded-xl bg-[#12776E] py-4 text-[17px] font-bold text-white disabled:cursor-not-allowed disabled:bg-[#B8CFCC]"
+          className="w-full rounded-xl bg-[#4F6F92] py-4 text-[17px] font-bold text-white disabled:cursor-not-allowed disabled:bg-[#B9C6D4]"
         >
           {saving ? '送出中…' : '送出'}
         </button>
@@ -158,7 +158,7 @@ function QuestionText({ q }: { q: Question }) {
     <span className="flex-1">
       {questionText(q)}
       {questionSub(q) && (
-        <span className="block text-[12.5px] text-[#4A6461]">{questionSub(q)}</span>
+        <span className="block text-[12.5px] text-[#4E5F74]">{questionSub(q)}</span>
       )}
     </span>
   )
@@ -168,7 +168,7 @@ export function BackLink({ onClick }: { onClick: () => void }) {
   return (
     <button
       onClick={onClick}
-      className="mx-3 mb-4 block w-[calc(100%-24px)] rounded-xl border border-[#C7E2DC] bg-white py-3 text-[15px] font-medium text-[#12776E]"
+      className="mx-3 mb-4 block w-[calc(100%-24px)] rounded-xl border border-mist-main/25 bg-white py-3 text-[15px] font-medium text-[#4F6F92]"
     >
       ← 回到檢測清單
     </button>
@@ -215,19 +215,19 @@ export function ScaleResult({ scaleKey, outcome, risk, onBack, onRetake }: {
   return (
     <>
       {hideScore ? (
-        <section className="mx-3 my-3.5 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
+        <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
           <div className="px-4 py-4">
             <h3 className="text-base font-bold">{s.nm}・已送出</h3>
-            <p className="mt-1 text-[14px] leading-relaxed text-[#4A6461]">
+            <p className="mt-1 text-[14px] leading-relaxed text-[#4E5F74]">
               你的回答已經記下來了。
             </p>
           </div>
         </section>
       ) : (
-      <section className="mx-3 my-3.5 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
-        <div className="border-b border-[#C7E2DC] bg-[#F7FCFB] px-4 pb-3 pt-3.5">
+      <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
+        <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
           <h3 className="text-base font-bold">{s.nm}・你的結果</h3>
-          <p className="mt-0.5 text-[13px] text-[#4A6461]">這不是成績，是一張此刻的照片</p>
+          <p className="mt-0.5 text-[13px] text-[#4E5F74]">這不是成績，是一張此刻的照片</p>
         </div>
 
         <div className="px-4 py-4">
@@ -235,7 +235,7 @@ export function ScaleResult({ scaleKey, outcome, risk, onBack, onRetake }: {
             <>
               <div className="mb-3 grid grid-cols-3 gap-2">
                 {s.zones.map((z, i) => (
-                  <div key={z.k} className="rounded-xl border border-[#C7E2DC] bg-[#F7FCFB] px-2 py-3 text-center">
+                  <div key={z.k} className="rounded-xl border border-mist-main/25 bg-[#F4F7FA] px-2 py-3 text-center">
                     <b className="flex items-center justify-center gap-1.5 text-[13.5px]">
                       <span className={`h-2.5 w-2.5 rounded-full ${LEVEL_DOT[z.k]}`} />
                       {z.nm}
@@ -243,7 +243,7 @@ export function ScaleResult({ scaleKey, outcome, risk, onBack, onRetake }: {
                     <span className="my-0.5 block text-2xl font-bold tabular-nums">
                       {zoneArrays[i].length}
                     </span>
-                    <small className="block text-[11.5px] leading-snug text-[#4A6461]">
+                    <small className="block text-[11.5px] leading-snug text-[#4E5F74]">
                       {zoneArrays[i].length ? `第 ${zoneArrays[i].join('、')} 題` : '沒有題目'}
                     </small>
                   </div>
@@ -251,8 +251,8 @@ export function ScaleResult({ scaleKey, outcome, risk, onBack, onRetake }: {
               </div>
               {s.zones.map((z, i) =>
                 zoneArrays[i].length ? (
-                  <p key={z.k} className="mb-2 text-[14px] leading-relaxed text-[#4A6461]">
-                    <b className="text-[#0E2E2B]">{z.sub}</b>　{z.msg}
+                  <p key={z.k} className="mb-2 text-[14px] leading-relaxed text-[#4E5F74]">
+                    <b className="text-[#2B3A4A]">{z.sub}</b>　{z.msg}
                   </p>
                 ) : null,
               )}
@@ -267,7 +267,7 @@ export function ScaleResult({ scaleKey, outcome, risk, onBack, onRetake }: {
                 <span className={`h-3 w-3 rounded-full ${LEVEL_DOT[diet.level]}`} />
                 {diet.nm}
               </h4>
-              <p className="mb-2 text-[14px] leading-relaxed text-[#4A6461]">{diet.msg}</p>
+              <p className="mb-2 text-[14px] leading-relaxed text-[#4E5F74]">{diet.msg}</p>
               <p className="text-[14px] leading-relaxed">
                 <b>可以試試看</b>　{diet.tip}
               </p>
@@ -285,9 +285,9 @@ export function ScaleResult({ scaleKey, outcome, risk, onBack, onRetake }: {
                 </h4>
               )}
               {outcome.band?.msg && (
-                <p className="text-[14px] leading-relaxed text-[#4A6461]">{outcome.band.msg}</p>
+                <p className="text-[14px] leading-relaxed text-[#4E5F74]">{outcome.band.msg}</p>
               )}
-              {s.tail && <p className="mt-2 text-[13px] text-[#4A6461]">{s.tail}</p>}
+              {s.tail && <p className="mt-2 text-[13px] text-[#4E5F74]">{s.tail}</p>}
             </>
           )}
         </div>
@@ -302,7 +302,7 @@ export function ScaleResult({ scaleKey, outcome, risk, onBack, onRetake }: {
       */}
       {risk !== 0 && (
         <>
-          {!hideScore && <div className="mx-6 mb-5 mt-7 border-t border-[#C7E2DC]" />}
+          {!hideScore && <div className="mx-6 mb-5 mt-7 border-t border-mist-main/25" />}
           <RiskCare level={risk} />
         </>
       )}
@@ -310,14 +310,14 @@ export function ScaleResult({ scaleKey, outcome, risk, onBack, onRetake }: {
       {/* L1 才接建議，且只接壓力領域。規格書：L2、L3 不顯示任何生活習慣建議 */}
       {showTips && <StressTips />}
 
-      <div className="mx-3 rounded-xl border border-dashed border-[#C7E2DC] bg-[#F7FCFB] px-4 py-3.5 text-[13px] leading-relaxed text-[#4A6461]">
+      <div className="mx-3 rounded-2xl border border-dashed border-mist-main/40 bg-white/50 px-4 py-3.5 text-[13px] leading-relaxed text-[#4E5F74]">
         這份結果只有你和健護老師看得到，不會給其他老師或同學，也不會算進任何成績。
       </div>
 
       {onRetake && (
         <button
           onClick={onRetake}
-          className="mx-3 mt-3.5 block w-[calc(100%-24px)] rounded-xl border-[1.5px] border-[#12776E] bg-white py-3 text-[15px] font-bold text-[#12776E]"
+          className="mx-3 mt-3.5 block w-[calc(100%-24px)] rounded-xl border-[1.5px] border-[#4F6F92] bg-white py-3 text-[15px] font-bold text-[#4F6F92]"
         >
           重新作答
         </button>
@@ -339,17 +339,17 @@ export function ScaleResult({ scaleKey, outcome, risk, onBack, onRetake }: {
 function StressTips() {
   const tips = byDomain('stress').slice(0, 3)
   return (
-    <section className="mx-3 mb-3.5 overflow-hidden rounded-2xl border border-[#C7E2DC] bg-white">
-      <div className="border-b border-[#C7E2DC] bg-[#F7FCFB] px-4 pb-3 pt-3.5">
+    <section className="mx-3 mb-3.5 overflow-hidden glass rounded-3xl">
+      <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
         <h3 className="text-base font-bold">可以試試看的方法</h3>
       </div>
-      <div className="divide-y divide-[#C7E2DC]">
+      <div className="divide-y divide-mist-main/20">
         {tips.map((t) => (
           <div key={t.id} className="px-4 py-3.5">
             <h4 className="text-[15px] font-bold">{t.title}</h4>
-            <p className="mt-1 text-[13.5px] leading-relaxed text-[#4A6461]">{t.why}</p>
+            <p className="mt-1 text-[13.5px] leading-relaxed text-[#4E5F74]">{t.why}</p>
             <p className="mt-1.5 text-[14px] leading-relaxed">{t.how}</p>
-            <p className="mt-1.5 text-[13.5px] leading-relaxed text-[#0E2E2B]">
+            <p className="mt-1.5 text-[13.5px] leading-relaxed text-[#2B3A4A]">
               <b>今天可以做的：</b>{t.firstStep}
             </p>
           </div>
