@@ -9,6 +9,7 @@ import { ROUND, getMeasurement, getSelfcheck, semesterKey } from '../api'
 import { riskLevel, type RiskLevel } from '../riskLevel'
 import RiskCare from '../selfcheck/RiskCare'
 import { analyzeStudent, type FocusItem, type Signal } from './engine'
+import LevelMark from '../LevelMark'
 import BreathingGuide from './BreathingGuide'
 import GratitudeJournal from './GratitudeJournal'
 import { mindBodyStrategies, type MindBodyStrategy } from './mentalStrategies'
@@ -74,12 +75,6 @@ const SAMPLE_SELFCHECK: HealthSelfcheck = {
   answered_at: '2026-09-21T00:00:00.000Z',
   created_at: '2026-09-21T00:00:00.000Z',
   updated_at: '2026-09-21T00:00:00.000Z',
-}
-
-const DOT: Record<string, string> = {
-  g: 'bg-[#2E8B62]',
-  y: 'bg-[#D19A2E]',
-  o: 'bg-[#B26A12]',
 }
 
 export default function Analysis({ preview }: { preview?: StudentProfile }) {
@@ -252,7 +247,7 @@ function SignalOverview({ signals }: { signals: Signal[] }) {
           <div key={s.key} className="rounded-xl border border-mist-main/25 bg-[#F4F7FA] px-3 py-3">
             <div className="flex items-center justify-between gap-2">
               <span className="text-[13px] text-[#44556A]">{s.label}</span>
-              {s.verdict && <span className={`h-2.5 w-2.5 rounded-full ${DOT[s.verdict.level]}`} />}
+              {s.verdict && <LevelMark level={s.verdict.level} size={11} />}
             </div>
             <b className="mt-1 block text-xl tabular-nums">{s.value}</b>
             <p className="mt-1 text-[12.5px] leading-snug text-[#44556A]">

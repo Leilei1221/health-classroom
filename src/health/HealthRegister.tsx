@@ -10,12 +10,9 @@ import {
   judgeBmi, judgeBp, judgeWhr, type Verdict,
 } from './rules'
 import type { HealthMeasurement, StudentProfile } from '../lib/types'
+import LevelMark from './LevelMark'
 
 type Values = Record<string, string>
-
-const DOT: Record<Verdict['level'], string> = {
-  g: 'bg-emerald-600', y: 'bg-amber-500', o: 'bg-amber-700',
-}
 
 function outOfRange(f: Field, raw: string): boolean {
   if (f.min === undefined || raw.trim() === '') return false
@@ -275,7 +272,7 @@ function Result({ bmi, whr, sbp, dbp, onEdit }: {
         </div>
         {items.map(([name, value, v]) => (
           <div key={name} className="flex items-start gap-3.5 border-b border-mist-main/25 px-4 py-4 last:border-0">
-            <span className={`mt-1.5 h-3 w-3 shrink-0 rounded-full ${DOT[v.level]}`} />
+            <span className="mt-1.5 shrink-0"><LevelMark level={v.level} /></span>
             <div>
               <h4 className="text-[15px]">{name}</h4>
               <div className="my-0.5 text-2xl font-bold tabular-nums">{value}</div>

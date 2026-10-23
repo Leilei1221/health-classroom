@@ -8,11 +8,8 @@ import { gradeAnswers } from './state'
 import type { SelfcheckPatch } from '../api'
 import type { RiskLevel } from '../riskLevel'
 import RiskCare from './RiskCare'
+import LevelMark from '../LevelMark'
 import { byDomain } from './suggestions'
-
-const LEVEL_DOT: Record<string, string> = {
-  g: 'bg-[#2E8B62]', y: 'bg-[#D19A2E]', o: 'bg-[#B26A12]', r: 'bg-[#9A3834]',
-}
 
 /** 作答畫面；送出後由上層決定要不要顯示結果 */
 export default function Scale({ scaleKey, onSubmit, onBack, saving }: {
@@ -237,7 +234,7 @@ export function ScaleResult({ scaleKey, outcome, risk, onBack, onRetake }: {
                 {s.zones.map((z, i) => (
                   <div key={z.k} className="rounded-xl border border-mist-main/25 bg-[#F4F7FA] px-2 py-3 text-center">
                     <b className="flex items-center justify-center gap-1.5 text-[13.5px]">
-                      <span className={`h-2.5 w-2.5 rounded-full ${LEVEL_DOT[z.k]}`} />
+                      <LevelMark level={z.k} size={11} />
                       {z.nm}
                     </b>
                     <span className="my-0.5 block text-2xl font-bold tabular-nums">
@@ -264,7 +261,7 @@ export function ScaleResult({ scaleKey, outcome, risk, onBack, onRetake }: {
             <>
               <div className="text-[32px] font-bold leading-none">{outcome.dietType} 型</div>
               <h4 className="mb-1.5 mt-2.5 flex items-center gap-2 text-[15px] font-bold">
-                <span className={`h-3 w-3 rounded-full ${LEVEL_DOT[diet.level]}`} />
+                <LevelMark level={diet.level} />
                 {diet.nm}
               </h4>
               <p className="mb-2 text-[14px] leading-relaxed text-[#44556A]">{diet.msg}</p>
@@ -280,7 +277,7 @@ export function ScaleResult({ scaleKey, outcome, risk, onBack, onRetake }: {
               </div>
               {outcome.band && (
                 <h4 className="mb-1.5 mt-2.5 flex items-center gap-2 text-[15px] font-bold">
-                  <span className={`h-3 w-3 rounded-full ${LEVEL_DOT[outcome.band.level]}`} />
+                  <LevelMark level={outcome.band.level} />
                   {outcome.band.label}
                 </h4>
               )}
