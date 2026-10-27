@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth'
+import Layout from '../../components/Layout'
 import { friendlyError } from '../../lib/errors'
 import {
   PROGRESS_TASKS, SCALE_TASK_KEYS, listHealthClasses, listProgress,
@@ -97,10 +98,10 @@ export default function Progress() {
         {classId && (
           <Link
             to={`/health/detail?class=${classId}`}
-            className="ml-auto rounded-lg border border-mist-main/35 bg-white px-3 py-1.5 text-sm text-mist-mute hover:bg-white/70"
+            className="ml-auto rounded-lg border border-cute-ink/35 bg-white px-3 py-1.5 text-sm text-cute-mute hover:bg-white"
           >
             學生明細 ›
-            <span className="ml-1 text-xs text-mist-mute">不要投影</span>
+            <span className="ml-1 text-xs text-cute-mute">不要投影</span>
           </Link>
         )}
       </div>
@@ -111,16 +112,16 @@ export default function Progress() {
         <Box>這個班的名單是空的。</Box>
       ) : (
         <>
-          <div className="mb-3 glass rounded-3xl px-4 py-3">
+          <div className="mb-3 cute-card rounded-3xl px-4 py-3">
             <p className="text-[15px]">
               <strong className="text-lg tabular-nums">{mine.length}</strong> 人，
               七份全做完 <strong className="text-lg tabular-nums">{allDone}</strong> 人
             </p>
-            <p className="mt-0.5 text-xs text-mist-mute">
+            <p className="mt-0.5 text-xs text-cute-mute">
               「七份」指七份量表，不含身體數值登記與我的餐盤
             </p>
-            <p className="mt-2 border-t border-mist-main/15 pt-2 text-[14px]">
-              SMART 目標完成 <strong className="text-lg tabular-nums text-[#3F5F82]">{goalsDone}</strong>
+            <p className="mt-2 border-t border-cute-ink/15 pt-2 text-[14px]">
+              SMART 目標完成 <strong className="text-lg tabular-nums text-cute-ink">{goalsDone}</strong>
               ／{mine.length} 人
             </p>
           </div>
@@ -129,12 +130,12 @@ export default function Progress() {
           <div className="sm:hidden">
             <section className="mb-4">
               <h2 className="mb-2 text-sm font-bold">SMART 目標作業</h2>
-              <div className="divide-y divide-mist-main/15 glass rounded-3xl">
+              <div className="divide-y divide-cute-ink/15 cute-card rounded-3xl">
                 {mine.map((r) => (
                   <div key={r.student_id} className="flex items-center gap-2 px-3.5 py-2.5">
-                    <span className="w-10 text-sm tabular-nums text-mist-mute">{r.seat_no ?? '—'} 號</span>
+                    <span className="w-10 text-sm tabular-nums text-cute-mute">{r.seat_no ?? '—'} 號</span>
                     <span className="flex-1 text-[14px] font-medium">{r.name}</span>
-                    <span className={`text-[13px] font-bold ${r.done.goal ? 'text-[#3F5F82]' : 'text-mist-mute'}`}>
+                    <span className={`text-[13px] font-bold ${r.done.goal ? 'text-cute-ink' : 'text-cute-mute'}`}>
                       {r.done.goal ? '✓ 已完成' : '□ 尚未完成'}
                     </span>
                   </div>
@@ -150,15 +151,15 @@ export default function Progress() {
                 </h2>
                 <div className="space-y-2">
                   {unfinished.map((r) => (
-                    <div key={r.student_id} className="glass rounded-3xl px-3.5 py-3">
+                    <div key={r.student_id} className="cute-card rounded-3xl px-3.5 py-3">
                       <div className="mb-1 flex items-baseline gap-2">
-                        <span className="text-sm tabular-nums text-mist-mute">{r.seat_no ?? '—'} 號</span>
+                        <span className="text-sm tabular-nums text-cute-mute">{r.seat_no ?? '—'} 號</span>
                         <span className="text-[15px] font-semibold">{r.name}</span>
-                        <span className="ml-auto text-xs tabular-nums text-mist-mute">
+                        <span className="ml-auto text-xs tabular-nums text-cute-mute">
                           還差 {r.missing.length} 份
                         </span>
                       </div>
-                      <p className="text-[13px] leading-relaxed text-mist-mute">
+                      <p className="text-[13px] leading-relaxed text-cute-mute">
                         {r.missing.join('、')}
                       </p>
                     </div>
@@ -169,10 +170,10 @@ export default function Progress() {
           </div>
 
           {/* 電腦：完整矩陣 */}
-          <div className="hidden overflow-x-auto glass rounded-3xl sm:block">
+          <div className="hidden overflow-x-auto cute-card rounded-3xl sm:block">
             <table className="w-full border-collapse text-sm">
               <thead>
-                <tr className="border-b border-white/70 bg-white/40 text-[13px] text-mist-mute">
+                <tr className="border-b-2 border-cute-ink/15 bg-cute-butter text-[13px] text-cute-mute">
                   <th className="px-3 py-2.5 text-left font-medium">座號</th>
                   <th className="px-3 py-2.5 text-left font-medium">姓名</th>
                   {PROGRESS_TASKS.map((t) => (
@@ -184,14 +185,14 @@ export default function Progress() {
               </thead>
               <tbody>
                 {mine.map((r) => (
-                  <tr key={r.student_id} className="border-b border-mist-main/15 last:border-0">
-                    <td className="px-3 py-2.5 text-[15px] tabular-nums text-mist-mute">{r.seat_no ?? '—'}</td>
+                  <tr key={r.student_id} className="border-b border-cute-ink/15 last:border-0">
+                    <td className="px-3 py-2.5 text-[15px] tabular-nums text-cute-mute">{r.seat_no ?? '—'}</td>
                     <td className="whitespace-nowrap px-3 py-2.5 text-[15px] font-medium">{r.name}</td>
                     {PROGRESS_TASKS.map((t) => (
                       <td key={t.key} className="px-2 py-2.5 text-center">
                         {/* 要投影到布幕上，勾要夠大；沒做的用淡色方框而不是小點，遠看才分得出來 */}
                         {r.done[t.key] ? (
-                          <span className="text-xl font-bold leading-none text-[#3F5F82]" aria-label="已完成">✓</span>
+                          <span className="text-xl font-bold leading-none text-cute-ink" aria-label="已完成">✓</span>
                         ) : (
                           <span className="text-xl leading-none text-white/80" aria-label="尚未完成">□</span>
                         )}
@@ -203,7 +204,7 @@ export default function Progress() {
             </table>
           </div>
 
-          <p className="mt-3 text-xs leading-relaxed text-mist-mute">
+          <p className="mt-3 text-xs leading-relaxed text-cute-mute">
             這一頁只顯示做了沒有，不顯示任何分數或結果——可以直接投影。
             需要看誰要關心請到 <Link to="/health/teacher" className="underline">另一頁</Link>，
             要看同學填了什麼請到 <Link to="/health/detail" className="underline">學生明細</Link>
@@ -216,24 +217,10 @@ export default function Progress() {
 }
 
 function Shell({ subtitle, children }: { subtitle?: string; children: React.ReactNode }) {
-  const { signOut } = useAuth()
   return (
-    <div className="glass-page-mesh min-h-screen">
-      <header className="glass mx-3 mt-3 max-w-5xl rounded-[28px] md:mx-auto">
-        <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3">
-          <div className="flex-1">
-            <h1 className="text-base font-semibold">班級進度</h1>
-            {subtitle && <p className="text-xs text-mist-mute">{subtitle}</p>}
-          </div>
-          <Link to="/health/review" className="text-sm text-mist-mute hover:text-mist-ink">SMART 批改</Link>
-          <Link to="/" className="text-sm text-mist-mute hover:text-mist-ink">教師後台</Link>
-          <button onClick={() => void signOut()} className="text-sm text-mist-mute hover:text-mist-ink">
-            登出
-          </button>
-        </div>
-      </header>
-      <main className="mx-auto max-w-5xl px-4 py-5">{children}</main>
-    </div>
+    <Layout title="班級進度" subtitle={subtitle} maxWidth="max-w-5xl" actions={<Link to="/health/review" className="cute-chip !min-h-[40px] bg-cute-green text-[13px]">SMART 批改</Link>}>
+      {children}
+    </Layout>
   )
 }
 
@@ -242,7 +229,7 @@ function Box({ tone, children }: { tone?: 'error'; children: React.ReactNode }) 
     <div className={`rounded-xl border px-4 py-4 text-sm ${
       tone === 'error'
         ? 'border-[#E7C4C2] bg-[#FBEDEC] text-[#9A3834]'
-        : 'border-mist-main/20 bg-white text-mist-mute'
+        : 'border-cute-ink/20 bg-white text-cute-mute'
     }`}>
       {children}
     </div>

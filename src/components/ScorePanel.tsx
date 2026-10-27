@@ -47,14 +47,14 @@ export default function ScorePanel({ classId, className }: {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-mist-mute">
+        <p className="text-sm text-cute-mute">
           總分 = 出缺席加扣分 + 上課表現加扣分
         </p>
         <Button variant="secondary" onClick={download}>下載 CSV</Button>
       </div>
-      <div className="overflow-x-auto glass rounded-3xl">
+      <div className="overflow-x-auto cute-card rounded-3xl">
         <table className="w-full text-sm">
-          <thead className="border-b border-white/70 bg-white/40 text-left text-xs text-mist-mute">
+          <thead className="border-b-2 border-cute-ink/15 bg-cute-butter text-left text-xs text-cute-mute">
             <tr>
               <th className="px-3 py-2">座號</th>
               <th className="px-3 py-2">姓名</th>
@@ -67,17 +67,17 @@ export default function ScorePanel({ classId, className }: {
           </thead>
           <tbody>
             {scores.map((s) => (
-              <tr key={s.student_id} className="border-b border-mist-main/15 last:border-0">
-                <td className="px-3 py-2 text-mist-mute">{s.seat_no ?? '—'}</td>
+              <tr key={s.student_id} className="border-b border-cute-ink/15 last:border-0">
+                <td className="px-3 py-2 text-cute-mute">{s.seat_no ?? '—'}</td>
                 <td className="px-3 py-2 font-medium">{s.name}</td>
-                <td className="px-3 py-2 text-right text-mist-mute">{s.attendance_points}</td>
-                <td className="px-3 py-2 text-right text-mist-mute">{s.performance_points}</td>
+                <td className="px-3 py-2 text-right text-cute-mute">{s.attendance_points}</td>
+                <td className="px-3 py-2 text-right text-cute-mute">{s.performance_points}</td>
                 <td className={`px-3 py-2 text-right font-semibold ${
                   Number(s.total_points) > 0 ? 'text-emerald-700'
-                  : Number(s.total_points) < 0 ? 'text-red-700' : 'text-mist-mute'
+                  : Number(s.total_points) < 0 ? 'text-red-700' : 'text-cute-mute'
                 }`}>{s.total_points}</td>
-                <td className="px-3 py-2 text-right text-mist-mute">{s.late_count}</td>
-                <td className="px-3 py-2 text-right text-mist-mute">{s.absent_count}</td>
+                <td className="px-3 py-2 text-right text-cute-mute">{s.late_count}</td>
+                <td className="px-3 py-2 text-right text-cute-mute">{s.absent_count}</td>
               </tr>
             ))}
           </tbody>

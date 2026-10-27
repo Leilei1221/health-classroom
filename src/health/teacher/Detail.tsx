@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { useAuth } from '../../auth'
+import Layout from '../../components/Layout'
 import { friendlyError } from '../../lib/errors'
 import { ROUNDS, listClassDetail, listHealthClasses, type DetailStudent, type HealthClass } from '../api'
 import { SECTIONS, type Field } from '../fields'
@@ -145,13 +146,13 @@ export default function Detail() {
       </div>
 
       <div className="mb-3 flex flex-wrap items-center gap-2">
-        <div className="flex overflow-hidden rounded-lg border border-mist-main/35">
+        <div className="flex overflow-hidden rounded-lg border border-cute-ink/35">
           {ROUNDS.map((r) => (
             <button
               key={r.key}
               onClick={() => setRound(r.key)}
               className={`px-3 py-1.5 text-sm ${
-                r.key === round ? 'bg-mist-deep font-bold text-white' : 'bg-white text-mist-mute'
+                r.key === round ? 'bg-cute-ink font-bold text-white' : 'bg-white text-cute-mute'
               }`}
             >
               {r.label}
@@ -169,17 +170,17 @@ export default function Detail() {
               buildClassCsv(cls.name, rows, round, age),
             )
           }}
-          className="rounded-lg border border-mist-main/35 bg-white px-3 py-1.5 text-sm text-mist-deep hover:bg-white/70 disabled:opacity-40"
+          className="rounded-lg border border-cute-ink/35 bg-white px-3 py-1.5 text-sm text-cute-ink hover:bg-white disabled:opacity-40"
         >
           匯出 CSV
         </button>
-        <span className="text-xs text-mist-mute">
+        <span className="text-xs text-cute-mute">
           匯出目前這個班、這一次測量的所有欄位
         </span>
       </div>
 
       {/* 用哪一列門檻要看得見：年級設錯的話，這一行會先露餡 */}
-      <p className="mb-3 text-xs text-mist-mute">
+      <p className="mb-3 text-xs text-cute-mute">
         {age === null ? (
           <span className="rounded bg-[#FDF3E3] px-1.5 py-0.5 font-medium text-[#7A4A08]">
             年級未確認，這個班不套 BMI 門檻
@@ -198,15 +199,15 @@ export default function Detail() {
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="找學生：座號、姓名或學號"
-          className="w-56 rounded-lg border border-mist-main/35 bg-white px-3 py-1.5 text-sm placeholder:text-mist-mute/70"
+          className="w-56 rounded-lg border border-cute-ink/35 bg-white px-3 py-1.5 text-sm placeholder:text-cute-mute/70"
         />
         {q && (
-          <button onClick={() => setQ('')} className="text-sm text-mist-mute hover:text-mist-ink">
+          <button onClick={() => setQ('')} className="text-sm text-cute-mute hover:text-cute-ink">
             清除
           </button>
         )}
         {rows && (
-          <span className="text-xs tabular-nums text-mist-mute">
+          <span className="text-xs tabular-nums text-cute-mute">
             {shown?.length ?? 0} / {rows.length} 人
           </span>
         )}
@@ -260,13 +261,13 @@ function Roster({ rows, round, age, onOpen }: {
               key={s.student_id}
               onClick={() => onOpen(s.student_id)}
               className={`w-full rounded-xl border px-3.5 py-3 text-left ${
-                hasRed(marks) ? 'border-[#E7C4C2] bg-[#FBEDEC]' : 'border-mist-main/20 bg-white'
+                hasRed(marks) ? 'border-[#E7C4C2] bg-[#FBEDEC]' : 'border-cute-ink/20 bg-white'
               }`}
             >
               <div className="flex items-baseline gap-2">
-                <span className="text-sm tabular-nums text-mist-mute">{s.seat_no ?? '—'} 號</span>
+                <span className="text-sm tabular-nums text-cute-mute">{s.seat_no ?? '—'} 號</span>
                 <span className="text-[15px] font-semibold">{s.name}</span>
-                <span className="ml-auto text-xs text-mist-mute">
+                <span className="ml-auto text-xs text-cute-mute">
                   {m ? '已登記' : '未登記'}・量表 {scales}/7
                 </span>
               </div>
@@ -277,10 +278,10 @@ function Roster({ rows, round, age, onOpen }: {
       </div>
 
       {/* 電腦：表格 */}
-      <div className="hidden overflow-x-auto glass rounded-3xl sm:block">
+      <div className="hidden overflow-x-auto cute-card rounded-3xl sm:block">
         <table className="w-full border-collapse text-sm">
           <thead>
-            <tr className="border-b border-white/70 bg-white/40 text-left text-xs text-mist-mute">
+            <tr className="border-b-2 border-cute-ink/15 bg-cute-butter text-left text-xs text-cute-mute">
               <th className="px-3 py-2 font-medium">座號</th>
               <th className="px-3 py-2 font-medium">姓名</th>
               <th className="px-3 py-2 font-medium">身體數值</th>
@@ -297,21 +298,21 @@ function Roster({ rows, round, age, onOpen }: {
                 <tr
                   key={s.student_id}
                   onClick={() => onOpen(s.student_id)}
-                  className={`cursor-pointer border-b border-mist-main/15 last:border-0 hover:bg-white/70 ${
+                  className={`cursor-pointer border-b border-cute-ink/15 last:border-0 hover:bg-white ${
                     hasRed(marks) ? 'bg-[#FBEDEC]' : ''
                   }`}
                 >
-                  <td className="px-3 py-2.5 tabular-nums text-mist-mute">{s.seat_no ?? '—'}</td>
+                  <td className="px-3 py-2.5 tabular-nums text-cute-mute">{s.seat_no ?? '—'}</td>
                   <td className="whitespace-nowrap px-3 py-2.5 font-medium">{s.name}</td>
-                  <td className="px-3 py-2.5 text-mist-mute">{m ? '已登記' : '未登記'}</td>
+                  <td className="px-3 py-2.5 text-cute-mute">{m ? '已登記' : '未登記'}</td>
                   <td className="px-3 py-2.5 tabular-nums">
                     <Val v={computed(m).bmi} mark={marks.bmi} />
                   </td>
                   <td className="px-3 py-2.5">
                     <Notes marks={marks} className="text-[13px]" />
                   </td>
-                  <td className="px-3 py-2.5 tabular-nums text-mist-mute">{scales} / 7</td>
-                  <td className="px-3 py-2.5 text-right text-xs text-mist-mute">看明細 ›</td>
+                  <td className="px-3 py-2.5 tabular-nums text-cute-mute">{scales} / 7</td>
+                  <td className="px-3 py-2.5 text-right text-xs text-cute-mute">看明細 ›</td>
                 </tr>
               )
             })}
@@ -335,7 +336,7 @@ function Notes({ marks, className = '' }: { marks: Marks; className?: string }) 
     <p className={`font-medium ${className}`}>
       {items.map((m, i) => (
         <span key={m.key} className={m.mark.tone === 'red' ? 'text-[#9A3834]' : 'text-[#7A4A08]'}>
-          {i > 0 && <span className="text-mist-mute">、</span>}
+          {i > 0 && <span className="text-cute-mute">、</span>}
           {m.label} {m.mark.note}
         </span>
       ))}
@@ -344,7 +345,7 @@ function Notes({ marks, className = '' }: { marks: Marks; className?: string }) 
 }
 
 function Val({ v, mark }: { v: number | null; mark?: Mark }) {
-  if (v === null) return <span className="text-mist-mute">—</span>
+  if (v === null) return <span className="text-cute-mute">—</span>
   return (
     <span className={mark ? (mark.tone === 'red' ? 'font-bold text-[#9A3834]' : 'font-bold text-[#7A4A08]') : ''}>
       {v.toFixed(1)}
@@ -382,36 +383,36 @@ function Sheet({ student, className, round, age, onRound, onClose }: {
       onClick={onClose}
     >
       <div
-        className="max-h-[88vh] w-full max-w-xl glass overflow-auto rounded-t-[28px] bg-white/90 sm:rounded-[28px]"
+        className="max-h-[88vh] w-full max-w-xl cute-card overflow-auto rounded-t-[28px] bg-white sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <div className="sticky top-0 border-b border-mist-main/20 bg-white/80 px-5 pb-3 pt-4 backdrop-blur">
+        <div className="sticky top-0 border-b border-cute-ink/20 bg-white px-5 pb-3 pt-4 backdrop-blur">
           <div className="flex items-baseline gap-2">
             <h2 className="text-lg font-bold">{student.name}</h2>
-            <span className="text-sm text-mist-mute">
+            <span className="text-sm text-cute-mute">
               {className} 班　{student.seat_no ?? '—'} 號　{student.student_no}
             </span>
-            <button onClick={onClose} className="ml-auto text-sm text-mist-mute hover:text-mist-deep">
+            <button onClick={onClose} className="ml-auto text-sm text-cute-mute hover:text-cute-ink">
               關閉
             </button>
           </div>
           <div className="mt-2 flex items-center gap-2">
-            <div className="flex overflow-hidden rounded-lg border border-mist-main/35 text-xs">
+            <div className="flex overflow-hidden rounded-lg border border-cute-ink/35 text-xs">
               {ROUNDS.map((r) => (
                 <button
                   key={r.key}
                   onClick={() => onRound(r.key)}
                   className={`px-2.5 py-1 ${
                     r.key === round
-                      ? 'bg-mist-deep font-bold text-white'
-                      : student.rounds[r.key] ? 'bg-white text-mist-mute' : 'bg-white text-mist-mute'
+                      ? 'bg-cute-ink font-bold text-white'
+                      : student.rounds[r.key] ? 'bg-white text-cute-mute' : 'bg-white text-cute-mute'
                   }`}
                 >
                   {r.label}
                 </button>
               ))}
             </div>
-            <span className="text-xs text-mist-mute">
+            <span className="text-xs text-cute-mute">
               {m ? new Date(m.measured_at).toLocaleString('zh-TW', { hour12: false }) : '這一次還沒登記'}
             </span>
           </div>
@@ -421,14 +422,14 @@ function Sheet({ student, className, round, age, onRound, onClose }: {
           <section>
             <H>身體數值</H>
             {!m ? (
-              <p className="text-sm text-mist-mute">
+              <p className="text-sm text-cute-mute">
                 這位同學還沒登記{ROUNDS.find((r) => r.key === round)!.label}的數值。
               </p>
             ) : (
               <div>
                 {SECTIONS.map((sec) => (
                   <div key={sec.title}>
-                    <p className="mt-3 text-xs font-medium text-mist-mute">{sec.title}</p>
+                    <p className="mt-3 text-xs font-medium text-cute-mute">{sec.title}</p>
                     {sec.fields.map((f) => (
                       <Fragmentish key={f.key}>
                         <Row
@@ -451,7 +452,7 @@ function Sheet({ student, className, round, age, onRound, onClose }: {
                     ))}
                   </div>
                 ))}
-                <p className="mt-3 text-xs leading-relaxed text-mist-mute">
+                <p className="mt-3 text-xs leading-relaxed text-cute-mute">
                   有門檻的項目：BMI、體脂率、腰圍、腰臀比、血壓、脈搏、血氧。
                   內臟脂肪、基礎代謝率、身體年齡、皮下脂肪率、骨骼肌率沒有標記，
                   不是代表正常，是還沒有可以照的標準。
@@ -474,7 +475,7 @@ function Sheet({ student, className, round, age, onRound, onClose }: {
         <div className="px-5 pb-5">
           <button
             onClick={onClose}
-            className="w-full rounded-xl bg-mist-deep py-3 text-base font-bold text-white"
+            className="w-full rounded-xl bg-cute-ink py-3 text-base font-bold text-white"
           >
             關閉
           </button>
@@ -496,7 +497,7 @@ function raw(m: HealthMeasurement | null, f: Field): number | string | null {
 }
 
 function H({ children }: { children: React.ReactNode }) {
-  return <h3 className="mb-1 border-b border-mist-main/20 pb-1 text-sm font-bold">{children}</h3>
+  return <h3 className="mb-1 border-b border-cute-ink/20 pb-1 text-sm font-bold">{children}</h3>
 }
 
 function Row({ label, unit, value, base, mark, calc, digits }: {
@@ -516,26 +517,26 @@ function Row({ label, unit, value, base, mark, calc, digits }: {
     ? value.toFixed(digits) : value
   return (
     <div
-      className={`flex items-center justify-between border-b border-mist-main/15 py-2 text-[15px] last:border-0 ${
+      className={`flex items-center justify-between border-b border-cute-ink/15 py-2 text-[15px] last:border-0 ${
         tone === 'red' ? '-mx-2 rounded-md border-transparent bg-[#FBEDEC] px-2' : ''
       }`}
     >
-      <span className="text-mist-mute">
+      <span className="text-cute-mute">
         {label}
-        {calc && <span className="ml-1.5 text-[11px] text-mist-mute">自動計算</span>}
+        {calc && <span className="ml-1.5 text-[11px] text-cute-mute">自動計算</span>}
       </span>
       <span className="flex items-baseline gap-1.5">
         {diff !== null && diff !== 0 && (
-          <span className="text-xs tabular-nums text-mist-mute">
+          <span className="text-xs tabular-nums text-cute-mute">
             {diff > 0 ? '+' : ''}{diff}
           </span>
         )}
         <span className={`font-semibold tabular-nums ${
           tone === 'red' ? 'text-[#9A3834]' : tone === 'amber' ? 'text-[#7A4A08]' : ''
         }`}>
-          {shown === null ? <span className="font-normal text-mist-mute">—</span> : shown}
+          {shown === null ? <span className="font-normal text-cute-mute">—</span> : shown}
         </span>
-        {unit && value !== null && <span className="text-xs text-mist-mute">{unit}</span>}
+        {unit && value !== null && <span className="text-xs text-cute-mute">{unit}</span>}
         {mark && (
           <span className={`ml-1 text-xs font-bold ${
             mark.tone === 'red' ? 'text-[#9A3834]' : 'text-[#7A4A08]'
@@ -561,7 +562,7 @@ function SelfcheckBlock({ student }: { student: DetailStudent }) {
   const dep = o('depression')
   const plate = sc?.plate ?? null
 
-  if (!sc) return <p className="text-sm text-mist-mute">這位同學還沒做任何一份自我檢測。</p>
+  if (!sc) return <p className="text-sm text-cute-mute">這位同學還沒做任何一份自我檢測。</p>
 
   return (
     <div className="space-y-2.5 text-[14px]">
@@ -571,7 +572,7 @@ function SelfcheckBlock({ student }: { student: DetailStudent }) {
             綠燈 {life.zones.green.length} 題・黃燈 {life.zones.yellow.length} 題・
             <span className="font-semibold text-[#9A3834]">紅燈 {life.zones.red.length} 題</span>
             {life.zones.red.length > 0 && (
-              <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[13px] text-mist-mute">
+              <ul className="mt-1 list-disc space-y-0.5 pl-5 text-[13px] text-cute-mute">
                 {life.zones.red.map((n) => (
                   <li key={n}>{(SCALES.lifestyle.qs ?? [])[n - 1] as string}</li>
                 ))}
@@ -592,7 +593,7 @@ function SelfcheckBlock({ student }: { student: DetailStudent }) {
                   <span
                     key={k}
                     className={`rounded-md px-1.5 py-0.5 text-[12px] ${
-                      ok ? 'bg-[#E3F1ED] text-[#3F5F82]' : 'bg-mist-main/10 text-mist-mute'
+                      ok ? 'bg-[#E3F1ED] text-cute-ink' : 'bg-cute-ink/10 text-cute-mute'
                     }`}
                   >
                     {ok ? '✓' : '○'} {H85210_SHORT[k] ?? k}
@@ -637,10 +638,10 @@ function SelfcheckBlock({ student }: { student: DetailStudent }) {
         {plate && (
           <>
             通過 {plate.matched} / {plate.total} 條・{plate.kcal} 大卡（建議 {plate.kcalTarget}）
-            <div className="mt-1 text-[13px] text-mist-mute">
+            <div className="mt-1 text-[13px] text-cute-mute">
               {CAT_KEYS.map((k) => `${CAT[k].nm} ${plate[k]}`).join('　')}
             </div>
-            <div className="text-[13px] text-mist-mute">
+            <div className="text-[13px] text-cute-mute">
               喝水 {plate.water} c.c.・含糖飲料 {plate.sugar} c.c.
             </div>
           </>
@@ -652,7 +653,7 @@ function SelfcheckBlock({ student }: { student: DetailStudent }) {
           這位同學在 <Link to="/health/teacher" className="underline">需要關心的學生</Link> 名單上。
         </p>
       )}
-      <p className="text-xs text-mist-mute">
+      <p className="text-xs text-cute-mute">
         自我檢測最後更新：{new Date(sc.updated_at).toLocaleString('zh-TW', { hour12: false })}
       </p>
     </div>
@@ -663,11 +664,11 @@ function Item({ name, done, flag, children }: {
   name: string; done: boolean; flag?: boolean; children?: React.ReactNode
 }) {
   return (
-    <div className="border-b border-mist-main/15 pb-2 last:border-0">
+    <div className="border-b border-cute-ink/15 pb-2 last:border-0">
       <div className="flex items-baseline gap-2">
-        <span className="w-28 shrink-0 text-mist-mute">{name}</span>
+        <span className="w-28 shrink-0 text-cute-mute">{name}</span>
         <span className={`flex-1 ${flag ? 'font-semibold text-[#9A3834]' : ''}`}>
-          {done ? children : <span className="text-mist-mute">還沒做</span>}
+          {done ? children : <span className="text-cute-mute">還沒做</span>}
         </span>
       </div>
     </div>
@@ -677,23 +678,10 @@ function Item({ name, done, flag, children }: {
 /* ------------------------------------------------------------------ 外框 */
 
 function Shell({ subtitle, children }: { subtitle?: string; children: React.ReactNode }) {
-  const { signOut } = useAuth()
   return (
-    <div className="glass-page-mesh min-h-screen">
-      <header className="glass mx-3 mt-3 max-w-5xl rounded-[28px] md:mx-auto">
-        <div className="mx-auto flex max-w-5xl items-center gap-3 px-4 py-3">
-          <div className="flex-1">
-            <h1 className="text-base font-semibold">學生明細</h1>
-            {subtitle && <p className="text-xs text-mist-mute">{subtitle}</p>}
-          </div>
-          <Link to="/" className="text-sm text-mist-mute hover:text-mist-ink">教師後台</Link>
-          <button onClick={() => void signOut()} className="text-sm text-mist-mute hover:text-mist-ink">
-            登出
-          </button>
-        </div>
-      </header>
-      <main className="mx-auto max-w-5xl px-4 py-5">{children}</main>
-    </div>
+    <Layout title="學生明細" subtitle={subtitle} maxWidth="max-w-5xl">
+      {children}
+    </Layout>
   )
 }
 
@@ -702,7 +690,7 @@ function Box({ tone, children }: { tone?: 'error'; children: React.ReactNode }) 
     <div className={`rounded-xl border px-4 py-4 text-sm ${
       tone === 'error'
         ? 'border-[#E7C4C2] bg-[#FBEDEC] text-[#9A3834]'
-        : 'border-mist-main/20 bg-white text-mist-mute'
+        : 'border-cute-ink/20 bg-white text-cute-mute'
     }`}>
       {children}
     </div>

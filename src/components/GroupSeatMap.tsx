@@ -31,8 +31,9 @@ interface Props {
   /**
    * default：原本的樣式（教師端點名、調位用）。
    * glass：學生手機選位用，每排放兩組、座位縮小、莫蘭迪霧藍玻璃風格。
+   * cute：教師後台（點名、座位圖管理）用，可愛貼紙風；寬螢幕分上下兩排，手機每排兩組。
    */
-  variant?: 'default' | 'glass'
+  variant?: 'default' | 'glass' | 'cute'
   /** glass 版型頂端的「空位／已被選／我的位子」圖例；點名用自己的圖例時關掉 */
   showLegend?: boolean
   /**
@@ -303,6 +304,91 @@ function GlassLegend() {
   )
 }
 
+/* ---------------------------------------------------------------- 教師後台（可愛貼紙風） */
+
+const CUTE_TONE: Record<SeatTone, string> = {
+  unmarked: 'border-dashed border-cute-ink/55 bg-cute-cream',
+  present: 'border-cute-ink bg-white shadow-[1.5px_2px_0_#3A3535]',
+  late: 'border-cute-ink bg-cute-yellow shadow-[1.5px_2px_0_#3A3535]',
+  absent: 'border-cute-ink bg-cute-pink shadow-[1.5px_2px_0_#3A3535]',
+  leave: 'border-cute-ink bg-cute-blue shadow-[1.5px_2px_0_#3A3535]',
+  official: 'border-cute-ink bg-cute-lavender shadow-[1.5px_2px_0_#3A3535]',
+}
+
+function CuteSeat({
+  occupant, groupNo, slot, onSelect,
+}: {
+  occupant?: SeatOccupant
+  groupNo: number
+  slot: number
+  onSelect?: (g: number, s: number) => void
+}) {
+  const base = !occupant
+    ? 'border-dashed border-cute-ink/55 bg-white text-cute-mute'
+    : occupant.tone
+      ? CUTE_TONE[occupant.tone]
+      : 'border-cute-ink bg-white shadow-[1.5px_2px_0_#3A3535]'
+  const selected = occupant?.state === 'selected'
+  return (
+    <button
+      type="button"
+      disabled={!onSelect}
+      onClick={() => onSelect?.(groupNo, slot)}
+      aria-label={`第 ${groupNo} 組 第 ${slot} 位${occupant ? `：${occupant.label}` : '：空位'}${occupant?.tone === 'unmarked' ? '，未點名' : ''}`}
+      className={`relative flex h-[46px] w-[50px] flex-col items-center justify-center rounded-[13px] border-2 px-0.5 text-center text-xs font-bold leading-tight text-cute-ink transition ${base} ${
+        selected ? 'ring-[3px] ring-[#4F8FC0] ring-offset-2 ring-offset-white' : ''
+      } ${onSelect ? 'cursor-pointer active:scale-95' : 'cursor-default'} ${!occupant ? '!text-cute-mute' : ''}`}
+    >
+      {occupant?.badge && (
+        <span className="absolute -right-[7px] -top-[7px] flex h-[19px] w-[19px] items-center justify-center rounded-full bg-cute-ink text-[10px] font-bold leading-none text-white">
+          {occupant.badge}
+        </span>
+      )}
+      <span className={`w-full break-all ${occupant?.sublabel ? 'line-clamp-1' : 'line-clamp-2'}`}>
+        {occupant ? occupant.label : '空位'}
+      </span>
+      {occupant?.sublabel && <span className="text-[10px]">{occupant.sublabel}</span>}
+    </button>
+  )
+}
+
+function CuteGroup({
+  groupNo, capacity, occupants, onSelect, showCounts, className = '',
+}: {
+  groupNo: number
+  capacity: number
+  occupants: SeatOccupant[]
+  onSelect?: (g: number, s: number) => void
+  showCounts?: boolean
+  className?: string
+}) {
+  const { left, right, end } = groupLayout(capacity)
+  const at = (slot: number) => occupants.find((o) => o.group_no === groupNo && o.seat_slot === slot)
+  const seated = occupants.filter((o) => o.group_no === groupNo).length
+  const seat = (slot: number) => (
+    <CuteSeat key={slot} occupant={at(slot)} groupNo={groupNo} slot={slot} onSelect={onSelect} />
+  )
+  return (
+    <div className={`cute-inset flex flex-col items-center gap-2 rounded-[18px] px-2 py-2.5 ${className}`}>
+      <div className="flex w-full items-center justify-between">
+        <span className="rounded-full border-2 border-cute-ink bg-cute-yellow px-2.5 text-xs font-bold">第 {groupNo} 組</span>
+        {showCounts && <span className="text-xs text-cute-mute">{seated}/{capacity}</span>}
+      </div>
+      <div className="flex items-stretch gap-[5px]">
+        <div className="flex flex-col gap-[7px]">{left.map(seat)}</div>
+        <div
+          aria-hidden="true"
+          className="flex w-5 items-center justify-center rounded-xl border-2 border-cute-ink bg-cute-sand text-[11px] text-cute-mute"
+        >
+          桌
+        </div>
+        <div className="flex flex-col gap-[7px]">{right.map(seat)}</div>
+      </div>
+      {end !== null && seat(end)}
+    </div>
+  )
+}
+
 /**
  * 分組座位圖：上下兩排討論桌，每組 U 字型就座，講台在最上方。
  */
@@ -310,6 +396,36 @@ export default function GroupSeatMap({
   groupCount, groupCapacity, capacityOverrides, occupants, onSelect, showCounts = true,
   variant = 'default', showLegend = true, wide = false,
 }: Props) {
+  if (variant === 'cute') {
+    /*
+      教師後台：照教室實際佈置分兩排，上排較少、下排較多
+      （7 組＝上 3 下 4；8 組＝上 4 下 4），手機寬度每排兩組。
+      用 flex 加換行標記而不是固定欄數的 grid，上排組數較少時才能置中。
+    */
+    const n = Math.max(1, Math.floor(groupCount))
+    const topCount = splitRows(n).top.length
+    return (
+      <div className="flex flex-col gap-3">
+        <div className="cute-chip mx-auto w-[70%] bg-cute-blue !min-h-10 tracking-[0.4em]">講　台</div>
+        <div className="mx-auto flex max-w-3xl flex-wrap justify-center gap-3">
+          {Array.from({ length: n }, (_, i) => i + 1).map((g) => (
+            <Fragment key={g}>
+              <CuteGroup
+                groupNo={g}
+                capacity={capacityFor(groupCapacity, capacityOverrides, g)}
+                occupants={occupants}
+                onSelect={onSelect}
+                showCounts={showCounts}
+                className="w-[calc(50%-6px)] md:w-[calc((100%-36px)/4)]"
+              />
+              {g === topCount && <div aria-hidden className="hidden basis-full md:-my-1.5 md:block" />}
+            </Fragment>
+          ))}
+        </div>
+      </div>
+    )
+  }
+
   if (variant === 'glass') {
     // 手機寬度每排放兩組；組數是奇數時，最後一組置中
     const groups = Array.from({ length: Math.max(1, Math.floor(groupCount)) }, (_, i) => i + 1)

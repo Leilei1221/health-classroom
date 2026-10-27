@@ -173,7 +173,7 @@ export default function Links() {
   return (
     <Layout title="學生端內容管理" back="/">
       <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-        <p className="max-w-xl text-sm leading-relaxed text-mist-mute">
+        <p className="max-w-xl text-sm leading-relaxed text-cute-mute">
           這裡加的連結會出現在學生入口的「課程活動」。學生按了是用新分頁開啟，
           外部網站維持原本的樣子。
         </p>
@@ -189,7 +189,7 @@ export default function Links() {
       {error && <div className="mb-4"><ErrorBox message={error} /></div>}
 
       {(adding || editingId) && (
-        <div className="mb-6 glass rounded-3xl p-4">
+        <div className="mb-6 cute-card rounded-3xl p-4">
           <LinkForm
             draft={draft}
             setDraft={setDraft}
@@ -212,9 +212,7 @@ export default function Links() {
             return (
               <div
                 key={l.id}
-                className={`rounded-xl border bg-white p-4 ${
-                  l.visible ? 'border-mist-main/20' : 'border-dashed border-mist-main/35 bg-white/50'
-                }`}
+                className={`cute-inset rounded-2xl p-4 ${l.visible ? 'bg-white' : 'border-dashed bg-cute-cream'}`}
               >
                 <div className="flex flex-wrap items-start gap-3">
                   <div className="flex shrink-0 flex-col gap-1">
@@ -222,25 +220,25 @@ export default function Links() {
                       onClick={() => void move(i, -1)}
                       disabled={i === 0}
                       aria-label="往上移"
-                      className="rounded border border-mist-main/20 px-1.5 text-mist-mute disabled:opacity-30"
+                      className="cute-chip !min-h-[34px] !px-2.5 bg-white disabled:opacity-30"
                     >↑</button>
                     <button
                       onClick={() => void move(i, 1)}
                       disabled={i === links.length - 1}
                       aria-label="往下移"
-                      className="rounded border border-mist-main/20 px-1.5 text-mist-mute disabled:opacity-30"
+                      className="cute-chip !min-h-[34px] !px-2.5 bg-white disabled:opacity-30"
                     >↓</button>
                   </div>
 
-                  <div className="min-w-0 flex-1">
+                  <div className="min-w-0 flex-1 basis-[180px]">
                     <div className="flex flex-wrap items-center gap-2">
-                      <span className="font-medium">{l.title}</span>
+                      <span className="font-bold">{l.title}</span>
                       {!l.visible && (
-                        <span className="rounded bg-mist-main/20 px-1.5 py-0.5 text-xs text-mist-mute">
+                        <span className="rounded bg-cute-ink/20 px-1.5 py-0.5 text-xs text-cute-mute">
                           已隱藏
                         </span>
                       )}
-                      <span className="rounded bg-mist-main/10 px-1.5 py-0.5 text-xs text-mist-mute">
+                      <span className="rounded bg-cute-ink/10 px-1.5 py-0.5 text-xs text-cute-mute">
                         {l.all_classes
                           ? '所有班級'
                           : ids.length === 0
@@ -249,9 +247,9 @@ export default function Links() {
                       </span>
                     </div>
                     {l.description && (
-                      <p className="mt-1 text-sm text-mist-mute">{l.description}</p>
+                      <p className="mt-1 text-sm text-cute-mute">{l.description}</p>
                     )}
-                    <p className="mt-1 break-all font-mono text-xs text-mist-mute">{l.url}</p>
+                    <p className="mt-1 break-all font-mono text-xs text-cute-mute">{l.url}</p>
                     {isArtifact(l.url) && (
                       <p className="mt-1 text-xs leading-relaxed text-[#7A4A08]">
                         這是 Artifact 連結：要先在該頁按 Share 分享出去，學生才打得開。
@@ -260,12 +258,12 @@ export default function Links() {
                     )}
                   </div>
 
-                  <div className="flex shrink-0 flex-wrap gap-1">
+                  <div className="flex shrink-0 flex-wrap gap-1.5 max-sm:basis-full">
                     <a
                       href={l.url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="rounded-lg border border-mist-main/35 px-2.5 py-1.5 text-sm text-mist-deep hover:bg-white/70"
+                      className="cute-chip bg-white !min-h-[44px]"
                     >
                       測試開啟
                     </a>
@@ -322,7 +320,7 @@ function LinkForm({ draft, setDraft, classes, busy, onSave, onCancel }: {
           onChange={(e) => setDraft({ ...draft, url: e.target.value })}
         />
       </Field>
-      <p className="-mt-2 text-xs leading-relaxed text-mist-mute">
+      <p className="-mt-2 text-xs leading-relaxed text-cute-mute">
         只收 https 開頭的網址。
         {isArtifact(draft.url) && (
           <span className="text-[#7A4A08]">
@@ -343,9 +341,9 @@ function LinkForm({ draft, setDraft, classes, busy, onSave, onCancel }: {
       </Field>
 
       <div>
-        <span className="mb-1 block text-sm font-medium text-mist-deep">哪些班看得到</span>
+        <span className="mb-1 block text-sm font-medium text-cute-ink">哪些班看得到</span>
         <div className="space-y-2">
-          <label className="flex items-center gap-2 text-sm text-mist-deep">
+          <label className="flex items-center gap-2 text-sm text-cute-ink">
             <input
               type="radio"
               checked={draft.all_classes}
@@ -353,7 +351,7 @@ function LinkForm({ draft, setDraft, classes, busy, onSave, onCancel }: {
             />
             <span>我的所有班級</span>
           </label>
-          <label className="flex items-center gap-2 text-sm text-mist-deep">
+          <label className="flex items-center gap-2 text-sm text-cute-ink">
             <input
               type="radio"
               checked={!draft.all_classes}
@@ -364,9 +362,9 @@ function LinkForm({ draft, setDraft, classes, busy, onSave, onCancel }: {
           {!draft.all_classes && (
             <div className="ml-6 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-3">
               {classes.length === 0 ? (
-                <p className="text-xs text-mist-mute">還沒有班級。</p>
+                <p className="text-xs text-cute-mute">還沒有班級。</p>
               ) : classes.map((c) => (
-                <label key={c.id} className="flex items-center gap-2 text-sm text-mist-deep">
+                <label key={c.id} className="flex items-center gap-2 text-sm text-cute-ink">
                   <input
                     type="checkbox"
                     checked={draft.classIds.includes(c.id)}
@@ -374,7 +372,7 @@ function LinkForm({ draft, setDraft, classes, busy, onSave, onCancel }: {
                   />
                   <span>
                     {c.name}
-                    <span className="ml-1 text-xs text-mist-mute">
+                    <span className="ml-1 text-xs text-cute-mute">
                       {c.academic_year}-{c.semester}
                     </span>
                   </span>
@@ -385,7 +383,7 @@ function LinkForm({ draft, setDraft, classes, busy, onSave, onCancel }: {
         </div>
       </div>
 
-      <label className="flex items-start gap-2 text-sm text-mist-deep">
+      <label className="flex items-start gap-2 text-sm text-cute-ink">
         <input
           type="checkbox"
           className="mt-0.5"
@@ -394,7 +392,7 @@ function LinkForm({ draft, setDraft, classes, busy, onSave, onCancel }: {
         />
         <span>
           現在就顯示給學生
-          <span className="ml-1.5 text-xs text-mist-mute">
+          <span className="ml-1.5 text-xs text-cute-mute">
             取消勾選就是先存起來，學生端不會出現；要用的時候再回來按「顯示」
           </span>
         </span>

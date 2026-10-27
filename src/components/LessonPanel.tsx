@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react'
 import GroupSeatMap, { type SeatOccupant, type SeatTone } from './GroupSeatMap'
-import SeatAttendanceDialog from './SeatAttendanceDialog'
+import SeatAttendanceDialog, { AttendancePanelEmpty } from './SeatAttendanceDialog'
 import { Button, Empty, ErrorBox, Field, Spinner, inputClass } from './ui'
 import {
   addPerformanceRecord, createLesson, deleteLesson, deletePerformanceRecord,
@@ -33,6 +33,19 @@ const BADGE_OF: Record<AttendanceCode, string> = {
   present: '', late: '遲', absent: '曠', leave: '假', official: '公',
 }
 
+/** iPad 橫向以上（≥1024px）：點名面板固定在座位圖右側，不用彈出視窗 */
+function useWide() {
+  const query = '(min-width: 1024px)'
+  const [wide, setWide] = useState(() => (typeof window !== 'undefined' ? window.matchMedia(query).matches : false))
+  useEffect(() => {
+    const m = window.matchMedia(query)
+    const on = () => setWide(m.matches)
+    m.addEventListener('change', on)
+    return () => m.removeEventListener('change', on)
+  }, [])
+  return wide
+}
+
 const today = () => new Date().toISOString().slice(0, 10)
 
 export default function LessonPanel({ cls, teacherId }: {
@@ -40,6 +53,7 @@ export default function LessonPanel({ cls, teacherId }: {
   teacherId: string
 }) {
   const classId = cls.id
+  const wide = useWide()
   const [students, setStudents] = useState<Student[]>([])
   const [lessons, setLessons] = useState<Lesson[]>([])
   const [statuses, setStatuses] = useState<AttendanceStatus[]>([])
@@ -278,13 +292,34 @@ export default function LessonPanel({ cls, teacherId }: {
   const unseated = students.filter((s) => !seatOf(s.id))
   const marked = students.filter((s) => attendance[s.id]).length
 
+  /** 點名視窗（窄螢幕）或右側面板（寬螢幕）：內容相同 */
+  const attendanceFor = (variant: 'modal' | 'panel') => (
+        <SeatAttendanceDialog
+          variant={variant}
+          student={studentOf(openStudent!)!}
+          seatLabel={(() => {
+            const seat = seatOf(openStudent!)
+            return seat ? `第 ${seat.group_no} 組 第 ${seat.seat_slot} 位` : '尚未選位'
+          })()}
+          attendance={attendance[openStudent!]}
+          statuses={statuses}
+          items={items}
+          records={records}
+          busy={saving}
+          onSetStatus={(code) => void setStatusNow(openStudent!, code)}
+          onAddRecord={(item) => void addRecord(openStudent!, item)}
+          onRemoveRecord={(id) => void removeRecord(id)}
+          onClose={() => setOpenStudent(null)}
+        />
+  )
+
   if (loading) return <Spinner />
 
   return (
     <div className="space-y-4">
       {error && <ErrorBox message={error} />}
 
-      <div className="grid gap-3 glass rounded-3xl p-4 sm:grid-cols-4">
+      <div className="grid gap-3 cute-card rounded-3xl p-4 sm:grid-cols-4">
         <Field label="日期">
           <input type="date" className={inputClass} value={newLesson.lesson_date}
             onChange={(e) => setNewLesson({ ...newLesson, lesson_date: e.target.value })} />
@@ -311,11 +346,7 @@ export default function LessonPanel({ cls, teacherId }: {
               <button
                 key={l.id}
                 onClick={() => setCurrent(l)}
-                className={`h-10 rounded-full border px-4 text-sm font-medium transition ${
-                  current?.id === l.id
-                    ? 'border-white/60 bg-gradient-to-br from-[#6F8FAF] to-mist-main text-white shadow-[0_4px_10px_rgb(79_111_146/0.3)]'
-                    : 'border-mist-main/30 bg-white/70 text-mist-ink hover:bg-white'
-                }`}
+                className={`cute-chip !min-h-[40px] text-[13px] ${current?.id === l.id ? 'bg-cute-yellow' : 'bg-white'}`}
               >
                 {l.lesson_date} 第{l.period}節
               </button>
@@ -324,10 +355,10 @@ export default function LessonPanel({ cls, teacherId }: {
 
           {current && (
             <>
-              <div className="flex items-center justify-between glass rounded-3xl p-4">
+              <div className="flex items-center justify-between cute-card rounded-3xl p-4">
                 <div>
-                  <p className="font-medium">{current.lesson_date} 第 {current.period} 節</p>
-                  {current.topic && <p className="text-sm text-mist-mute">{current.topic}</p>}
+                  <p className="text-base font-bold">{current.lesson_date} 第 {current.period} 節</p>
+                  {current.topic && <p className="text-sm text-cute-mute">{current.topic}</p>}
                 </div>
                 <div className="flex gap-2">
                   <Button onClick={persistAttendance} disabled={saving}>
@@ -338,7 +369,7 @@ export default function LessonPanel({ cls, teacherId }: {
               </div>
 
               <div className="flex flex-wrap items-center gap-3">
-                <div className="inline-flex rounded-full border border-white/80 bg-white/55 p-1">
+                <div className="flex gap-2.5">
                   {([
                     { key: 'list' as const, label: '座號模式' },
                     { key: 'seatmap' as const, label: '座位圖模式' },
@@ -346,18 +377,14 @@ export default function LessonPanel({ cls, teacherId }: {
                     <button
                       key={m.key}
                       onClick={() => void switchMode(m.key)}
-                      className={`h-10 rounded-full px-4 text-sm font-medium transition ${
-                        mode === m.key
-                          ? 'bg-gradient-to-br from-[#6F8FAF] to-mist-main text-white shadow-[0_4px_10px_rgb(79_111_146/0.3),inset_0_1px_0_rgb(255_255_255/0.4)]'
-                          : 'text-mist-deep hover:bg-white/60'
-                      }`}
+                      className={`cute-chip ${mode === m.key ? 'bg-cute-yellow' : 'bg-white'}`}
                     >
                       {m.label}
                     </button>
                   ))}
                 </div>
-                <span className="text-xs text-mist-mute">
-                  <b className="text-sm text-mist-ink">已點名 {marked}/{students.length}</b>
+                <span className="cute-inset rounded-full bg-cute-butter px-4 py-1.5 text-xs text-cute-mute">
+                  <b className="text-sm text-cute-ink">已點名 {marked}/{students.length}</b>
                   {marked < students.length && (
                     <b className="ml-1.5 text-sm text-[#7A4A08]">還有 {students.length - marked} 位未點名</b>
                   )}
@@ -369,10 +396,11 @@ export default function LessonPanel({ cls, teacherId }: {
               {students.length === 0 ? (
                 <Empty>這個班還沒有學生名單。</Empty>
               ) : mode === 'seatmap' ? (
+                <div className={wide ? 'grid grid-cols-[minmax(0,1fr)_340px] items-start gap-5' : ''}>
                 <div className="space-y-4">
-                  <div className="glass rounded-3xl p-4">
+                  <div className="cute-card rounded-3xl p-4">
                     <GroupSeatMap
-                      variant="glass"
+                      variant="cute"
                       wide
                       showLegend={false}
                       groupCount={cls.group_count}
@@ -385,29 +413,29 @@ export default function LessonPanel({ cls, teacherId }: {
                         if (seat) setOpenStudent(seat.student_id)
                       }}
                     />
-                    <div className="mt-4 flex flex-wrap justify-center gap-x-3.5 gap-y-2 text-xs text-mist-mute">
+                    <div className="mt-4 flex flex-wrap justify-center gap-x-3.5 gap-y-2 text-xs text-cute-mute">
                       {statuses.map((st) => (
                         <span key={st.code} className="inline-flex items-center gap-1.5">
-                          <span className={`inline-block h-3.5 w-3.5 rounded-[5px] border ${{
-                            present: 'border-[#32465f]/20 bg-white/90',
-                            late: 'border-[#C9B27A] bg-[#E8D9B8]',
-                            absent: 'border-[#C48C8C] bg-[#E3C4C4]',
-                            leave: 'border-[#8FB2CF] bg-[#C6DAEA]',
-                            official: 'border-[#A79CC9] bg-[#D5CDE6]',
+                          <span className={`inline-block h-4 w-4 rounded-md border-2 border-cute-ink ${{
+                            present: 'bg-white',
+                            late: 'bg-cute-yellow',
+                            absent: 'bg-cute-pink',
+                            leave: 'bg-cute-blue',
+                            official: 'bg-cute-lavender',
                           }[st.code]}`} />
                           {st.label}
                         </span>
                       ))}
                       <span className="inline-flex items-center gap-1.5">
-                        <span className="inline-block h-3.5 w-3.5 rounded-[5px] border-[1.5px] border-dashed border-mist-main/50 bg-white/35" />
+                        <span className="inline-block h-4 w-4 rounded-md border-2 border-dashed border-cute-ink/55 bg-cute-cream" />
                         未點名
                       </span>
                     </div>
                   </div>
 
                   {unseated.length > 0 && (
-                    <div className="glass rounded-3xl p-4">
-                      <h3 className="mb-2.5 text-sm font-bold text-mist-deep">
+                    <div className="cute-card rounded-3xl p-4">
+                      <h3 className="mb-2.5 text-sm font-bold text-cute-ink">
                         尚未選位（{unseated.length}）— 一樣可以點名
                       </h3>
                       <div className="flex flex-wrap gap-2">
@@ -417,11 +445,7 @@ export default function LessonPanel({ cls, teacherId }: {
                             <button
                               key={s.id}
                               onClick={() => setOpenStudent(s.id)}
-                              className={`min-h-11 rounded-full border px-4 text-sm transition ${
-                                code
-                                  ? 'border-[#32465f]/25 bg-white/90 text-mist-ink'
-                                  : 'border-[1.5px] border-dashed border-mist-main/60 bg-white/40 text-mist-mute hover:bg-white/70'
-                              }`}
+                              className={`cute-chip ${code ? 'bg-white' : 'border-dashed bg-cute-cream !shadow-none text-cute-mute'}`}
                             >
                               {s.seat_no ? `${s.seat_no}. ` : ''}{s.name}
                               {code && BADGE_OF[code] && ` (${BADGE_OF[code]})`}
@@ -432,10 +456,18 @@ export default function LessonPanel({ cls, teacherId }: {
                     </div>
                   )}
                 </div>
+                {wide && (
+                  <div className="sticky top-24">
+                    {openStudent && current && studentOf(openStudent)
+                      ? attendanceFor('panel')
+                      : <AttendancePanelEmpty />}
+                  </div>
+                )}
+                </div>
               ) : (
-                <div className="glass overflow-x-auto rounded-3xl">
+                <div className="cute-card overflow-x-auto rounded-3xl">
                   <table className="w-full text-sm">
-                    <thead className="border-b border-white/70 bg-white/40 text-left text-xs text-mist-mute">
+                    <thead className="border-b-2 border-cute-ink/15 bg-cute-butter text-left text-xs text-cute-mute">
                       <tr>
                         <th className="px-3 py-2">學生</th>
                         <th className="px-3 py-2">出缺席</th>
@@ -458,11 +490,7 @@ export default function LessonPanel({ cls, teacherId }: {
                                   <button
                                     key={st.code}
                                     onClick={() => setStatus(s.id, st.code)}
-                                    className={`rounded px-2 py-1 text-xs transition ${
-                                      code === st.code
-                                        ? 'bg-gradient-to-br from-[#6F8FAF] to-mist-main text-white'
-                                        : 'bg-mist-main/10 text-mist-deep hover:bg-mist-main/20'
-                                    }`}
+                                    className={`rounded-full border-2 border-cute-ink px-2.5 py-1 text-xs font-bold transition ${code === st.code ? 'bg-cute-yellow shadow-[1.5px_2px_0_#3A3535]' : 'bg-white hover:bg-cute-butter'}`}
                                   >
                                     {st.label}
                                   </button>
@@ -476,11 +504,7 @@ export default function LessonPanel({ cls, teacherId }: {
                                     key={it.id}
                                     onClick={() => addRecord(s.id, it)}
                                     title={`${it.label} ${it.default_points > 0 ? '+' : ''}${it.default_points}`}
-                                    className={`rounded px-2 py-1 text-xs transition ${
-                                      it.default_points >= 0
-                                        ? 'bg-[#DCE8E2] text-[#2F5B45] hover:bg-[#cfe0d7]'
-                                        : 'bg-[#EBD4D4] text-[#7A3434] hover:bg-[#e3c7c7]'
-                                    }`}
+                                    className={`rounded-full border-2 border-cute-ink px-2.5 py-1 text-xs font-bold transition ${it.default_points >= 0 ? 'bg-cute-green' : 'bg-cute-pink'} shadow-[1.5px_2px_0_#3A3535]`}
                                   >
                                     {it.label}
                                   </button>
@@ -488,7 +512,7 @@ export default function LessonPanel({ cls, teacherId }: {
                               </div>
                             </td>
                             <td className="px-3 py-2">
-                              <span className={`font-medium ${pts > 0 ? 'text-[#2F5B45]' : pts < 0 ? 'text-[#7A3434]' : 'text-mist-mute'}`}>
+                              <span className={`font-medium ${pts > 0 ? 'text-[#2F5B45]' : pts < 0 ? 'text-[#9A3834]' : 'text-cute-mute'}`}>
                                 {pts > 0 ? `+${pts}` : pts}
                               </span>
                               <div className="mt-1 flex flex-wrap gap-1">
@@ -497,7 +521,7 @@ export default function LessonPanel({ cls, teacherId }: {
                                     key={r.id}
                                     onClick={() => removeRecord(r.id)}
                                     title="點擊移除這筆紀錄"
-                                    className="rounded bg-mist-main/10 px-1.5 py-0.5 text-[10px] text-mist-deep hover:bg-red-100 hover:text-red-700"
+                                    className="rounded-full border-2 border-cute-ink bg-cute-cream px-2 py-0.5 text-[10px] font-bold text-cute-ink hover:bg-cute-pink"
                                   >
                                     {r.label} {Number(r.points) > 0 ? '+' : ''}{r.points} ✕
                                   </button>
@@ -516,24 +540,7 @@ export default function LessonPanel({ cls, teacherId }: {
         </>
       )}
 
-      {openStudent && current && studentOf(openStudent) && (
-        <SeatAttendanceDialog
-          student={studentOf(openStudent)!}
-          seatLabel={(() => {
-            const seat = seatOf(openStudent)
-            return seat ? `第 ${seat.group_no} 組 第 ${seat.seat_slot} 位` : '尚未選位'
-          })()}
-          attendance={attendance[openStudent]}
-          statuses={statuses}
-          items={items}
-          records={records}
-          busy={saving}
-          onSetStatus={(code) => void setStatusNow(openStudent, code)}
-          onAddRecord={(item) => void addRecord(openStudent, item)}
-          onRemoveRecord={(id) => void removeRecord(id)}
-          onClose={() => setOpenStudent(null)}
-        />
-      )}
+      {!wide && openStudent && current && studentOf(openStudent) && attendanceFor('modal')}
 
       {noteFor && (
         <NotePrompt
@@ -575,20 +582,20 @@ function NotePrompt({ title, points, studentName, value, onChange, onCancel, onC
       role="dialog"
       aria-modal="true"
       aria-label={`${studentName} ${title}`}
-      className="fixed inset-0 z-[60] flex items-end justify-center bg-[#2B3A4A]/50 p-0 sm:items-center sm:p-6"
+      className="fixed inset-0 z-[60] flex items-end justify-center bg-cute-ink/50 p-0 sm:items-center sm:p-6"
       onClick={onCancel}
     >
       <div
-        className="glass w-full max-w-sm rounded-t-[28px] bg-white/90 p-5 sm:rounded-[28px]"
+        className="cute-card w-full max-w-sm rounded-t-[28px] bg-white p-5 sm:rounded-3xl"
         onClick={(e) => e.stopPropagation()}
       >
-        <h3 className="text-base font-semibold">
+        <h3 className="text-base font-bold">
           {studentName}　{title}
           <span className="ml-1.5 text-sm font-normal text-[#7A3434]">
             {points > 0 ? '+' : ''}{points}
           </span>
         </h3>
-        <p className="mt-1 text-xs text-mist-mute">可以留空，之後再補。</p>
+        <p className="mt-1 text-xs text-cute-mute">可以留空，之後再補。</p>
         <input
           autoFocus
           value={value}

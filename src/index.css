@@ -49,3 +49,50 @@ body { @apply bg-slate-50 text-slate-900 antialiased; }
     background-attachment: fixed;
   }
 }
+
+/* 教師後台的可愛貼紙風（學生端維持玻璃風格，不使用這一組） */
+@layer components {
+  .cute-page {
+    @apply bg-cute-cream font-cute text-cute-ink;
+  }
+
+  .cute-card {
+    @apply border-[2.5px] border-cute-ink bg-white;
+    box-shadow: 4px 5px 0 #3a3535;
+  }
+
+  /* 卡片裡再放一層的小區塊：邊框細一點、陰影小一點 */
+  .cute-inset {
+    @apply border-2 border-cute-ink bg-[#FFFDF6];
+    box-shadow: 2px 3px 0 #3a3535;
+  }
+
+  .cute-chip {
+    @apply inline-flex min-h-[44px] items-center justify-center gap-1 whitespace-nowrap rounded-full border-2 border-cute-ink px-4 text-sm font-bold text-cute-ink transition active:translate-x-[1px] active:translate-y-[1px];
+    box-shadow: 2px 3px 0 #3a3535;
+  }
+
+  /* 主要按鈕：黃色加內側虛線縫線 */
+  .cute-btn {
+    @apply relative inline-flex min-h-[44px] items-center justify-center whitespace-nowrap rounded-full border-[2.5px] border-cute-ink bg-cute-yellow px-[18px] text-sm font-bold text-cute-ink transition active:translate-x-[1px] active:translate-y-[1px];
+    box-shadow: 3px 4px 0 #3a3535;
+  }
+  .cute-btn::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border: 1.5px dashed rgb(58 53 53 / 0.45);
+    border-radius: inherit;
+    pointer-events: none;
+  }
+
+  /* 功能卡左邊的彩色圖示方塊 */
+  .cute-block {
+    @apply flex shrink-0 items-center justify-center rounded-[20px] border-[2.5px] border-cute-ink;
+    box-shadow: 2px 3px 0 #3a3535;
+  }
+
+  .cute-field {
+    @apply w-full rounded-2xl border-2 border-cute-ink bg-white px-3.5 py-2.5 text-sm outline-none focus:ring-4 focus:ring-cute-yellow/60;
+  }
+}

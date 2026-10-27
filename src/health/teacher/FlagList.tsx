@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../../auth'
+import Layout from '../../components/Layout'
 import { friendlyError } from '../../lib/errors'
 import {
   listHealthClasses, listRisk, reviewRisk,
@@ -94,7 +95,7 @@ export default function FlagList() {
       ) : rows.length === 0 ? (
         <Box>
           目前沒有需要關心的學生。
-          <span className="mt-1 block text-xs text-mist-mute">
+          <span className="mt-1 block text-xs text-cute-mute">
             學生每送出一份量表就會重新判定；這一頁只顯示這學期的結果。
           </span>
         </Box>
@@ -127,7 +128,7 @@ export default function FlagList() {
         </div>
       )}
 
-      <div className="mt-5 space-y-2 rounded-xl border border-dashed border-mist-main/35 bg-white/50 px-4 py-3.5 text-xs leading-relaxed text-mist-mute">
+      <div className="mt-5 space-y-2 rounded-xl border border-dashed border-cute-ink/35 bg-white px-4 py-3.5 text-xs leading-relaxed text-cute-mute">
         <p>
           <strong className="mr-1.5 text-[#9A3834]">● 立即</strong>
           情緒自我檢視表第 20 題「我想要消失不見」答是。不看總分，
@@ -138,7 +139,7 @@ export default function FlagList() {
           心情溫度計 15 分以上、情緒自我檢視表 12 分以上、或壓力偵測站 6 項以上。
         </p>
         <p>
-          <strong className="mr-1.5 text-mist-mute">・留意</strong>
+          <strong className="mr-1.5 text-cute-mute">・留意</strong>
           心情溫度計 6-14 分、情緒自我檢視表 6-11 分、或壓力偵測站 4-5 項。
         </p>
         <p>
@@ -176,20 +177,20 @@ function Section({
     <section>
       <div className="mb-2 flex flex-wrap items-baseline gap-x-3 gap-y-1">
         <h2 className={`text-base font-semibold ${
-          level === 3 ? 'text-[#9A3834]' : level === 2 ? 'text-[#7A4A08]' : 'text-mist-deep'
+          level === 3 ? 'text-[#9A3834]' : level === 2 ? 'text-[#7A4A08]' : 'text-cute-ink'
         }`}>
           {level === 3 ? '● ' : level === 2 ? '▲ ' : ''}{title}
         </h2>
-        <span className="text-sm text-mist-mute">{rows.length} 位</span>
+        <span className="text-sm text-cute-mute">{rows.length} 位</span>
         {collapsible && (
           <button
             onClick={() => setOpen((v) => !v)}
-            className="text-sm text-mist-mute underline hover:text-mist-ink"
+            className="text-sm text-cute-mute underline hover:text-cute-ink"
           >
             {open2 ? '收起' : '展開'}
           </button>
         )}
-        <span className="basis-full text-xs text-mist-mute">{hint}</span>
+        <span className="basis-full text-xs text-cute-mute">{hint}</span>
       </div>
       {open2 && (
         <div className="space-y-2">
@@ -211,7 +212,7 @@ function Card({
   return (
     <div className={`rounded-xl border px-3.5 py-3 ${
       unhandled ? 'border-[#E7C4C2] bg-[#FBEDEC]'
-        : r.reviewed ? 'border-mist-main/20 bg-white/50' : 'border-mist-main/20 bg-white'
+        : r.reviewed ? 'border-cute-ink/20 bg-white' : 'border-cute-ink/20 bg-white'
     }`}>
       <div className="mb-1.5 flex flex-wrap items-center gap-x-2 gap-y-1">
         <Badge level={r.level} />
@@ -221,17 +222,17 @@ function Card({
           </span>
         )}
         {r.reviewed && (
-          <span className="rounded-md bg-mist-main/20 px-1.5 py-0.5 text-xs text-mist-deep">
+          <span className="rounded-md bg-cute-ink/20 px-1.5 py-0.5 text-xs text-cute-ink">
             已聯繫{r.outcome ? `・${RISK_OUTCOME_LABEL[r.outcome]}` : ''}
           </span>
         )}
-        <span className="ml-auto text-xs tabular-nums text-mist-mute">
+        <span className="ml-auto text-xs tabular-nums text-cute-mute">
           觸發 {when(r.flaggedAt)}
         </span>
       </div>
 
       <div className="mb-1.5 text-[15px]">
-        <span className="text-mist-mute">{r.class_name ?? '—'} 班　{r.seat_no ?? '—'} 號</span>
+        <span className="text-cute-mute">{r.class_name ?? '—'} 班　{r.seat_no ?? '—'} 號</span>
         <Who row={r} className="ml-2 font-semibold" />
       </div>
 
@@ -243,13 +244,13 @@ function Card({
         不寫一行說明的話，這裡會變成「標著需關注、底下的分數卻不到」。
       */}
       {r.computedLevel < r.level && (
-        <p className="mt-1 text-xs text-mist-mute">
+        <p className="mt-1 text-xs text-cute-mute">
           最近一次作答重算是 {RISK_LABEL[r.computedLevel]}（等級保留這學期判定過的最高級）
         </p>
       )}
 
       {r.reviewed && (
-        <p className="mt-1.5 text-xs text-mist-mute">
+        <p className="mt-1.5 text-xs text-cute-mute">
           {when(r.reviewedAt)} 標記
           {r.note && <span className="ml-1">・{r.note}</span>}
         </p>
@@ -269,7 +270,7 @@ function Card({
               onClick={() => setEditing(true)}
               className={`rounded-lg px-3 py-1.5 text-sm font-medium ${
                 r.reviewed
-                  ? 'border border-mist-main/35 bg-white text-mist-mute hover:bg-white/70'
+                  ? 'border border-cute-ink/35 bg-white text-cute-mute hover:bg-white'
                   : 'bg-[#9A3834] text-white hover:bg-[#8F3532]'
               }`}
             >
@@ -315,31 +316,27 @@ function ReviewForm({
   }
 
   return (
-    <div className="mt-2 rounded-lg border border-mist-main/35 bg-white px-3 py-2.5">
+    <div className="mt-2 rounded-lg border border-cute-ink/35 bg-white px-3 py-2.5">
       <p className="mb-1.5 text-sm font-medium">處理結果</p>
       <div className="mb-2 flex flex-wrap gap-1.5">
         {RISK_OUTCOMES.map((o) => (
           <button
             key={o.key}
             onClick={() => setOutcome(o.key)}
-            className={`rounded-lg border px-3 py-1.5 text-sm ${
-              outcome === o.key
-                ? 'border-mist-main bg-gradient-to-br from-[#6F8FAF] to-mist-main text-white'
-                : 'border-mist-main/35 bg-white text-mist-deep hover:bg-white/70'
-            }`}
+            className={`cute-chip !min-h-[40px] text-[13px] ${outcome === o.key ? 'bg-cute-yellow' : 'bg-white'}`}
           >
             {o.label}
           </button>
         ))}
       </div>
       <label className="block text-sm">
-        <span className="mb-1 block text-mist-mute">備註（選填，只有你看得到）</span>
+        <span className="mb-1 block text-cute-mute">備註（選填，只有你看得到）</span>
         <input
           value={note}
           onChange={(e) => setNote(e.target.value)}
           maxLength={200}
           placeholder="例：9/20 午休談過，導師已知"
-          className="w-full rounded-lg border border-mist-main/35 px-2.5 py-1.5 text-sm"
+          className="cute-field !py-2"
         />
       </label>
       {err && <p className="mt-1.5 text-sm text-[#9A3834]">{err}</p>}
@@ -347,13 +344,13 @@ function ReviewForm({
         <button
           onClick={() => void save()}
           disabled={!outcome || busy}
-          className="rounded-lg bg-mist-main px-3 py-1.5 text-sm font-medium text-white disabled:opacity-40"
+          className="cute-btn disabled:opacity-40"
         >
           {busy ? '儲存中…' : '儲存'}
         </button>
         <button
           onClick={close}
-          className="rounded-lg border border-mist-main/35 px-3 py-1.5 text-sm text-mist-mute hover:bg-white/70"
+          className="cute-chip bg-white"
         >
           取消
         </button>
@@ -376,7 +373,7 @@ function UndoButton({
           .then(() => apply(r, { reviewed: false, outcome: null, note: null, reviewedAt: null }))
           .finally(() => setBusy(false))
       }}
-      className="text-sm text-mist-mute underline hover:text-mist-ink disabled:opacity-40"
+      className="text-sm text-cute-mute underline hover:text-cute-ink disabled:opacity-40"
     >
       取消標記
     </button>
@@ -399,7 +396,7 @@ function Badge({ level }: { level: RiskLevel }) {
     )
   }
   return (
-    <span className="inline-flex whitespace-nowrap rounded-md border border-mist-main/35 px-2 py-1 text-xs text-mist-mute">
+    <span className="inline-flex whitespace-nowrap rounded-md border border-cute-ink/35 px-2 py-1 text-xs text-cute-mute">
       留意
     </span>
   )
@@ -409,7 +406,7 @@ function Badge({ level }: { level: RiskLevel }) {
 function Who({ row, className = '' }: { row: RiskStudent; className?: string }) {
   return row.name
     ? <span className={className}>{row.name}</span>
-    : <span className="font-mono text-xs text-mist-mute">{row.student_email}</span>
+    : <span className="font-mono text-xs text-cute-mute">{row.student_email}</span>
 }
 
 function Reasons({ rows }: { rows: RiskStudent['reasons'] }) {
@@ -418,7 +415,7 @@ function Reasons({ rows }: { rows: RiskStudent['reasons'] }) {
       {rows.map((x, i) => (
         <div key={i} className={`text-sm ${i > 0 ? 'mt-0.5' : ''}`}>
           <span className="font-medium">{x.scale}</span>
-          <span className="text-mist-mute">　{x.detail}</span>
+          <span className="text-cute-mute">　{x.detail}</span>
         </div>
       ))}
     </>
@@ -433,23 +430,10 @@ const when = (iso: string | null) =>
     : '—'
 
 function Shell({ subtitle, children }: { subtitle?: string; children: React.ReactNode }) {
-  const { signOut } = useAuth()
   return (
-    <div className="glass-page-mesh min-h-screen">
-      <header className="glass mx-3 mt-3 max-w-5xl rounded-[28px] md:mx-auto">
-        <div className="mx-auto flex max-w-4xl items-center gap-3 px-4 py-3">
-          <div className="flex-1">
-            <h1 className="text-base font-semibold">需要關心的學生</h1>
-            {subtitle && <p className="text-xs text-mist-mute">{subtitle}</p>}
-          </div>
-          <Link to="/" className="text-sm text-mist-mute hover:text-mist-ink">教師後台</Link>
-          <button onClick={() => void signOut()} className="text-sm text-mist-mute hover:text-mist-ink">
-            登出
-          </button>
-        </div>
-      </header>
-      <main className="mx-auto max-w-4xl px-4 py-5">{children}</main>
-    </div>
+    <Layout title="需要關心的學生" subtitle={subtitle} maxWidth="max-w-4xl">
+      {children}
+    </Layout>
   )
 }
 
@@ -458,7 +442,7 @@ function Box({ tone, children }: { tone?: 'error'; children: React.ReactNode }) 
     <div className={`rounded-xl border px-4 py-4 text-sm ${
       tone === 'error'
         ? 'border-[#E7C4C2] bg-[#FBEDEC] text-[#9A3834]'
-        : 'border-mist-main/20 bg-white text-mist-mute'
+        : 'border-cute-ink/20 bg-white text-cute-mute'
     }`}>
       {children}
     </div>
