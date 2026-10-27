@@ -2,6 +2,19 @@
 @tailwind components;
 @tailwind utilities;
 
+/*
+  清松手寫體 1（圓潤），教師後台用。授權與來源見 src/assets/fonts/README.md。
+  檔案約 4.3 MB，只有用到這個字型的頁面（教師後台）才會下載，之後由瀏覽器快取。
+  font-display: swap：載入期間先用備用字型，載入完再換，不會讓畫面空白。
+*/
+@font-face {
+  font-family: 'JasonHandwriting';
+  src: url('./assets/fonts/JasonHandwriting1.woff2') format('woff2');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root { color-scheme: light; }
 body { @apply bg-slate-50 text-slate-900 antialiased; }
 

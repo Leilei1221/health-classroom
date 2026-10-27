@@ -8,8 +8,8 @@ export default {
       fontFamily: {
         // 芫荽（Iansui）沒載入或缺字時，退回思源黑體再退回系統字
         sans: ['Iansui', '"Noto Sans TC"', ...defaultTheme.fontFamily.sans],
-        // 教師後台：圓體（Huninn），載入失敗時退回思源黑體
-        cute: ['Huninn', '"Noto Sans TC"', ...defaultTheme.fontFamily.sans],
+        // 教師後台：清松手寫體 1（圓潤）；字型檔沒有的字（例如「・」）與載入期間退回圓體 Huninn，再退回思源黑體
+        cute: ['JasonHandwriting', 'Huninn', '"Noto Sans TC"', ...defaultTheme.fontFamily.sans],
       },
       colors: {
         // 莫蘭迪霧藍：學生端（入口頁、選位頁）的玻璃風格用
