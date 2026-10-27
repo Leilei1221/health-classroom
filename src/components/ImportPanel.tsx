@@ -88,8 +88,8 @@ export default function ImportPanel({ onDone }: { onDone: () => void }) {
         </div>
       )}
 
-      <div className="space-y-3 glass rounded-3xl p-4">
-        <p className="text-sm text-mist-mute">
+      <div className="space-y-3 cute-card rounded-3xl p-4">
+        <p className="text-sm text-cute-mute">
           上傳 Excel（.xlsx）或 CSV 名單，需包含<strong>班級、座號、學號、姓名</strong>四欄，
           第一列為標題列。系統會依「班級」欄自動建立班級；學號相同者更新資料，不會重複建立。
         </p>
@@ -113,12 +113,12 @@ export default function ImportPanel({ onDone }: { onDone: () => void }) {
           type="file"
           accept=".xlsx,.csv"
           onChange={(e) => { const f = e.target.files?.[0]; if (f) void onFile(f) }}
-          className="block w-full text-sm file:mr-3 file:rounded-lg file:border-0 file:bg-mist-main file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:brightness-105"
+          className="block w-full text-sm file:mr-3 file:cursor-pointer file:rounded-full file:border-2 file:border-cute-ink file:bg-cute-yellow file:px-4 file:py-2 file:text-sm file:font-bold file:text-cute-ink"
         />
       </div>
 
       {parsed && (
-        <div className="space-y-4 glass rounded-3xl p-4">
+        <div className="space-y-4 cute-card rounded-3xl p-4">
           <div>
             <h3 className="text-sm font-medium">
               偵測到 {parsed.classNames.length} 個班級，共 {parsed.rows.length} 位學生
@@ -128,14 +128,14 @@ export default function ImportPanel({ onDone }: { onDone: () => void }) {
                 有 {parsed.skipped} 列因缺少班級／學號／姓名而略過。
               </p>
             )}
-            <p className="mt-1 text-xs text-mist-mute">
+            <p className="mt-1 text-xs text-cute-mute">
               組數可逐班調整，確認無誤後再匯入。
             </p>
           </div>
 
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
-              <thead className="border-b border-mist-main/20 text-left text-xs text-mist-mute">
+              <thead className="border-b border-cute-ink/20 text-left text-xs text-cute-mute">
                 <tr>
                   <th className="px-2 py-2">班級</th>
                   <th className="px-2 py-2">人數</th>
@@ -145,9 +145,9 @@ export default function ImportPanel({ onDone }: { onDone: () => void }) {
               </thead>
               <tbody>
                 {settings.map((s) => (
-                  <tr key={s.name} className="border-b border-mist-main/15 last:border-0">
+                  <tr key={s.name} className="border-b border-cute-ink/15 last:border-0">
                     <td className="px-2 py-2 font-medium">{s.name}</td>
-                    <td className="px-2 py-2 text-mist-mute">{countFor(s.name)}</td>
+                    <td className="px-2 py-2 text-cute-mute">{countFor(s.name)}</td>
                     <td className="px-2 py-2">
                       <input type="number" min={1} max={12}
                         className={`${inputClass} w-24`} value={s.group_count}
@@ -165,10 +165,10 @@ export default function ImportPanel({ onDone }: { onDone: () => void }) {
           </div>
 
           <details className="text-sm">
-            <summary className="cursor-pointer text-mist-mute">預覽前 10 筆資料</summary>
+            <summary className="cursor-pointer text-cute-mute">預覽前 10 筆資料</summary>
             <div className="mt-2 overflow-x-auto">
               <table className="w-full text-xs">
-                <thead className="text-left text-mist-mute">
+                <thead className="text-left text-cute-mute">
                   <tr>
                     <th className="px-2 py-1">班級</th>
                     <th className="px-2 py-1">座號</th>
@@ -178,7 +178,7 @@ export default function ImportPanel({ onDone }: { onDone: () => void }) {
                 </thead>
                 <tbody>
                   {parsed.rows.slice(0, 10).map((r, i) => (
-                    <tr key={i} className="border-t border-mist-main/15">
+                    <tr key={i} className="border-t border-cute-ink/15">
                       <td className="px-2 py-1">{r.class_name}</td>
                       <td className="px-2 py-1">{r.seat_no || '—'}</td>
                       <td className="px-2 py-1 font-mono">{r.student_no}</td>

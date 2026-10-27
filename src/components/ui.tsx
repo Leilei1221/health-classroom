@@ -32,18 +32,17 @@ export function Button({
   className?: string
 }) {
   const styles = {
-    primary:
-      'bg-gradient-to-br from-[#6F8FAF] to-mist-main text-white shadow-[0_6px_14px_rgb(79_111_146/0.32),inset_0_1px_0_rgb(255_255_255/0.45)] hover:brightness-105',
-    secondary: 'border border-mist-main/30 bg-white/70 text-mist-deep hover:bg-white',
-    danger: 'bg-red-600 text-white hover:bg-red-700',
-    ghost: 'text-mist-mute hover:bg-white/60',
+    primary: 'cute-btn',
+    secondary: 'cute-chip bg-white',
+    danger: 'cute-chip bg-cute-pink',
+    ghost: 'inline-flex min-h-[44px] items-center justify-center rounded-full px-3 text-sm font-bold text-cute-mute transition hover:bg-cute-butter',
   }[variant]
   return (
     <button
       type={type}
       onClick={onClick}
       disabled={disabled}
-      className={`min-h-[40px] rounded-full px-4 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-50 ${styles} ${className}`}
+      className={`disabled:cursor-not-allowed disabled:opacity-50 ${styles} ${className}`}
     >
       {children}
     </button>
@@ -53,11 +52,10 @@ export function Button({
 export function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block">
-      <span className="mb-1 block text-sm font-medium text-mist-deep">{label}</span>
+      <span className="mb-1.5 block text-sm font-bold text-cute-ink">{label}</span>
       {children}
     </label>
   )
 }
 
-export const inputClass =
-  'w-full rounded-xl border border-mist-main/40 bg-white/85 px-3 py-2 text-sm outline-none focus:border-mist-main focus:ring-2 focus:ring-mist-light/50'
+export const inputClass = 'cute-field'

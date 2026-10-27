@@ -17,15 +17,11 @@ export default function ClassButton({ cls, current, onPick }: {
     <button
       onClick={() => onPick(cls.row.id)}
       title={cls.enabled ? undefined : '這個班的健康模組已停用，資料仍然看得到'}
-      className={`rounded-lg px-3 py-1.5 text-sm ${
-        on
-          ? 'bg-mist-main font-bold text-white'
-          : 'border border-mist-main/35 bg-white text-mist-mute hover:bg-white/70'
-      }`}
+      className={`cute-chip ${on ? 'bg-cute-yellow' : 'bg-white'}`}
     >
       {cls.row.name}
       {!cls.enabled && (
-        <span className={`ml-1.5 text-xs ${on ? 'opacity-70' : 'text-mist-mute'}`}>
+        <span className="ml-1.5 text-xs text-cute-mute">
           已停用
         </span>
       )}

@@ -25,13 +25,13 @@ export default function HealthQrDialog({ onClose }: { onClose: () => void }) {
         onClick={(e) => e.stopPropagation()}
       >
         <h3 className="text-lg font-semibold">學生入口</h3>
-        <p className="text-sm text-mist-mute">
+        <p className="text-sm text-cute-mute">
           請同學用手機掃描，並以學校的 Google 帳號登入
         </p>
         <div className="flex justify-center">
           <QrCode value={url} size={280} />
         </div>
-        <p className="break-all font-mono text-xs text-mist-mute">{url}</p>
+        <p className="break-all font-mono text-xs text-cute-mute">{url}</p>
         <div className="flex justify-center gap-2">
           <Button
             variant="secondary"

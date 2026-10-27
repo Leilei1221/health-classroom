@@ -85,14 +85,14 @@ export default function L3Alert({ classes }: { classes: ClassRow[] }) {
         <ul className="mt-2 space-y-1 text-sm">
           {rows.map((r) => (
             <li key={r.student_email + r.semester} className="flex flex-wrap items-baseline gap-x-2">
-              <span className="text-mist-mute">{r.class_name ?? '—'} 班　{r.seat_no ?? '—'} 號</span>
+              <span className="text-cute-mute">{r.class_name ?? '—'} 班　{r.seat_no ?? '—'} 號</span>
               <span className="font-semibold">{r.name ?? r.student_email}</span>
               {r.l3Count >= 2 && (
                 <span className="rounded border border-[#9A3834] px-1 text-xs font-bold text-[#9A3834]">
                   重複觸發 {r.l3Count} 次
                 </span>
               )}
-              <span className="text-xs tabular-nums text-mist-mute">觸發 {when(r.flaggedAt)}</span>
+              <span className="text-xs tabular-nums text-cute-mute">觸發 {when(r.flaggedAt)}</span>
             </li>
           ))}
         </ul>
