@@ -100,6 +100,9 @@ export default function WeekOneCheckin({ preview }: { preview?: StudentProfile }
   const isPreview = preview !== undefined
   const student = preview ?? signedIn
   const semester = student ? semesterKey(student) : ''
+  // effect 只看 email：登入 token 更新時 student 會是新物件但人沒變，
+  // 不該因此重新載入並把學生打到一半的內容洗掉
+  const email = student?.email
 
   const [goal, setGoal] = useState<HealthGoal | null>(null)
   const [checkins, setCheckins] = useState<HealthCheckin[]>([])
@@ -117,9 +120,12 @@ export default function WeekOneCheckin({ preview }: { preview?: StudentProfile }
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  // 儲存結果要顯示在「儲存」按鈕旁邊：頁面很長，頂端的錯誤橫幅學生看不到，
+  // 失敗時會以為「按了就存好了」
+  const [saveStatus, setSaveStatus] = useState<{ ok: boolean; text: string } | null>(null)
 
   useEffect(() => {
-    if (!student) return
+    if (!email) return
     if (isPreview) {
       setGoal(SAMPLE_GOAL)
       setCheckins(SAMPLE_CHECKINS.filter((row) => row.week_no === selectedWeek))
@@ -129,14 +135,14 @@ export default function WeekOneCheckin({ preview }: { preview?: StudentProfile }
     }
     let cancelled = false
     setLoading(true); setError('')
-    getHealthGoal(student.email, semester, 1)
+    getHealthGoal(email, semester, 1)
       .then(async (g) => {
         if (cancelled) return
         setGoal(g)
         if (g) {
           const [rows, weekRows] = await Promise.all([
-            listHealthCheckins(student.email, semester, selectedWeek),
-            listHealthCheckinWeeks(student.email, semester),
+            listHealthCheckins(email, semester, selectedWeek),
+            listHealthCheckinWeeks(email, semester),
           ])
           if (!cancelled) {
             setCheckins(rows)
@@ -147,7 +153,7 @@ export default function WeekOneCheckin({ preview }: { preview?: StudentProfile }
       .catch((e) => { if (!cancelled) setError(friendlyError(e)) })
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
-  }, [student, semester, isPreview, selectedWeek])
+  }, [email, semester, isPreview, selectedWeek])
 
   const byDay = useMemo(() => new Map(checkins.map((row) => [row.day_no, row])), [checkins])
   const current = byDay.get(selectedDay)
@@ -190,8 +196,23 @@ export default function WeekOneCheckin({ preview }: { preview?: StudentProfile }
       evidence_note: evidenceNote.trim() || null,
       encouragement,
     }
-    setSaving(true); setError('')
+    setSaving(true); setError(''); setSaveStatus(null)
     try {
+      // 週開始日期有改過就一起存：它有自己的「儲存」按鈕，學生常只選日期就去打卡，
+      // 結果重新整理後日期回到「未定」。先存週次，失敗就整個停下來，
+      // 避免打卡日期（由這個日期推算）和週次設定對不上。
+      if ((weekStartDate || null) !== (activeWeek?.week_start_date ?? null)) {
+        const savedWeek = isPreview
+          ? previewWeek(goal, student.email, semester, selectedWeek, weekStartDate || null)
+          : await saveHealthCheckinWeek({
+              goal_id: goal.id,
+              student_email: student.email,
+              semester,
+              week_no: selectedWeek,
+              week_start_date: weekStartDate || null,
+            })
+        setWeeks((rows) => upsertWeek(rows, savedWeek))
+      }
       const saved = isPreview
         ? previewSaved(row)
         : await saveHealthCheckin(row)
@@ -201,8 +222,11 @@ export default function WeekOneCheckin({ preview }: { preview?: StudentProfile }
       })
       setMessage(saved.encouragement ?? encouragement)
       setSavedAt(saved.updated_at)
+      setSaveStatus({ ok: true, text: `第 ${row.day_no} 天打卡已儲存` })
     } catch (e) {
-      setError(friendlyError(e))
+      const text = friendlyError(e)
+      setError(text)
+      setSaveStatus({ ok: false, text: `沒有儲存成功：${text}（你填的內容還在，可以再按一次儲存）` })
     } finally {
       setSaving(false)
     }
@@ -280,7 +304,7 @@ export default function WeekOneCheckin({ preview }: { preview?: StudentProfile }
             <WeekSelector
               weeks={weeks}
               selectedWeek={selectedWeek}
-              onPick={(week) => { setSelectedWeek(week); setSelectedDay(1) }}
+              onPick={(week) => { setSelectedWeek(week); setSelectedDay(1); setSaveStatus(null) }}
               onAdd={addWeek}
             />
             <WeekStartEditor
@@ -294,7 +318,7 @@ export default function WeekOneCheckin({ preview }: { preview?: StudentProfile }
               selectedDay={selectedDay}
               byDay={byDay}
               weekStartDate={weekStartDate}
-              onPick={setSelectedDay}
+              onPick={(day) => { setSelectedDay(day); setSaveStatus(null) }}
             />
             <CheckinEditor
               day={selectedDay}
@@ -304,6 +328,7 @@ export default function WeekOneCheckin({ preview }: { preview?: StudentProfile }
               note={note}
               evidenceNote={evidenceNote}
               saving={saving}
+              saveStatus={saveStatus}
               onStatus={setStatus}
               onActionDone={setActionDone}
               onMinutes={setMinutes}
@@ -419,7 +444,7 @@ function WeekStartEditor({ weekNo, value, saving, onChange, onSave }: {
     <section className="mx-3 my-3.5 glass rounded-3xl px-4 py-4">
       <h3 className="text-base font-bold">第 {weekNo} 週開始日期</h3>
       <p className="mt-1 text-[13px] leading-relaxed text-[#44556A]">
-        選這一週從哪一天開始，下面七格會自動排出日期。
+        選這一週從哪一天開始，下面七格會自動排出日期。按「儲存今天打卡」時也會一起存。
       </p>
       <div className="mt-3 flex gap-2">
         <input
@@ -482,7 +507,7 @@ function WeekGrid({ selectedDay, byDay, weekStartDate, onPick }: {
 }
 
 function CheckinEditor({
-  day, status, actionDone, minutes, note, evidenceNote, saving,
+  day, status, actionDone, minutes, note, evidenceNote, saving, saveStatus,
   onStatus, onActionDone, onMinutes, onNote, onEvidenceNote, onSave,
 }: {
   day: number
@@ -492,6 +517,7 @@ function CheckinEditor({
   note: string
   evidenceNote: string
   saving: boolean
+  saveStatus: { ok: boolean; text: string } | null
   onStatus: (status: HealthCheckinStatus) => void
   onActionDone: (value: string) => void
   onMinutes: (value: string) => void
@@ -586,6 +612,16 @@ function CheckinEditor({
         >
           {saving ? '儲存中…' : '儲存今天打卡'}
         </button>
+        {saveStatus && (
+          <p
+            role="status"
+            className={`rounded-xl px-3 py-2.5 text-center text-[13.5px] font-bold leading-relaxed ${
+              saveStatus.ok ? 'bg-[#E6EBF0] text-[#3B5878]' : 'bg-[#FBEDEC] text-[#9A3834]'
+            }`}
+          >
+            {saveStatus.ok ? '✓ ' : ''}{saveStatus.text}
+          </p>
+        )}
       </div>
     </section>
   )

@@ -85,8 +85,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
    * student 不論身分都會保留，健康頁靠它決定要顯示登記表單還是說明卡。
    * 查詢失敗時退回教師流程，維持健康模組上線前的既有行為。
    */
+  // 相依只看「是誰」，不看 session 物件本身：
+  // 約每小時一次的 TOKEN_REFRESHED（或手機休眠後回到分頁）會換一個新的 session
+  // 物件，但登入的人沒變。若相依整個 session，身分會被重判一次——role 短暫變回
+  // 'resolving'，HealthGate 會改顯示轉圈圈並把學生正在填的頁面整個卸載，
+  // 打到一半的打卡內容就這樣消失（看起來像「打完卡沒有儲存」）。
+  const userId = session?.user.id ?? null
+
   useEffect(() => {
-    if (!session) {
+    if (!userId) {
       setTeacher(null); setStudent(null); setRole('unknown')
       return
     }
@@ -96,7 +103,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ;(async () => {
       let existing: Teacher | null = null
       try {
-        existing = await findTeacher(session.user.id)
+        existing = await findTeacher(userId)
       } catch (e) {
         console.error('查詢教師檔案失敗', e)
       }
@@ -133,7 +140,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     })()
 
     return () => { cancelled = true }
-  }, [session])
+  }, [userId])
 
   const signInWithGoogle = async () => {
     // 先記住現在在哪一頁。redirectTo 不含 hash（pathname 不含 hash），

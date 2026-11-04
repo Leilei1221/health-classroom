@@ -61,16 +61,20 @@ export default function HealthGate({ page = 'home', preview = false }: {
     只有學生身分需要問。教師端三頁走的是另一條路，用帶哪些班判斷。
   */
   const [enabled, setEnabled] = useState<boolean | undefined>(undefined)
+  // 相依用 id 而不是物件：token 更新時 session 會換物件，不該因此重問白名單，
+  // 否則 enabled 被清成 undefined → 轉圈圈 → 學生正在填的頁面被卸載、內容消失
+  const signedIn = !!session
+  const studentId = student?.student_id
   useEffect(() => {
     // 預覽是純畫面示範，不讀資料庫，連白名單都不問
-    if (!session || !student || preview) { setEnabled(undefined); return }
+    if (!signedIn || !studentId || preview) { setEnabled(undefined); return }
     let cancelled = false
     healthEnabledForMe()
       // 問不到時不要把學生擋在外面：讓他進去，真正擋寫入的是資料庫那層
       .then((v) => { if (!cancelled) setEnabled(v) })
       .catch(() => { if (!cancelled) setEnabled(true) })
     return () => { cancelled = true }
-  }, [session, student, preview])
+  }, [signedIn, studentId, preview])
 
   if (loading || (session && role === 'resolving')) return <Spinner />
 
