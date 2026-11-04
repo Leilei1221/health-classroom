@@ -198,6 +198,21 @@ export default function WeekOneCheckin({ preview }: { preview?: StudentProfile }
     }
     setSaving(true); setError(''); setSaveStatus(null)
     try {
+      // 週開始日期有改過就一起存：它有自己的「儲存」按鈕，學生常只選日期就去打卡，
+      // 結果重新整理後日期回到「未定」。先存週次，失敗就整個停下來，
+      // 避免打卡日期（由這個日期推算）和週次設定對不上。
+      if ((weekStartDate || null) !== (activeWeek?.week_start_date ?? null)) {
+        const savedWeek = isPreview
+          ? previewWeek(goal, student.email, semester, selectedWeek, weekStartDate || null)
+          : await saveHealthCheckinWeek({
+              goal_id: goal.id,
+              student_email: student.email,
+              semester,
+              week_no: selectedWeek,
+              week_start_date: weekStartDate || null,
+            })
+        setWeeks((rows) => upsertWeek(rows, savedWeek))
+      }
       const saved = isPreview
         ? previewSaved(row)
         : await saveHealthCheckin(row)
@@ -429,7 +444,7 @@ function WeekStartEditor({ weekNo, value, saving, onChange, onSave }: {
     <section className="mx-3 my-3.5 glass rounded-3xl px-4 py-4">
       <h3 className="text-base font-bold">第 {weekNo} 週開始日期</h3>
       <p className="mt-1 text-[13px] leading-relaxed text-[#44556A]">
-        選這一週從哪一天開始，下面七格會自動排出日期。
+        選這一週從哪一天開始，下面七格會自動排出日期。按「儲存今天打卡」時也會一起存。
       </p>
       <div className="mt-3 flex gap-2">
         <input
