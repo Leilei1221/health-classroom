@@ -10,6 +10,7 @@ const MESSAGES: Record<string, string> = {
   not_authenticated: '請先登入。',
   hc_students_seat_no_key: '同一個班有重複的座號。跨班課程（例如多元選修）請在匯入時勾選「座號改用流水號」。',
   hc_students_class_id_student_no_key: '這個班已經有相同學號的學生了。',
+  hc_health_checkin_minutes_check: '「大約花多久」最多只能填 1440 分鐘（24 小時），請改成小一點的數字。',
 }
 
 /** 連線失敗時瀏覽器丟出的訊息，對學生而言毫無意義，需另外轉譯 */

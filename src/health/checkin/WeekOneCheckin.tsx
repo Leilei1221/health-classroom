@@ -13,6 +13,9 @@ import {
 } from '../api'
 
 const DEFAULT_WEEK_COUNT = 4
+// 與資料庫 hc_health_checkin_minutes_check 一致（一天 24 小時）
+const MAX_MINUTES = 1440
+const MINUTES_TOO_LARGE = `「大約花多久」最多只能填 ${MAX_MINUTES} 分鐘（24 小時），請改成小一點的數字。`
 
 const ENCOURAGEMENTS = [
   '恭喜你又完成一次！',
@@ -181,6 +184,11 @@ export default function WeekOneCheckin({ preview }: { preview?: StudentProfile }
 
   const save = async () => {
     if (!goal) return
+    // 超過上限就不要送出：不要偷偷改成 1440，那會存進不是學生填的數字
+    if (minutes.trim() && Number(minutes) > MAX_MINUTES) {
+      setSaveStatus({ ok: false, text: `沒有儲存：${MINUTES_TOO_LARGE}` })
+      return
+    }
     const encouragement = pickEncouragement(selectedDay, status, actionDone, note)
     const row = {
       goal_id: goal.id,
@@ -525,6 +533,7 @@ function CheckinEditor({
   onEvidenceNote: (value: string) => void
   onSave: () => void
 }) {
+  const minutesTooLarge = minutes.trim() !== '' && Number(minutes) > MAX_MINUTES
   return (
     <section className="mx-3 my-3.5 overflow-hidden glass rounded-3xl">
       <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
@@ -565,10 +574,18 @@ function CheckinEditor({
               value={minutes}
               onChange={(e) => onMinutes(e.target.value.replace(/[^\d]/g, '').slice(0, 4))}
               placeholder="例：10"
-              className="w-full rounded-xl border border-mist-main/25 px-3 py-2.5 text-[14px] outline-none focus:border-[#4F6F92]"
+              aria-invalid={minutesTooLarge}
+              className={`w-full rounded-xl border px-3 py-2.5 text-[14px] outline-none focus:border-[#4F6F92] ${
+                minutesTooLarge ? 'border-[#9A3834] bg-[#FBEDEC]' : 'border-mist-main/25'
+              }`}
             />
             <span className="shrink-0 text-[13px] text-[#44556A]">分鐘</span>
           </div>
+          {minutesTooLarge && (
+            <p className="mt-1.5 text-[12.5px] font-bold leading-relaxed text-[#9A3834]">
+              {MINUTES_TOO_LARGE}
+            </p>
+          )}
         </label>
         <label className="block">
           <span className="mb-1.5 block text-[13px] font-bold text-[#3B5878]">今天的感受或發現</span>
