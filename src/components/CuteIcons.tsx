@@ -175,3 +175,15 @@ export function CalendarIcon({ size = 56 }: { size?: number }) {
     </Svg>
   )
 }
+
+/** CPR 安妮考核：奶油色貓，額頭一條心電圖 */
+export function PulseIcon({ size = 56 }: { size?: number }) {
+  return (
+    <Svg size={size}>
+      <Cat fill={CREAM}>
+        <path d="M18 22 h5 l2 -4 l3 7 l2.5 -5 l1.5 2 h6" stroke="#D9534F" strokeWidth="2.2" />
+        <Face />
+      </Cat>
+    </Svg>
+  )
+}

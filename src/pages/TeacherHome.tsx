@@ -5,7 +5,7 @@ import { useAuth } from '../auth'
 import Layout from '../components/Layout'
 import HealthQrDialog from '../components/HealthQrDialog'
 import {
-  CalendarIcon, ClipboardIcon, HeartIcon, MonitorIcon, ShieldIcon, SproutIcon,
+  CalendarIcon, ClipboardIcon, HeartIcon, MonitorIcon, PulseIcon, ShieldIcon, SproutIcon,
 } from '../components/CuteIcons'
 import { ErrorBox } from '../components/ui'
 import { listClasses } from '../lib/api'
@@ -126,6 +126,15 @@ export default function TeacherHome() {
           desc="建立會議、iPad 手寫簽名或掃 QR code 簽到、簡易會議紀錄與匯出。會另開新分頁，要在那一頁用 Google 再登入一次。"
           href="https://leilei1221.github.io/meeting-checkin/"
           cta="開啟會議簽到 ↗"
+        />
+
+        <Card
+          title="CPR 安妮考核台"
+          icon={<PulseIcon />}
+          tone="bg-cute-pink"
+          desc="藍牙連線微電腦安妮，即時監控壓胸、吹氣與中斷時間，考完一鍵匯出成績。會另開新分頁；要用 Android 平板或手機的 Chrome 開才能連安妮。"
+          href="https://leilei1221.github.io/annie-monitor/"
+          cta="開啟安妮考核台 ↗"
         />
       </div>
 
