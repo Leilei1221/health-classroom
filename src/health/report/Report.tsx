@@ -85,14 +85,14 @@ export default function Report({ preview }: { preview?: StudentProfile }) {
             如果你期初有量，可能是當時沒有送出成功，請跟老師說一聲。
           </Note>
         ) : (
-          <Body a={data.initial} b={data.final} />
+          <Body a={data.initial} b={data.final} isPreview={isPreview} />
         )}
       </div>
     </div>
   )
 }
 
-function Body({ a, b }: { a: HealthMeasurement; b: HealthMeasurement }) {
+function Body({ a, b, isPreview }: { a: HealthMeasurement; b: HealthMeasurement; isPreview: boolean }) {
   const main = useMemo(() => compare(MAIN_METRICS, a, b), [a, b])
   const subcut = useMemo(() => compare(SUBCUT_METRICS, a, b), [a, b])
   const muscle = useMemo(() => compare(MUSCLE_METRICS, a, b), [a, b])
@@ -158,6 +158,13 @@ function Body({ a, b }: { a: HealthMeasurement; b: HealthMeasurement }) {
       </Panel>
 
       <div className="mx-3 mt-4 flex flex-col gap-2.5 print:hidden">
+        {/* 期末送出後會直接跳來這一頁，抄錯數字要有路回去改 */}
+        <Link
+          to={isPreview ? '/health/register/preview' : '/health/register'}
+          className="w-full rounded-xl border border-mist-main/25 bg-white py-3 text-center text-[15px] font-medium text-[#3F5F82]"
+        >
+          數字抄錯了？回去修改期末數值
+        </Link>
         <button
           onClick={() => window.print()}
           className="w-full rounded-xl bg-[#4F6F92] py-3.5 text-[15px] font-bold text-white"

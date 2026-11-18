@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { friendlyError } from '../lib/errors'
 import HealthHeader from './Header'
@@ -28,6 +28,7 @@ function outOfRange(f: Field, raw: string): boolean {
  */
 export default function HealthRegister({ preview }: { preview?: StudentProfile }) {
   const { student: signedInStudent } = useAuth()
+  const navigate = useNavigate()
   const isPreview = preview !== undefined
   const student = preview ?? signedInStudent
   const [values, setValues] = useState<Values>({})
@@ -93,7 +94,11 @@ export default function HealthRegister({ preview }: { preview?: StudentProfile }
         if (raw === undefined || raw.trim() === '') { row[f.key] = null; return }
         row[f.key] = f.key === 'machine_no' ? raw.trim() : Number(raw)
       })
-      setSaved(await saveMeasurement(row as never))
+      const row2 = await saveMeasurement(row as never)
+      // 期末：送出成功直接到比較頁（蕾蕾老師 11/18）。
+      // 只有寫入成功才跳；失敗會落到下面的 catch，學生留在原頁、填的內容都在
+      if (REGISTER_ROUND === 'final') { navigate('/health/report'); return }
+      setSaved(row2)
       window.scrollTo({ top: 0, behavior: 'smooth' })
     } catch (e) {
       setError(friendlyError(e))
@@ -298,16 +303,6 @@ function Result({ bmi, whr, sbp, dbp, onEdit }: {
         這裡看到的是參考範圍，不是診斷。數值只是提供你認識自己身體的線索，
         接下來的課會一起討論可以怎麼調整。
       </div>
-      {REGISTER_ROUND === 'final' && (
-        <div className="mx-3 mt-4">
-          <Link
-            to="/health/report"
-            className="block w-full rounded-xl bg-[#4F6F92] py-3.5 text-center text-[15px] font-bold text-white"
-          >
-            看我的期末成果
-          </Link>
-        </div>
-      )}
       <div className="mx-3 mt-4">
         <button onClick={onEdit} className="w-full rounded-xl border border-mist-main/25 bg-white py-3 text-[15px] font-medium text-[#3F5F82]">
           修改我填的數值
