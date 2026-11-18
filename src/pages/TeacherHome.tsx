@@ -84,6 +84,7 @@ export default function TeacherHome() {
             { to: '/health/detail', label: '學生明細', tone: 'bg-cute-blue' },
             { to: '/health/review', label: 'SMART 與行動批改', tone: 'bg-cute-green' },
             { to: '/health/teacher', label: '需要關心的學生', tone: 'bg-cute-pink' },
+            { to: '/health/bodyage', label: '身體年齡統計', tone: 'bg-cute-lavender' },
           ]}
           foot={
             <button onClick={() => setQr(true)} className="flex min-h-11 items-center text-sm font-bold underline underline-offset-4 hover:text-cute-mute">

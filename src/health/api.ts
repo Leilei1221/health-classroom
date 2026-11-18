@@ -39,10 +39,24 @@ export async function healthEnabledForMe(): Promise<boolean> {
 export const semesterKey = (p: StudentProfile) => `${p.academic_year}-${p.semester}`
 
 /**
- * 第一版只做期初；期中／期末沿用同一頁，改這個常數即可。
- * 登記頁與進度表共用，兩邊不會各說各話。
+ * 分析頁與 SMART 目標的基準：一律看期初那一次。
+ * 期末開放登記之後，這兩頁的內容不跟著變（目標是依期初數值訂的）。
  */
 export const ROUND: MeasurementRound = 'initial'
+
+/**
+ * 登記頁現在寫入哪一次測量。登記頁、登記頁的 BMI 燈號、班級進度表的
+ * 「身體數值登記」欄共用這一個值，三邊不會各說各話。
+ *
+ * 2026-11-18 蕾蕾老師決定「全校一起切換」：期末週改成 'final'，
+ * 期初那一筆完全不動（unique 鍵含 round，寫期末是另一列）。
+ * 要切回期初就把這裡改回 'initial' 再部署。
+ */
+export const REGISTER_ROUND: MeasurementRound = 'final'
+
+export const ROUND_LABEL: Record<MeasurementRound, string> = {
+  initial: '期初', mid: '期中', final: '期末',
+}
 
 export async function getMeasurement(
   email: string, semester: string, round: MeasurementRound,
@@ -568,7 +582,7 @@ export async function listProgress(semesters: string[]): Promise<ProgressStudent
   const [measurement, lifestyle, h85210, pyramid, sleep, mood, stress, depression, plate, goal] =
     await Promise.all([
       supabase.from('hc_health_measurement').select('student_email')
-        .in('semester', semesters).eq('round', ROUND),
+        .in('semester', semesters).eq('round', REGISTER_ROUND),
       sc().not('lifestyle', 'is', null),
       // h85210 是 NOT NULL 預設 '{}'，不能用 is null 判斷；
       // 有送出過就一定寫滿七個 key，所以檢查其中一個 key 在不在
@@ -818,5 +832,75 @@ export async function listClassDetail(
       rounds: byRound.get(account) ?? { initial: null, mid: null, final: null },
       selfcheck: scByEmail.get(account) ?? null,
     }
+  })
+}
+
+/* ----------------------------------------- 各班身體年齡統計（只有人數，可投影） */
+
+export interface BodyAgeByClass {
+  class_id: string
+  /** 期初、期末各自有填身體年齡的值；只用來數人數與算平均，畫面不列個人 */
+  initial: number[]
+  final: number[]
+  /** 期初、期末都有身體年齡的人，期末 − 期初 */
+  deltas: number[]
+}
+
+/**
+ * 去年學習單最後那張「各班期初年齡區間統計」。
+ *
+ * 這一頁可能會投影給學生看，所以跟班級進度表一樣守「能不查就不查」：
+ * 只 select 身體年齡、round、email 三欄，體重、體脂這些一個都不撈。
+ * 個人的身體年齡會進瀏覽器（要分區間總得有數字），但畫面只印人數與平均，
+ * 不印姓名、座號、也不印單一個人的值。
+ */
+export async function listBodyAgeByClass(classes: ClassRow[]): Promise<BodyAgeByClass[]> {
+  if (classes.length === 0) return []
+  const roster = unwrap<{ class_id: string; email: string; login_email: string | null }[]>(
+    await supabase
+      .from('hc_students')
+      .select('class_id, email, login_email')
+      .eq('is_active', true)
+      .in('class_id', classes.map((c) => c.id)),
+  )
+  const semesters = [...new Set(classes.map((c) => `${c.academic_year}-${c.semester}`))]
+  const accounts = [...new Set(roster.map((s) => s.login_email ?? s.email))]
+  if (accounts.length === 0) return classes.map((c) => ({ class_id: c.id, initial: [], final: [], deltas: [] }))
+
+  const rows = unwrap<{ student_email: string; semester: string; round: MeasurementRound; body_age: number | null }[]>(
+    await supabase
+      .from('hc_health_measurement')
+      .select('student_email, semester, round, body_age')
+      .in('semester', semesters)
+      .in('round', ['initial', 'final'])
+      .in('student_email', accounts),
+  )
+
+  const semOf = new Map(classes.map((c) => [c.id, `${c.academic_year}-${c.semester}`]))
+  const key = (email: string, sem: string, round: string) => `${email}|${sem}|${round}`
+  const age = new Map<string, number>()
+  for (const r of rows) {
+    if (r.body_age !== null && r.body_age !== undefined) {
+      age.set(key(r.student_email, r.semester, r.round), Number(r.body_age))
+    }
+  }
+
+  return classes.map((c) => {
+    const sem = semOf.get(c.id)!
+    const out: BodyAgeByClass = { class_id: c.id, initial: [], final: [], deltas: [] }
+    // 一個帳號只算一次：同一人若重複出現在名單上，不要算兩次
+    const seen = new Set<string>()
+    for (const s of roster) {
+      if (s.class_id !== c.id) continue
+      const acc = s.login_email ?? s.email
+      if (seen.has(acc)) continue
+      seen.add(acc)
+      const a = age.get(key(acc, sem, 'initial'))
+      const b = age.get(key(acc, sem, 'final'))
+      if (a !== undefined) out.initial.push(a)
+      if (b !== undefined) out.final.push(b)
+      if (a !== undefined && b !== undefined) out.deltas.push(b - a)
+    }
+    return out
   })
 }

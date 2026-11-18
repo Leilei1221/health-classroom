@@ -19,6 +19,7 @@ const DEMOS: { to: string; label: string; desc: string }[] = [
   { to: '/health/analysis/preview', label: '健康分析', desc: '把登記的數值換成看得懂的話' },
   { to: '/health/goal/preview', label: 'SMART 目標', desc: '訂一個做得到的目標' },
   { to: '/health/checkin/preview', label: '第一週打卡', desc: '目標訂完之後的七天紀錄' },
+  { to: '/health/report/preview', label: '期末成果', desc: '期初與期末比較、身體年齡評語（範例數字）' },
 ]
 
 export default function Demo() {

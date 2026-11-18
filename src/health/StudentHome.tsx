@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { myLinks } from '../lib/api'
+import { REGISTER_ROUND } from './api'
 import type { StudentLink, StudentProfile } from '../lib/types'
 import GlassPage from '../components/GlassPage'
 
@@ -21,13 +22,15 @@ import GlassPage from '../components/GlassPage'
  * 那支 RPC 回來的清單已經過濾好也排好了，這裡直接照著印。
  */
 
-const TASKS: { to: string; label: string; desc: string; icon: string }[] = [
-  { to: '/health/register', label: '身體數值登記', desc: '身高、體重、血壓等，量完當場填', icon: 'M3 12h4l2.5-6 4 12 2.5-6H21' },
+/** 期末登記期間，登記卡片的圖示改成跟登記頁一樣的紫色，提醒這次是期末 */
+const TASKS: { to: string; label: string; desc: string; icon: string; tile?: string }[] = [
+  { to: '/health/register', label: REGISTER_ROUND === 'final' ? '期末身體數值登記' : '身體數值登記', desc: REGISTER_ROUND === 'final' ? '期末量完當場填，填今天量的數字' : '身高、體重、血壓等，量完當場填', tile: REGISTER_ROUND === 'final' ? 'bg-[#6A4C93]' : undefined, icon: 'M3 12h4l2.5-6 4 12 2.5-6H21' },
   { to: '/health/selfcheck', label: '課本自我檢測', desc: '課本上的量表，填完看自己的結果', icon: 'M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1zM8 6H6a1 1 0 0 0-1 1v13a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V7a1 1 0 0 0-1-1h-2M9 14l2 2 4-4' },
   { to: '/health/plate', label: '我的餐盤', desc: '記錄六大類食物吃了幾份', icon: 'M4 11h16a8 8 0 0 1-16 0zM9 7c0-1.5 1-2 1-3.5M14 7c0-1.5 1-2 1-3.5' },
   { to: '/health/analysis', label: '健康分析', desc: '把你填的數值換成看得懂的話', icon: 'M5 20V11M12 20V4M19 20v-6' },
   { to: '/health/goal', label: 'SMART 目標', desc: '訂一個這學期做得到的目標', icon: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM12 7a5 5 0 1 0 0 10 5 5 0 0 0 0-10zM12 11a1 1 0 1 0 0 2 1 1 0 0 0 0-2z' },
   { to: '/health/checkin', label: '第一週打卡', desc: '目標訂好之後的七天紀錄', icon: 'M5 5h14a1 1 0 0 1 1 1v13a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6a1 1 0 0 1 1-1zM4 10h16M8 3v4M16 3v4M9 15l2 2 4-4' },
+  { to: '/health/report', label: '期末成果', desc: '期初和期末比一比，看這學期的變化', icon: 'M4 20h16M7 16V9M12 16V5M17 16v-4' },
 ]
 
 /** 課程活動的連結來自資料庫，沒有各自的圖示，統一用「另開分頁」的圖 */
@@ -118,7 +121,7 @@ export default function StudentHome({ student, isPreview, healthEnabled }: {
           {healthEnabled ? (
             TASKS.map((t) => (
               <Link key={t.to} to={isPreview ? `${t.to}/preview` : t.to} className={CARD}>
-                <div className="glass-tile flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white">
+                <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-white ${t.tile ?? 'glass-tile'}`}>
                   <Icon d={t.icon} />
                 </div>
                 <div className="min-w-0 flex-1">

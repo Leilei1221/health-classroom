@@ -37,12 +37,15 @@ export default function App() {
       <Route path="/health/detail" element={<HealthGate page="detail" />} />
       {/* SMART 與行動紀錄批改：教師私用，不投影 */}
       <Route path="/health/review" element={<HealthGate page="review" />} />
+      {/* 各班身體年齡統計：只有人數與平均，可以投影 */}
+      <Route path="/health/bodyage" element={<HealthGate page="bodyage" />} />
 
       <Route path="/health/selfcheck" element={<HealthGate page="selfcheck" />} />
       <Route path="/health/analysis" element={<HealthGate page="analysis" />} />
       <Route path="/health/goal" element={<HealthGate page="goal" />} />
       <Route path="/health/checkin" element={<HealthGate page="checkin" />} />
       <Route path="/health/plate" element={<HealthGate page="plate" />} />
+      <Route path="/health/report" element={<HealthGate page="report" />} />
 
       {/* 教師預覽學生畫面；非教師身分時與上面三條相同 */}
       <Route path="/health/preview" element={<HealthGate page="home" preview />} />
@@ -52,6 +55,7 @@ export default function App() {
       <Route path="/health/goal/preview" element={<HealthGate page="goal" preview />} />
       <Route path="/health/checkin/preview" element={<HealthGate page="checkin" preview />} />
       <Route path="/health/plate/preview" element={<HealthGate page="plate" preview />} />
+      <Route path="/health/report/preview" element={<HealthGate page="report" preview />} />
 
       {loading ? (
         <Route path="*" element={<Spinner />} />
