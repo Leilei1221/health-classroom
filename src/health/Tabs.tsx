@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom'
 
-export type HealthTab = 'register' | 'selfcheck' | 'analysis' | 'goal' | 'checkin' | 'plate'
+export type HealthTab = 'register' | 'selfcheck' | 'analysis' | 'goal' | 'checkin' | 'plate' | 'report'
 
 const TABS: { key: HealthTab; label: string; path: string }[] = [
   { key: 'register', label: '登記', path: '/health/register' },
@@ -9,6 +9,7 @@ const TABS: { key: HealthTab; label: string; path: string }[] = [
   { key: 'analysis', label: '分析', path: '/health/analysis' },
   { key: 'goal', label: '目標', path: '/health/goal' },
   { key: 'checkin', label: '打卡', path: '/health/checkin' },
+  { key: 'report', label: '期末成果', path: '/health/report' },
 ]
 
 /**

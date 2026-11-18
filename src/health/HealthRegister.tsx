@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react'
+import { Link } from 'react-router-dom'
 import { useAuth } from '../auth'
 import { friendlyError } from '../lib/errors'
 import HealthHeader from './Header'
 import Handover from './Handover'
-import { ROUND, getMeasurement, saveMeasurement, semesterKey } from './api'
+import { REGISTER_ROUND, ROUND_LABEL, getMeasurement, saveMeasurement, semesterKey } from './api'
 import { ALL_FIELDS, REQUIRED, SECTIONS, type Field } from './fields'
 import {
   STUDENT_GRADE, bmiAge, calcBmi, calcFatKg, calcWhr,
@@ -44,7 +45,7 @@ export default function HealthRegister({ preview }: { preview?: StudentProfile }
   useEffect(() => {
     if (!student) return
     if (isPreview) { setLoading(false); return }
-    getMeasurement(student.email, semester, ROUND)
+    getMeasurement(student.email, semester, REGISTER_ROUND)
       .then((row) => {
         if (!row) return
         const next: Values = {}
@@ -85,7 +86,7 @@ export default function HealthRegister({ preview }: { preview?: StudentProfile }
     setSaving(true); setError(''); setLoadWarning('')
     try {
       const row: Record<string, unknown> = {
-        student_email: student.email, semester, round: ROUND,
+        student_email: student.email, semester, round: REGISTER_ROUND,
       }
       ALL_FIELDS.forEach((f) => {
         const raw = values[f.key]
@@ -138,6 +139,14 @@ export default function HealthRegister({ preview }: { preview?: StudentProfile }
             自動計算也會跟著動，但送出已停用，不會寫入任何資料。
           </div>
         )}
+
+        {/* 期初、期末用同一頁，學生一定要看得出這次填的是哪一次 */}
+        <div className="mx-3 mt-3 rounded-2xl border border-mist-main/25 bg-white/70 px-4 py-3 text-sm text-[#2B3A4A]">
+          這次登記的是 <strong className="text-[#3F5F82]">{ROUND_LABEL[REGISTER_ROUND]}</strong> 的測量
+          {REGISTER_ROUND !== 'initial' && (
+            <span className="text-[#44556A]">。期初的紀錄會保留，不會被蓋掉。</span>
+          )}
+        </div>
 
         {loadWarning && (
           <div className="mx-3 mt-3 rounded-lg bg-[#FDF3E3] px-4 py-3 text-sm text-[#7A4A08]">
@@ -254,7 +263,7 @@ function Result({ bmi, whr, sbp, dbp, onEdit }: {
     這學期健康模組只有高三在用，見 rules.ts 的說明。
     真的判不出年齡時寧可不顯示這一列，也不要挑一列來湊。
   */
-  const bmiVerdict = bmi === null ? null : judgeBmi(bmi, bmiAge(STUDENT_GRADE, ROUND))
+  const bmiVerdict = bmi === null ? null : judgeBmi(bmi, bmiAge(STUDENT_GRADE, REGISTER_ROUND))
   if (bmi !== null && bmiVerdict) items.push(['BMI', bmi.toFixed(1), bmiVerdict])
   if (!Number.isNaN(sbp) && !Number.isNaN(dbp)) {
     items.push(['血壓', `${sbp} / ${dbp}`, judgeBp(sbp, dbp)])
@@ -267,7 +276,9 @@ function Result({ bmi, whr, sbp, dbp, onEdit }: {
         <div className="border-b border-white/70 bg-white/40 px-4 pb-3 pt-3.5">
           <h3 className="text-base font-bold">今天的紀錄</h3>
           <p className="mt-0.5 text-[13px] text-[#44556A]">
-            這些數字是這學期的起點，之後會拿來跟自己比較
+            {REGISTER_ROUND === 'initial'
+              ? '這些數字是這學期的起點，之後會拿來跟自己比較'
+              : '這是期末的紀錄，可以去「期末成果」看看這學期的變化'}
           </p>
         </div>
         {items.map(([name, value, v]) => (
@@ -287,6 +298,16 @@ function Result({ bmi, whr, sbp, dbp, onEdit }: {
         這裡看到的是參考範圍，不是診斷。數值只是提供你認識自己身體的線索，
         接下來的課會一起討論可以怎麼調整。
       </div>
+      {REGISTER_ROUND === 'final' && (
+        <div className="mx-3 mt-4">
+          <Link
+            to="/health/report"
+            className="block w-full rounded-xl bg-[#4F6F92] py-3.5 text-center text-[15px] font-bold text-white"
+          >
+            看我的期末成果
+          </Link>
+        </div>
+      )}
       <div className="mx-3 mt-4">
         <button onClick={onEdit} className="w-full rounded-xl border border-mist-main/25 bg-white py-3 text-[15px] font-medium text-[#3F5F82]">
           修改我填的數值
