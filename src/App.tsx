@@ -46,6 +46,8 @@ export default function App() {
       <Route path="/health/checkin" element={<HealthGate page="checkin" />} />
       <Route path="/health/plate" element={<HealthGate page="plate" />} />
       <Route path="/health/report" element={<HealthGate page="report" />} />
+      {/* 身體群島：另開的新入口，還沒放到學生首頁，要直接打網址才會到 */}
+      <Route path="/health/island" element={<HealthGate page="island" />} />
 
       {/* 教師預覽學生畫面；非教師身分時與上面三條相同 */}
       <Route path="/health/preview" element={<HealthGate page="home" preview />} />
@@ -56,6 +58,7 @@ export default function App() {
       <Route path="/health/checkin/preview" element={<HealthGate page="checkin" preview />} />
       <Route path="/health/plate/preview" element={<HealthGate page="plate" preview />} />
       <Route path="/health/report/preview" element={<HealthGate page="report" preview />} />
+      <Route path="/health/island/preview" element={<HealthGate page="island" preview />} />
 
       {loading ? (
         <Route path="*" element={<Spinner />} />

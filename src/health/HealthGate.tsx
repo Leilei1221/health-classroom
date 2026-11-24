@@ -10,6 +10,7 @@ import SmartGoal from './goal/SmartGoal'
 import WeekOneCheckin from './checkin/WeekOneCheckin'
 import StudentHome from './StudentHome'
 import Report from './report/Report'
+import BodyIslands from './island/BodyIslands'
 import BodyAgeStats from './teacher/BodyAgeStats'
 import FlagList from './teacher/FlagList'
 import Progress from './teacher/Progress'
@@ -18,7 +19,7 @@ import GoalReview from './teacher/GoalReview'
 import { PREVIEW_STUDENT } from './preview'
 import type { StudentProfile } from '../lib/types'
 
-export type HealthPage = 'home' | 'register' | 'selfcheck' | 'analysis' | 'goal' | 'checkin' | 'plate' | 'report' | 'teacher' | 'progress' | 'detail' | 'review' | 'bodyage'
+export type HealthPage = 'home' | 'island' | 'register' | 'selfcheck' | 'analysis' | 'goal' | 'checkin' | 'plate' | 'report' | 'teacher' | 'progress' | 'detail' | 'review' | 'bodyage'
 
 /** 只有教師看得到的頁面，分流方式與學生頁相反（見下面的註解） */
 type TeacherPage = 'teacher' | 'progress' | 'detail' | 'review' | 'bodyage'
@@ -35,6 +36,8 @@ const PAGES: Record<Exclude<HealthPage, TeacherPage | 'home'>, (p?: StudentProfi
   checkin: (p) => <WeekOneCheckin preview={p} />,
   plate: (p) => <Plate preview={p} />,
   report: (p) => <Report preview={p} />,
+  // 身體群島：另開的新入口，學生現在用的入口頁（home）沒有動
+  island: (p) => <BodyIslands mode={p ? 'preview' : 'live'} studentName={p?.name} />,
 }
 
 const PAGE_NAMES: Record<Exclude<HealthPage, TeacherPage | 'home'>, string> = {
@@ -45,6 +48,7 @@ const PAGE_NAMES: Record<Exclude<HealthPage, TeacherPage | 'home'>, string> = {
   checkin: '第一週打卡',
   plate: '我的餐盤',
   report: '期末成果',
+  island: '身體群島',
 }
 
 /**
